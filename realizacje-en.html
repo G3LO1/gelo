@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKW - Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>document.documentElement.className += " js";</script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index-en.html" class="nav-logo" aria-label="AKW - home page">
+            <img src="logo-icon.png" alt="" width="18" height="40">
+        </a>
+        <ul class="nav-links">
+            <li class="lang-switcher">
+                <a href="realizacje.html" aria-label="Wersja polska">PL</a>
+                <span class="separator">|</span>
+                <span class="active-lang">EN</span>
+            </li>
+            <li><a href="index-en.html">Home</a></li>
+            <li class="nav-dropdown">
+                <button type="button" class="nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">Our offer
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="nav-dropdown-panel">
+                    <a href="uslugi-en.html" class="offer-card">
+                        <span class="offer-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
+                        <span class="offer-text"><strong>Services</strong><span class="offer-desc">Design, knitting production, finishing and packaging.</span></span>
+                    </a>
+                    <a href="realizacje-en.html" class="offer-card">
+                        <span class="offer-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span>
+                        <span class="offer-text"><strong>Portfolio</strong><span class="offer-desc">A gallery of our work – sweaters, cardigans, dresses and accessories.</span></span>
+                    </a>
+                </div>
+            </li>
+            <li><a href="kontakt-en.html">Contact</a></li>
+        </ul>
+        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <main>
+
+    <header class="page-header">
+        <h1>Portfolio</h1>
+    </header>
+
+    <section class="container">
+        <p class="portfolio-intro scroll-animate reveal-top-bottom">A selection of our knitting production. Click a photo to look closely at the knit and finish detail.</p>
+
+        <div class="portfolio-filters scroll-animate reveal-top-bottom" role="group" aria-label="Filter portfolio">
+            <button class="filter-btn is-active" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter-btn" data-filter="swetry" aria-pressed="false">Sweaters</button>
+            <button class="filter-btn" data-filter="kardigany" aria-pressed="false">Cardigans</button>
+            <button class="filter-btn" data-filter="sukienki" aria-pressed="false">Dresses</button>
+            <button class="filter-btn" data-filter="akcesoria" aria-pressed="false">Accessories</button>
+        </div>
+
+        <div class="portfolio-grid scroll-animate reveal-top-bottom" id="portfolioGrid">
+
+            <button class="portfolio-item" data-category="swetry" data-caption="Cotton sweater — private-label production" aria-label="Enlarge: Cotton sweater">
+                <img src="portfolio-swetry-01.jpg" alt="Cotton sweater" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Cotton sweater</span>
+            </button>
+
+            <button class="portfolio-item" data-category="swetry" data-caption="Ribbed sweater — wool knit" aria-label="Enlarge: Ribbed sweater">
+                <img src="portfolio-swetry-02.jpg" alt="Ribbed wool-knit sweater" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Ribbed sweater</span>
+            </button>
+
+            <!-- Example tile WITHOUT a caption (photo only): data-caption and the .portfolio-caption span are omitted -->
+            <button class="portfolio-item" data-category="swetry" aria-label="Enlarge photo">
+                <img src="portfolio-swetry-03.jpg" alt="Knitted sweater" width="800" height="1000" loading="lazy">
+            </button>
+
+            <button class="portfolio-item" data-category="kardigany" data-caption="Buttoned cardigan — cable knit" aria-label="Enlarge: Buttoned cardigan">
+                <img src="portfolio-kardigany-01.jpg" alt="Buttoned cable-knit cardigan" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Buttoned cardigan</span>
+            </button>
+
+            <button class="portfolio-item" data-category="kardigany" data-caption="Oversize cardigan — wool/acrylic blend" aria-label="Enlarge: Oversize cardigan">
+                <img src="portfolio-kardigany-02.jpg" alt="Oversize wool and acrylic blend cardigan" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Oversize cardigan</span>
+            </button>
+
+            <button class="portfolio-item" data-category="sukienki" data-caption="Knitted dress — autumn/winter collection" aria-label="Enlarge: Knitted dress">
+                <img src="portfolio-sukienki-01.jpg" alt="Knitted dress from the autumn/winter collection" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Knitted dress</span>
+            </button>
+
+            <button class="portfolio-item" data-category="akcesoria" data-caption="Hat and scarf — winter set" aria-label="Enlarge: Hat and scarf">
+                <img src="portfolio-akcesoria-01.jpg" alt="Knitted hat and scarf winter set" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Hat and scarf</span>
+            </button>
+
+            <button class="portfolio-item" data-category="akcesoria" data-caption="Knitted snood — year-round accessory" aria-label="Enlarge: Knitted snood">
+                <img src="portfolio-akcesoria-02.jpg" alt="Knitted snood, year-round accessory" width="800" height="1000" loading="lazy">
+                <span class="portfolio-caption">Knitted snood</span>
+            </button>
+
+        </div>
+    </section>
+
+    <!-- Lightbox (image preview) -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+        <button class="lightbox-close" type="button" aria-label="Close preview">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <button class="lightbox-prev" type="button" aria-label="Previous image">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="lightbox-next" type="button" aria-label="Next image">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <div class="lightbox-content">
+            <img class="lightbox-img" src="" alt="">
+            <p class="lightbox-caption"></p>
+        </div>
+    </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h3>Address</h3>
+                <p>
+                    AKW Karol Wójcik<br>
+                    ul. Dębowa 12,<br>
+                    26-600 Radom<br>
+                    NIP: 9482193202
+                </p>
+            </div>
+            <div class="footer-col">
+                <h3>Contact</h3>
+                <p>We are <strong>available from 8:00 AM to 4:00 PM</strong> on working days.</p>
+                <p><a href="tel:+48537445353">+48 537 445 353</a></p>
+                <p><a href="mailto:info@dziewiarniamrowiec.pl">info@dziewiarniamrowiec.pl</a></p>
+            </div>
+            <div class="footer-col">
+                <h3>Information</h3>
+                <ul class="footer-links">
+                    <li><a href="index-en.html">Home</a></li>
+                    <li><a href="uslugi-en.html">Services</a></li>
+                    <li><a href="realizacje-en.html">Portfolio</a></li>
+                    <li><a href="kontakt-en.html">Contact</a></li>
+                    <li><a href="polityka-prywatnosci-en.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-cta">
+                <a href="kontakt-en.html" class="footer-cta-btn">Request a quote</a>
+                <div class="footer-social">
+                    <a href="https://www.linkedin.com/company/akw-karol-w%C3%B3jcik/?viewAsMember=true" target="_blank" rel="noopener noreferrer" aria-label="AKW on LinkedIn" class="social-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.114 20.452H3.558V9h3.556v11.452z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AKW Karol Wójcik – production of knitwear and accessories</p>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
