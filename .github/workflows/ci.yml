@@ -79,3 +79,17 @@ jobs:
         run: bash plugins/roblox-studio/skills/roblox-luau-codegen/scripts/check.sh plugins/roblox-studio/skills/roblox-luau-codegen/assets/template src
       - name: Lint example
         run: bash plugins/roblox-studio/skills/roblox-luau-codegen/scripts/check.sh examples/undead-eats src
+
+  blender:
+    name: Blender check (bpy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install bpy
+      - name: blender_check.py against real Blender
+        run: |
+          mkdir -p "$RUNNER_TEMP/blender"
+          python tests/roblox-animation-vfx/blender_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/blender_check.py "$RUNNER_TEMP/blender"

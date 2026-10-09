@@ -40,6 +40,6 @@ The build script never deletes: a ScreenGui with the same name is kept as `<Name
 Go through the checklist at the end of `references/studio.md`. Don't claim the UI looks right on phones unless a screenshot or emulator check actually happened; list what still needs a human eye.
 
 ## 6. Hand-off
-- Images to upload (Asset Manager > Bulk Import) and where their IDs go (`images` in the spec, then rebuild); no `rbxassetid://0` may ship.
+- Images to upload (Asset Manager > Bulk Import) and where their IDs go (`images` in the spec, then rebuild); no `rbxassetid://0` may ship. Item/shop icons rendered from 3D models: with a connected Blender MCP server Claude can render them with one camera/light/outline setup for all items (`../roblox-animation-vfx/references/blender.md` section 8); otherwise ViewportFrames in the UI or renders by the team.
 - The element names and tags the code should use; offer `roblox-luau-codegen` to write the controllers (UI pattern in its `references/patterns.md`: bind by name, `DataController.OnChanged`, `Net.fire`).
 - Tokens live in `ReplicatedStorage.UIStyles.<Name>`: editing them in the Style Editor restyles the game (themes, events).

@@ -60,6 +60,15 @@ for name in ["glow", "star", "spark", "smoke", "ring"]:
     assert a.getchannel("A").getextrema()[1] > 200, f"{name} is empty"
 PY
 
+echo "blender_check.py (real Blender via the bpy module; set BPY_PYTHON to a Python with bpy installed)"
+if [ -n "${BPY_PYTHON:-}" ] || python3 -c "import bpy" 2>/dev/null; then
+	"${BPY_PYTHON:-python3}" $HERE/blender_test.py $SKILL/scripts/blender_check.py "$TMP" > $TMP/blender.txt 2>&1; code=$?
+	grep -E "^  (ok|FAIL)|passed" $TMP/blender.txt
+	[ $code -eq 0 ] && ok "blender_test.py" || bad "blender_test.py"
+else
+	echo "  skipped: no Python with bpy (pip install bpy needs the Python version Blender ships for)"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 [ $fail -eq 0 ]

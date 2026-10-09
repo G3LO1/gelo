@@ -1,6 +1,6 @@
 # Animation reference
 
-Checked against create.roblox.com/docs/animation (editor, events, curve editor, IK, capture, graph editor, state machines, using animations) on 9 October 2026.
+Checked against create.roblox.com/docs/animation (editor, events, curve editor, IK, capture, graph editor, state machines, using animations), characters/adaptive-animation and avatar/emotes/import on 9 October 2026. Blender workflow: `blender.md`.
 
 ## Contents
 1. Rig decision
@@ -14,7 +14,7 @@ Checked against create.roblox.com/docs/animation (editor, events, curve editor, 
 
 ## 1. Rig decision
 - **Players' own R15 avatars** (most games): animations must work on any body shape and scale; test on a tall, a short and a blocky avatar.
-- **Custom StarterCharacter**: full control of proportions and style, loses avatar self-expression.
+- **Custom StarterCharacter**: full control of proportions and style, loses avatar self-expression. Import it as a **Custom** rig and set up **Adaptive Animation**: Studio fills a `HumanoidRigDescription` (and `DigitsRigDescription` for fingers) that maps its joints to R15, with joint-assignment and T-pose tools to fix the mapping; then any R15 animation (catalog, emotes, your own) plays on it.
 - **R6**: 6 parts, retro look, simpler to animate; R15 and R6 animations don't play on each other.
 - **Non-humanoid rigs** (monsters, vehicles, props): parts joined with Motor6D (or Bones in a skinned mesh), `AnimationController` + `Animator`. Static or scripted NPCs don't need a Humanoid (cheaper).
 
@@ -38,7 +38,9 @@ Timing guide: hit reactions 0.2-0.4 s, light attacks 0.3-0.6 s with a readable a
 Default character animations can be replaced by changing the `AnimationId` values inside the character's `Animate` script (run, walk, jump, idle Animation1/2, fall, swim, swimidle, climb) from a server script on CharacterAdded, or with catalog animations.
 
 ## 3. Tools
-- **Animation Editor** (Avatar tab): keyframes and poses, easing per keyframe, **Curve Editor** for per-channel curves, IK in the editor, events track (Show Animation Events), Import from FBX (Blender/Maya/Moon Animator exports). Publish to Roblox to get the asset id.
+- **Animation Editor** (Avatar tab > Clip Editor): keyframes and poses, easing per keyframe, **Curve Editor** for per-channel curves, IK in the editor, events track (Show Animation Events). Publish to Roblox to get the asset id.
+- **Import from FBX** (`...` > Import > From FBX Animation / From File) for Blender, Maya or Moon Animator work: same rig and joint names as the target character (standard R15 hierarchy), 30 FPS, animation in place (no root travel), baked keys, one animation per file. Details and the Blender check script: `blender.md`.
+- **Emotes** for the Marketplace must be a `CurveAnimation` (convert in the Curve Editor before publishing), then an `Animation` object with that id is uploaded as an avatar item.
 - **Animation Capture** (in the Animation Editor; face capture is a beta): record your face with a webcam for animation-compatible (dynamic) heads, or upload full-body video to generate keyframes. Clean up the result by hand: feet contacts, hands on props, loop points.
 - **Animation Graph Editor** (Avatar tab > Graph Editor): node graph for blends and logic without scripting. Nodes such as Clip, Add (base + additive), Blend1D (blend by a parameter, e.g. idle -> run by Speed) and State Machine (named states like Locomotion / Fall / LandIdle with transitions on expressions such as `not Grounded`, `Finished`, transition length and curve; clips with Play Mode `OnceAndHold`). Publishing creates an `AnimationGraphDefinition` asset; load its id on the Animator like any animation, then drive it with `AnimationTrack:SetParameter(name, value)` every frame or on change. Good fit: locomotion blends, layered upper-body actions, jump/fall/land chains.
 - Rig tools: Rig Builder for test rigs, Avatar > Character > My Avatar to animate on your own avatar.

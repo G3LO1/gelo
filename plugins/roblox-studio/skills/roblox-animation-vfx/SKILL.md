@@ -1,6 +1,6 @@
 ---
 name: "roblox-animation-vfx"
-description: "Plan, make and wire Roblox character animations and visual effects: rig choice (R15/R6/custom), the animation list from the game's mechanics, priorities and looping, Animation Editor, Animation Capture, the Animation Graph Editor (blend trees, state machines, SetParameter), markers for hit timing, IKControl, permissions; plus game-feel VFX (hits, pickups, level ups, purchases, heals, dust, explosions, rarity glows, ambience, trails) with ParticleEmitters, beams, trails, highlights and lights, matched to the art style and kept within phone budgets, with quality and reduced-flashing settings. Ships a validated animation manifest -> Luau module generator, an AnimationSet runtime, a Vfx preset library, generated particle textures and a Studio showcase model. Use whenever someone needs animations, an animation list, attack/emote/idle animations, Animation Graph or IK help, effects, particles, VFX, juice or game feel for a Roblox game, or says 'zrób animacje', 'efekty cząsteczkowe', 'dodaj efekty', 'animacja ataku'."
+description: "Plan, make and wire Roblox character animations and visual effects: rig choice (R15/R6/custom), the animation list from the game's mechanics, priorities and looping, Animation Editor, Animation Capture, the Animation Graph Editor (blend trees, state machines, SetParameter), markers for hit timing, IKControl, permissions; plus game-feel VFX (hits, pickups, level ups, purchases, heals, dust, explosions, rarity glows, ambience, trails) with ParticleEmitters, beams, trails, highlights and lights, matched to the art style and kept within phone budgets, with quality and reduced-flashing settings. Uses a Blender MCP server when one is connected (or offers to connect it) for rigs, animation blocking, flipbooks and Roblox-ready FBX exports checked by a script. Ships a validated animation manifest -> Luau module generator, an AnimationSet runtime, a Vfx preset library, generated particle textures and a Studio showcase model. Use whenever someone needs animations, an animation list, attack/emote/idle animations, Animation Graph or IK help, effects, particles, VFX, juice or game feel for a Roblox game, mentions Blender animations or exporting rigs/FBX to Roblox, or says 'zrób animacje', 'efekty cząsteczkowe', 'dodaj efekty', 'animacja ataku', 'animacja w blenderze'."
 ---
 
 # Roblox Animation & VFX
@@ -13,11 +13,12 @@ Answer in the user's language; names, ids and code in English.
 From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type) or the conversation. Ask once with AskUserQuestion (recommended option first) only what is missing:
 - Rig: players' own R15 avatars (recommended default), custom StarterCharacter, R6, non-humanoid NPCs.
 - Who animates: the user in the Animation Editor / Blender / Moon Animator, Animation Capture from video, Creator Store/catalog animations, or Claude only plans and wires them.
+- **Blender**: check whether a Blender MCP server is connected (tools with `blender` in the name; ToolSearch `blender` for deferred ones). If it is, use it for blocking/procedural animations, rig clean-up, flipbook textures and exports. If it isn't and the work needs it, ask once whether they have Blender and offer to connect it, as described in `references/blender.md` section 1; continue with the Studio route if they don't.
 - Art style (cartoon, low-poly, realistic, anime, horror, sci-fi, cozy) if not already known from the map or UI style.
 - Owner account (user or group): it must upload the animations and textures.
 
 ## 2. Plan
-Read `references/animation.md` and `references/vfx.md`.
+Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play).
 1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX, camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small.
 2. **Animation manifest**: write `animations.json` (format in `scripts/anim_manifest.py`; ids 0 until uploaded). Priorities, looping and markers follow the table in the reference. Use an Animation Graph for locomotion blends and jump/fall/land chains when the team has someone to build it; plain tracks otherwise.
 3. **VFX list**: map moments to `Vfx.luau` presets; add or tune presets for the style (colors, sizes, textures, counts) in its `Vfx.Presets` table.
@@ -26,13 +27,14 @@ Read `references/animation.md` and `references/vfx.md`.
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
 - After uploading: paste the ids into `animations.json` and run
   `python3 scripts/anim_manifest.py animations.json -o src/shared/Animations.luau` (errors on missing ids unless `--allow-todo`; warns about wrong priorities, loops, missing hit markers, rig mismatches, duplicates).
 - Copy `assets/AnimationSet.luau` into shared code; one `AnimationSet.new(animator, Animations.Specs)` per character, `play`, `onMarker`, `setParameter` for graphs, `destroy` on death/despawn.
 
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
-- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
 - Check every preset against Roblox's API database and get a model to look at:
   `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).

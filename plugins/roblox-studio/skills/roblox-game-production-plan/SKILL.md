@@ -18,6 +18,7 @@ Ask only for what is missing, with AskUserQuestion (multiple choice, recommended
 - Art direction: style (low-poly, cartoon, realistic...), avatar type (players' own R15 avatars, custom StarterCharacter, or R6).
 - Platforms: phone-first is the default; console/VR only if asked.
 - Owner account: personal or group (it decides who must upload animations and audio).
+- Tools: Blender (and whether a Blender MCP server is or can be connected, so Claude can help with models, rigs, animation blocking and exports), Figma/Photoshop for UI, Roblox Studio MCP. If a Blender MCP server is already connected (tools with `blender` in the name), note it instead of asking. AI-assisted Blender work shortens technical and blocking tasks, not animation polish: size tasks accordingly. Setup and limits: `../roblox-animation-vfx/references/blender.md`.
 
 If the user wants it fast, assume sensible defaults, list the assumptions at the top, and continue.
 
@@ -67,4 +68,4 @@ The exact tasks each person starts with on day 1.
 ```
 
 ## Hand-off
-For the world/map tasks offer the `roblox-map-builder` skill from this plugin. When Roblox Studio MCP tools are connected and the user wants to start, offer to set up the place structure (folders, RemoteEvents, a data module, placeholder UI) from the plan.
+For the world/map tasks offer the `roblox-map-builder` skill from this plugin; for animation and VFX tasks `roblox-animation-vfx` (which also drives Blender through a Blender MCP server when one is connected). When Roblox Studio MCP tools are connected and the user wants to start, offer to set up the place structure (folders, RemoteEvents, a data module, placeholder UI) from the plan.
