@@ -1,4 +1,4 @@
-# gelo-skills
+# roblox-studio
 
 Claude Code skills for making Roblox games in Roblox Studio. They work best with the Roblox Studio MCP tools connected.
 
@@ -8,12 +8,12 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | --- | --- |
 | [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
 
-Skills are namespaced by the plugin, e.g. `/gelo-skills:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
+Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
 ## Install
 
 ```
-/plugin install gelo-skills --marketplace G3LO1/gelo
+/plugin install roblox-studio --marketplace G3LO1/gelo
 ```
 
 ## Adding a new skill
@@ -38,16 +38,16 @@ Skills are namespaced by the plugin, e.g. `/gelo-skills:roblox-map-builder`. Cla
 5. Validate before pushing:
 
    ```
-   claude plugin validate plugins/gelo-skills
+   claude plugin validate plugins/roblox-studio
    claude plugin validate .
    ```
 
-6. Users pick up the new version with `/plugin update gelo-skills`.
+6. Users pick up the new version with `/plugin update roblox-studio`.
 
 ## Layout
 
 ```
-plugins/gelo-skills/
+plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
 ├── README.md
 └── skills/

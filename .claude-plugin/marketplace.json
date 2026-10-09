@@ -7,8 +7,8 @@
   },
   "plugins": [
     {
-      "name": "gelo-skills",
-      "source": "./plugins/gelo-skills",
+      "name": "roblox-studio",
+      "source": "./plugins/roblox-studio",
       "description": "Claude Code skills for making Roblox games in Roblox Studio: maps, and more to come.",
       "version": "0.1.0",
       "category": "development",
