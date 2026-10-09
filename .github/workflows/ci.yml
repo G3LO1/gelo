@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LUNE_VERSION: "0.10.4"
+  STYLUA_VERSION: "2.1.0"
+  SELENE_VERSION: "0.28.0"
+
+jobs:
+  plugin:
+    name: Plugin manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Validate plugin
+        run: claude plugin validate plugins/roblox-studio
+      - name: Validate marketplace
+        run: claude plugin validate .
+      - name: Versions match
+        run: |
+          p=$(jq -r .version plugins/roblox-studio/.claude-plugin/plugin.json)
+          m=$(jq -r '.plugins[] | select(.name=="roblox-studio") | .version' .claude-plugin/marketplace.json)
+          echo "plugin.json $p, marketplace.json $m"
+          [ "$p" = "$m" ]
+      - name: Every skill is listed in both READMEs
+        run: |
+          status=0
+          for dir in plugins/roblox-studio/skills/*/; do
+            name=$(basename "$dir")
+            grep -q "^name: \"$name\"" "$dir/SKILL.md" || { echo "::error::$name: frontmatter name differs from folder"; status=1; }
+            grep -q "\`$name\`" README.md || { echo "::error::$name missing from README.md"; status=1; }
+            grep -q "\`$name\`" plugins/roblox-studio/README.md || { echo "::error::$name missing from plugins/roblox-studio/README.md"; status=1; }
+          done
+          exit $status
+
+  tests:
+    name: Skill tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: |
+          mkdir -p "$HOME/bin" && cd "$HOME/bin"
+          curl -sSfL -o lune.zip "https://github.com/lune-org/lune/releases/download/v${LUNE_VERSION}/lune-${LUNE_VERSION}-linux-x86_64.zip"
+          curl -sSfL -o stylua.zip "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
+          curl -sSfL -o selene.zip "https://github.com/Kampfkarren/selene/releases/download/${SELENE_VERSION}/selene-${SELENE_VERSION}-linux.zip"
+          for z in *.zip; do unzip -o -q "$z"; done
+          chmod +x lune stylua selene
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          pip install psd-tools pillow
+      - name: Luau template behaviour tests
+        run: lune run tests/roblox-luau-codegen/run
+      - name: Undead Eats integration test
+        run: lune run tests/undead-eats/run
+      - name: UI designer pipeline
+        run: bash tests/roblox-ui-designer/run.sh
+      - name: Security & performance audit
+        run: bash tests/roblox-security-perf-audit/run.sh
+      - name: Lint template
+        run: bash plugins/roblox-studio/skills/roblox-luau-codegen/scripts/check.sh plugins/roblox-studio/skills/roblox-luau-codegen/assets/template src
+      - name: Lint example
+        run: bash plugins/roblox-studio/skills/roblox-luau-codegen/scripts/check.sh examples/undead-eats src
