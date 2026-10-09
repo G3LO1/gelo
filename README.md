@@ -22,5 +22,6 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 | Skill | What it does |
 | --- | --- |
 | [`roblox-map-builder`](plugins/roblox-studio/skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
+| [`roblox-game-idea-validator`](plugins/roblox-studio/skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 
 See [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md) for how to add new skills.

@@ -7,6 +7,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | Skill | What it does |
 | --- | --- |
 | [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
+| [`roblox-game-idea-validator`](skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
@@ -51,6 +52,9 @@ plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
 ├── README.md
 └── skills/
+    ├── roblox-game-idea-validator/
+    │   ├── SKILL.md
+    │   └── references/genres.md
     └── roblox-map-builder/
         └── SKILL.md
 ```
