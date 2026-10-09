@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "gelo",
+  "description": "G3LO1's Claude Code plugins.",
+  "owner": {
+    "name": "G3LO1"
+  },
+  "plugins": [
+    {
+      "name": "gelo-skills",
+      "source": "./plugins/gelo-skills",
+      "description": "A growing collection of Claude Code skills, starting with a Roblox Studio map builder.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["skills", "roblox", "gamedev"]
+    }
+  ]
+}
