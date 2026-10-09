@@ -71,6 +71,8 @@ jobs:
         run: bash tests/roblox-ui-designer/run.sh
       - name: Security & performance audit
         run: bash tests/roblox-security-perf-audit/run.sh
+      - name: Launch kit
+        run: bash tests/roblox-launch-kit/run.sh
       - name: Lint template
         run: bash plugins/roblox-studio/skills/roblox-luau-codegen/scripts/check.sh plugins/roblox-studio/skills/roblox-luau-codegen/assets/template src
       - name: Lint example

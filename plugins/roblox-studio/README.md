@@ -12,6 +12,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-luau-codegen`](skills/roblox-luau-codegen/SKILL.md) | Writes the game's Luau code from the plan (Rojo project or straight into Studio): a tested template with session-locked player data, idempotent purchases and validated, rate-limited remotes, plus the game's own systems built from ready patterns, checked with StyLua/Selene. |
 | [`roblox-ui-designer`](skills/roblox-ui-designer/SKILL.md) | Designs and builds game UI in Figma, Photoshop or straight in Studio: proposes one of 11 researched UI styles with ready tokens, lays out mobile-safe screens, converts PSDs (`psd_to_spec.py`) and Figma designs, and turns everything into one `ui-spec.json` -> validated Studio build script + `.rbxmx` + browser preview with phone thumb-zone overlays. |
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
+| [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
@@ -23,6 +24,7 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 4. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
 5. `roblox-map-builder`: build the world in Studio.
 6. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
+7. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
 
 ## Install
 
@@ -83,8 +85,12 @@ plugins/roblox-studio/
     │   └── assets/                 # ui_builder.luau, examples/style-tile-bubbly.json
     ├── roblox-map-builder/
     │   └── SKILL.md
-    └── roblox-security-perf-audit/
+    ├── roblox-security-perf-audit/
+    │   ├── SKILL.md
+    │   ├── references/             # security, performance
+    │   └── scripts/                # scan_luau.py, audit_studio.luau, audit_place.luau
+    └── roblox-launch-kit/
         ├── SKILL.md
-        ├── references/             # security, performance
-        └── scripts/                # scan_luau.py, audit_studio.luau, audit_place.luau
+        ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
+        └── scripts/check_store_assets.py
 ```

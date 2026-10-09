@@ -9,10 +9,10 @@
     {
       "name": "roblox-studio",
       "source": "./plugins/roblox-studio",
-      "description": "Claude Code skills for making Roblox games in Roblox Studio: idea validation, production planning, Luau code, UI design, maps, security and performance audits, and more to come.",
-      "version": "0.6.0",
+      "description": "Claude Code skills for making Roblox games in Roblox Studio: idea validation, production planning, Luau code, UI design, maps, security and performance audits, launch and live-ops, and more to come.",
+      "version": "0.7.0",
       "category": "development",
-      "keywords": ["roblox", "roblox-studio", "gamedev", "luau", "rojo", "ui", "figma", "photoshop", "security", "performance"]
+      "keywords": ["roblox", "roblox-studio", "gamedev", "luau", "rojo", "ui", "figma", "photoshop", "security", "performance", "launch", "marketing"]
     }
   ]
 }
