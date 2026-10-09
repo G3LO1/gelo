@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "gelo",
-  "description": "G3LO1's Claude Code plugins.",
+  "description": "Claude Code plugins for Roblox Studio game development.",
   "owner": {
     "name": "G3LO1"
   },
@@ -9,10 +9,10 @@
     {
       "name": "gelo-skills",
       "source": "./plugins/gelo-skills",
-      "description": "A growing collection of Claude Code skills, starting with a Roblox Studio map builder.",
+      "description": "Claude Code skills for making Roblox games in Roblox Studio: maps, and more to come.",
       "version": "0.1.0",
-      "category": "productivity",
-      "keywords": ["skills", "roblox", "gamedev"]
+      "category": "development",
+      "keywords": ["roblox", "roblox-studio", "gamedev", "luau"]
     }
   ]
 }

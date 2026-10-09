@@ -1,10 +1,10 @@
 {
   "name": "gelo-skills",
   "version": "0.1.0",
-  "description": "A growing collection of Claude Code skills, starting with a Roblox Studio map builder.",
+  "description": "Claude Code skills for making Roblox games in Roblox Studio: maps, and more to come.",
   "author": {
     "name": "G3LO1"
   },
   "repository": "https://github.com/G3LO1/gelo",
-  "keywords": ["skills", "roblox", "gamedev"]
+  "keywords": ["roblox", "roblox-studio", "gamedev", "luau"]
 }

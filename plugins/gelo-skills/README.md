@@ -1,12 +1,12 @@
 # gelo-skills
 
-A growing collection of Claude Code skills.
+Claude Code skills for making Roblox games in Roblox Studio. They work best with the Roblox Studio MCP tools connected.
 
 ## Skills
 
 | Skill | What it does |
 | --- | --- |
-| [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. Works best with the Roblox Studio MCP tools connected. |
+| [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
 
 Skills are namespaced by the plugin, e.g. `/gelo-skills:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
