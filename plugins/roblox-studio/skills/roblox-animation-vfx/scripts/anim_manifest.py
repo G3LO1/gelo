@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Validates an animation manifest and generates the Luau module the game loads it from.
+
+Usage: anim_manifest.py animations.json [-o src/shared/Animations.luau] [--allow-todo]
+
+animations.json:
+{
+  "rig": "R15",                       # R15 | R6 | Custom (rig of the characters these play on)
+  "owner": "group 1234567",           # who uploads them (must own the experience, or grant it permission)
+  "animations": [
+    {"name": "Idle", "id": "rbxassetid://123", "priority": "Idle", "looped": true},
+    {"name": "Chop", "id": 456, "priority": "Action", "looped": false, "markers": ["Hit"]},
+    {"name": "Locomotion", "id": 789, "graph": true, "parameters": ["Speed", "Grounded"]}
+  ]
+}
+"id": 0 or missing = not uploaded yet (an error unless --allow-todo). "graph": true marks an
+Animation Graph asset (driven with AnimationTrack:SetParameter). Exit code 1 on errors.
+"""
+
+import argparse
+import json
+import re
+import sys
+
+PRIORITIES = ["Core", "Idle", "Movement", "Action", "Action2", "Action3", "Action4"]
+RIGS = {"R15", "R6", "Custom"}
+LOCOMOTION = re.compile(r"^(idle|walk|run|sprint|jump|fall|climb|swim|crouch|strafe)", re.I)
+LOOPING = re.compile(r"^(idle|walk|run|sprint|climb|swim|crouch|carry|hold|loop)", re.I)
+ACTIONS = re.compile(r"(attack|slash|swing|punch|kick|throw|shoot|fire|chop|stab|hit|block|parry|cast|emote|dance|wave|cheer|death|die|land|use|interact|pickup|equip)", re.I)
+TIMED = re.compile(r"(attack|slash|swing|punch|kick|throw|shoot|fire|chop|stab|cast|footstep|step)", re.I)
+NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def parse_id(value):
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    m = re.fullmatch(r"(?:rbxassetid://)?(\d+)", str(value).strip())
+    if not m or int(m.group(1)) == 0:
+        return None
+    return int(m.group(1))
+
+
+def validate(manifest, allow_todo):
+    errors, warnings, todos = [], [], []
+    rig = manifest.get("rig", "R15")
+    if rig not in RIGS:
+        errors.append(f"rig '{rig}' must be one of {sorted(RIGS)}")
+    if not manifest.get("owner"):
+        warnings.append("no 'owner': animations must be uploaded by the account/group that owns the experience (or granted to it), or they fail for players")
+    seen_names, seen_ids = {}, {}
+    for index, anim in enumerate(manifest.get("animations", [])):
+        name = anim.get("name", "")
+        where = f"animations[{index}] {name or '?'}"
+        if not NAME.match(name):
+            errors.append(f"{where}: name must be a Luau identifier (letters, digits, _)")
+        if name in seen_names:
+            errors.append(f"{where}: duplicate name")
+        seen_names[name] = True
+        asset = parse_id(anim.get("id"))
+        if asset is None:
+            (todos if allow_todo else errors).append(f"{where}: no asset id yet (upload it, then paste the id)")
+        elif asset in seen_ids:
+            warnings.append(f"{where}: same id as {seen_ids[asset]}")
+        else:
+            seen_ids[asset] = name
+        if anim.get("rig", rig) != rig:
+            errors.append(f"{where}: made for {anim.get('rig')} but the manifest rig is {rig}; R15 and R6 animations don't play on each other")
+        if anim.get("graph"):
+            if not anim.get("parameters"):
+                warnings.append(f"{where}: animation graph without 'parameters'; list the ones code sets with SetParameter")
+            continue
+        priority = anim.get("priority")
+        if priority not in PRIORITIES:
+            errors.append(f"{where}: priority '{priority}' must be one of {PRIORITIES}")
+            continue
+        level = PRIORITIES.index(priority)
+        looped = anim.get("looped")
+        if looped is None:
+            errors.append(f"{where}: set 'looped' explicitly (it's saved in the asset, the code overrides it)")
+        if LOCOMOTION.match(name) and level > PRIORITIES.index("Movement"):
+            warnings.append(f"{where}: locomotion at {priority} overrides attacks and emotes; use Idle/Movement")
+        elif ACTIONS.search(name) and not LOCOMOTION.match(name) and level < PRIORITIES.index("Action"):
+            warnings.append(f"{where}: one-off action at {priority} is overridden by walking; use Action or higher")
+        if LOOPING.match(name) and looped is False:
+            warnings.append(f"{where}: '{name}' usually loops")
+        if ACTIONS.search(name) and not LOOPING.match(name) and looped is True:
+            warnings.append(f"{where}: one-off action marked looped")
+        if TIMED.search(name) and not anim.get("markers"):
+            warnings.append(f"{where}: add a marker (e.g. 'Hit') so code times damage/sounds/VFX to the animation instead of task.wait")
+    return errors, warnings, todos
+
+
+def lua_string(s):
+    return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def generate(manifest, source_name):
+    lines = [
+        f"-- Generated by anim_manifest.py from {source_name}. Edit the JSON and regenerate.",
+        f"-- Rig: {manifest.get('rig', 'R15')}. Owner: {manifest.get('owner', '?')}. Load with AnimationSet.new(animator, Animations.Specs).",
+        "",
+        "local Animations = {}",
+        "",
+        f"Animations.Rig = {lua_string(manifest.get('rig', 'R15'))}",
+        "",
+        "Animations.Specs = {",
+    ]
+    for anim in manifest.get("animations", []):
+        asset = parse_id(anim.get("id"))
+        fields = [f"Id = {lua_string(f'rbxassetid://{asset}' if asset else 'rbxassetid://0')}"]
+        if anim.get("graph"):
+            fields.append("Graph = true")
+            params = ", ".join(lua_string(p) for p in anim.get("parameters", []))
+            fields.append(f"Parameters = {{ {params} }}" if params else "Parameters = {}")
+        else:
+            fields.append(f"Priority = Enum.AnimationPriority.{anim['priority']}")
+            fields.append(f"Looped = {'true' if anim.get('looped') else 'false'}")
+        markers = ", ".join(lua_string(m) for m in anim.get("markers", []))
+        fields.append(f"Markers = {{ {markers} }}" if markers else "Markers = {}")
+        body = ", ".join(fields)
+        todo = " -- TODO: upload and paste the id" if not asset else ""
+        lines.append(f"\t{anim['name']} = {{ {body} }},{todo}")
+    lines += ["}", "", "-- Plain id table (the roblox-luau-codegen Animations pattern reads this shape).", "Animations.Ids = {}", "for name, spec in Animations.Specs do", "\tAnimations.Ids[name] = spec.Id", "end", "", "return Animations", ""]
+    return "\n".join(lines)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("manifest")
+    ap.add_argument("-o", "--out")
+    ap.add_argument("--allow-todo", action="store_true", help="missing ids are TODOs, not errors")
+    args = ap.parse_args()
+    with open(args.manifest, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    errors, warnings, todos = validate(manifest, args.allow_todo)
+    for e in errors:
+        print(f"error: {e}")
+    for w in warnings:
+        print(f"warning: {w}")
+    for t in todos:
+        print(f"todo: {t}")
+    total = len(manifest.get("animations", []))
+    print(f"{total} animation(s): {len(errors)} error(s), {len(warnings)} warning(s), {len(todos)} todo(s)")
+    if errors:
+        sys.exit(1)
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as fh:
+            fh.write(generate(manifest, args.manifest.split("/")[-1]))
+        print(f"wrote {args.out}")
+
+
+if __name__ == "__main__":
+    main()

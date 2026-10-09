@@ -1,0 +1,12 @@
+{
+  "rig": "R15",
+  "animations": [
+    { "name": "Run", "id": 21, "priority": "Action", "looped": false },
+    { "name": "Slash", "id": 22, "priority": "Movement", "looped": true },
+    { "name": "Slash", "id": 22, "priority": "Action", "looped": false, "markers": ["Hit"] },
+    { "name": "Wave Hello", "id": "abc", "priority": "Emote", "looped": false },
+    { "name": "OldPunch", "id": 24, "rig": "R6", "priority": "Action", "looped": false, "markers": ["Hit"] },
+    { "name": "Throw", "id": 25, "priority": "Action" },
+    { "name": "Blend", "id": 26, "graph": true }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "rig": "R15",
+  "owner": "group 1234567",
+  "animations": [
+    { "name": "Idle", "id": "rbxassetid://11", "priority": "Idle", "looped": true },
+    { "name": "Chop", "id": 12, "priority": "Action", "looped": false, "markers": ["Hit"] },
+    { "name": "Locomotion", "id": 13, "graph": true, "parameters": ["Speed", "Grounded"] },
+    { "name": "Victory", "id": 0, "priority": "Action2", "looped": false }
+  ]
+}

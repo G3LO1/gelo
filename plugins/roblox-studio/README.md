@@ -13,6 +13,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-ui-designer`](skills/roblox-ui-designer/SKILL.md) | Designs and builds game UI in Figma, Photoshop or straight in Studio: proposes one of 11 researched UI styles with ready tokens, lays out mobile-safe screens, converts PSDs (`psd_to_spec.py`) and Figma designs, and turns everything into one `ui-spec.json` -> validated Studio build script + `.rbxmx` + browser preview with phone thumb-zone overlays. |
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
+| [`roblox-animation-vfx`](skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
@@ -22,9 +23,10 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 2. `roblox-game-production-plan`: everything that has to be made, by whom, and when.
 3. `roblox-ui-designer`: pick a UI style and build the screens (Figma, Photoshop or Studio).
 4. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
-5. `roblox-map-builder`: build the world in Studio.
-6. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
-7. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
+5. `roblox-animation-vfx`: animation list and manifest, effects for every moment, wired into that code.
+6. `roblox-map-builder`: build the world in Studio.
+7. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
+8. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
 
 ## Install
 
@@ -89,8 +91,13 @@ plugins/roblox-studio/
     │   ├── SKILL.md
     │   ├── references/             # security, performance
     │   └── scripts/                # scan_luau.py, audit_studio.luau, audit_place.luau
-    └── roblox-launch-kit/
+    ├── roblox-launch-kit/
+    │   ├── SKILL.md
+    │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
+    │   └── scripts/check_store_assets.py
+    └── roblox-animation-vfx/
         ├── SKILL.md
-        ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
-        └── scripts/check_store_assets.py
+        ├── references/             # animation, vfx
+        ├── scripts/                # anim_manifest.py, vfx_showcase.luau, make_textures.py
+        └── assets/                 # Vfx.luau, AnimationSet.luau, textures/
 ```
