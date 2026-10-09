@@ -1,0 +1,618 @@
+{
+  "name": "BubblyStyleTile",
+  "reference": [
+    1920,
+    1080
+  ],
+  "tokens": {
+    "Primary": {
+      "color": "#FFB21E"
+    },
+    "PrimaryHover": {
+      "color": "#FFC94D"
+    },
+    "Secondary": {
+      "color": "#3FA9F5"
+    },
+    "Danger": {
+      "color": "#FF4D5E"
+    },
+    "Surface": {
+      "color": "#2B2F77"
+    },
+    "SurfaceLight": {
+      "color": "#4A50B5"
+    },
+    "Outline": {
+      "color": "#14163D"
+    },
+    "Text": {
+      "color": "#FFFFFF"
+    },
+    "Radius": {
+      "udim": [
+        0,
+        18
+      ]
+    },
+    "RadiusSmall": {
+      "udim": [
+        0,
+        12
+      ]
+    },
+    "Gap": {
+      "udim": [
+        0,
+        16
+      ]
+    }
+  },
+  "fonts": {
+    "Heading": {
+      "family": "FredokaOne",
+      "weight": "Regular"
+    },
+    "Body": {
+      "family": "BuilderSans",
+      "weight": "Bold"
+    }
+  },
+  "images": {
+    "coin": "rbxassetid://0"
+  },
+  "styles": [
+    {
+      "selector": "TextButton",
+      "props": {
+        "BackgroundColor3": {
+          "token": "Primary"
+        },
+        "TextColor3": {
+          "token": "Text"
+        },
+        "AutoButtonColor": false
+      }
+    },
+    {
+      "selector": "TextButton:Hover",
+      "props": {
+        "BackgroundColor3": {
+          "token": "PrimaryHover"
+        }
+      }
+    },
+    {
+      "selector": "TextButton::UICorner",
+      "props": {
+        "CornerRadius": {
+          "token": "RadiusSmall"
+        }
+      }
+    },
+    {
+      "selector": ".Danger",
+      "props": {
+        "BackgroundColor3": {
+          "token": "Danger"
+        }
+      }
+    },
+    {
+      "selector": "UIStroke",
+      "props": {
+        "Color": {
+          "token": "Outline"
+        },
+        "Thickness": 4
+      }
+    }
+  ],
+  "screens": [
+    {
+      "class": "ScreenGui",
+      "name": "StyleTile",
+      "props": {
+        "ResetOnSpawn": false,
+        "ZIndexBehavior": {
+          "enum": "ZIndexBehavior.Sibling"
+        },
+        "ScreenInsets": {
+          "enum": "ScreenInsets.CoreUISafeInsets"
+        }
+      },
+      "children": [
+        {
+          "class": "Frame",
+          "name": "Coins",
+          "props": {
+            "AnchorPoint": {
+              "vector2": [
+                0,
+                0
+              ]
+            },
+            "Position": {
+              "udim2": [
+                0,
+                16,
+                0,
+                16
+              ]
+            },
+            "Size": {
+              "udim2": [
+                0.2,
+                0,
+                0.09,
+                0
+              ]
+            },
+            "BackgroundColor3": {
+              "token": "Surface"
+            }
+          },
+          "children": [
+            {
+              "class": "UICorner",
+              "props": {
+                "CornerRadius": {
+                  "udim": [
+                    1,
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              "class": "UIStroke",
+              "props": {
+                "Color": {
+                  "token": "Outline"
+                },
+                "Thickness": 4
+              }
+            },
+            {
+              "class": "UIAspectRatioConstraint",
+              "props": {
+                "AspectRatio": 3.2
+              }
+            },
+            {
+              "class": "UISizeConstraint",
+              "props": {
+                "MinSize": {
+                  "vector2": [
+                    150,
+                    46
+                  ]
+                }
+              }
+            },
+            {
+              "class": "UIListLayout",
+              "props": {
+                "FillDirection": {
+                  "enum": "FillDirection.Horizontal"
+                },
+                "VerticalAlignment": {
+                  "enum": "VerticalAlignment.Center"
+                },
+                "Padding": {
+                  "udim": [
+                    0,
+                    8
+                  ]
+                }
+              }
+            },
+            {
+              "class": "UIPadding",
+              "props": {
+                "PaddingLeft": {
+                  "udim": [
+                    0,
+                    8
+                  ]
+                },
+                "PaddingRight": {
+                  "udim": [
+                    0,
+                    12
+                  ]
+                }
+              }
+            },
+            {
+              "class": "ImageLabel",
+              "name": "Icon",
+              "props": {
+                "Image": {
+                  "image": "coin"
+                },
+                "BackgroundTransparency": 1,
+                "Size": {
+                  "udim2": [
+                    1,
+                    0,
+                    0.8,
+                    0
+                  ]
+                },
+                "SizeConstraint": {
+                  "enum": "SizeConstraint.RelativeYY"
+                }
+              }
+            },
+            {
+              "class": "TextLabel",
+              "name": "Amount",
+              "props": {
+                "Text": "12,450",
+                "FontFace": {
+                  "font": "Heading"
+                },
+                "TextScaled": true,
+                "TextColor3": {
+                  "token": "Text"
+                },
+                "BackgroundTransparency": 1,
+                "Size": {
+                  "udim2": [
+                    0,
+                    0,
+                    0.7,
+                    0
+                  ]
+                },
+                "TextXAlignment": {
+                  "enum": "TextXAlignment.Left"
+                }
+              },
+              "children": [
+                {
+                  "class": "UIFlexItem",
+                  "props": {
+                    "FlexMode": {
+                      "enum": "UIFlexMode.Fill"
+                    }
+                  }
+                },
+                {
+                  "class": "UIStroke",
+                  "props": {
+                    "Color": {
+                      "token": "Outline"
+                    },
+                    "Thickness": 3
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "class": "Frame",
+          "name": "Panel",
+          "props": {
+            "AnchorPoint": {
+              "vector2": [
+                0.5,
+                0.5
+              ]
+            },
+            "Position": {
+              "udim2": [
+                0.5,
+                0,
+                0.5,
+                0
+              ]
+            },
+            "Size": {
+              "udim2": [
+                0.6,
+                0,
+                0.6,
+                0
+              ]
+            },
+            "BackgroundColor3": {
+              "token": "Surface"
+            }
+          },
+          "children": [
+            {
+              "class": "UICorner",
+              "props": {
+                "CornerRadius": {
+                  "token": "Radius"
+                }
+              }
+            },
+            {
+              "class": "UIStroke",
+              "props": {
+                "Color": {
+                  "token": "Outline"
+                },
+                "Thickness": 6
+              }
+            },
+            {
+              "class": "UIGradient",
+              "props": {
+                "Color": {
+                  "colorseq": [
+                    [
+                      0,
+                      "#5B62D9"
+                    ],
+                    [
+                      1,
+                      "#2B2F77"
+                    ]
+                  ]
+                },
+                "Rotation": 90
+              }
+            },
+            {
+              "class": "UIAspectRatioConstraint",
+              "props": {
+                "AspectRatio": 1.6
+              }
+            },
+            {
+              "class": "UIPadding",
+              "props": {
+                "PaddingTop": {
+                  "udim": [
+                    0.06,
+                    0
+                  ]
+                },
+                "PaddingBottom": {
+                  "udim": [
+                    0.06,
+                    0
+                  ]
+                },
+                "PaddingLeft": {
+                  "udim": [
+                    0.05,
+                    0
+                  ]
+                },
+                "PaddingRight": {
+                  "udim": [
+                    0.05,
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              "class": "UIListLayout",
+              "props": {
+                "Padding": {
+                  "token": "Gap"
+                },
+                "HorizontalAlignment": {
+                  "enum": "HorizontalAlignment.Center"
+                },
+                "SortOrder": {
+                  "enum": "SortOrder.LayoutOrder"
+                }
+              }
+            },
+            {
+              "class": "TextLabel",
+              "name": "Title",
+              "props": {
+                "LayoutOrder": 1,
+                "Text": "SHOP",
+                "FontFace": {
+                  "font": "Heading"
+                },
+                "TextScaled": true,
+                "TextColor3": {
+                  "token": "Text"
+                },
+                "BackgroundTransparency": 1,
+                "Size": {
+                  "udim2": [
+                    1,
+                    0,
+                    0.2,
+                    0
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "class": "UIStroke",
+                  "props": {
+                    "Color": {
+                      "token": "Outline"
+                    },
+                    "Thickness": 5
+                  }
+                }
+              ]
+            },
+            {
+              "class": "TextLabel",
+              "name": "Body",
+              "props": {
+                "LayoutOrder": 2,
+                "Text": "Body text sample: rewards, prices and <b>highlights</b>.",
+                "RichText": true,
+                "FontFace": {
+                  "font": "Body"
+                },
+                "TextScaled": true,
+                "TextColor3": {
+                  "token": "Text"
+                },
+                "BackgroundTransparency": 1,
+                "Size": {
+                  "udim2": [
+                    1,
+                    0,
+                    0.18,
+                    0
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "class": "UITextSizeConstraint",
+                  "props": {
+                    "MaxTextSize": 32,
+                    "MinTextSize": 14
+                  }
+                }
+              ]
+            },
+            {
+              "class": "Frame",
+              "name": "Buttons",
+              "props": {
+                "LayoutOrder": 3,
+                "BackgroundTransparency": 1,
+                "Size": {
+                  "udim2": [
+                    1,
+                    0,
+                    0.3,
+                    0
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "class": "UIListLayout",
+                  "props": {
+                    "FillDirection": {
+                      "enum": "FillDirection.Horizontal"
+                    },
+                    "HorizontalFlex": {
+                      "enum": "UIFlexAlignment.SpaceEvenly"
+                    },
+                    "VerticalAlignment": {
+                      "enum": "VerticalAlignment.Center"
+                    }
+                  }
+                },
+                {
+                  "class": "TextButton",
+                  "name": "Buy",
+                  "props": {
+                    "Text": "BUY",
+                    "FontFace": {
+                      "font": "Heading"
+                    },
+                    "TextScaled": true,
+                    "Size": {
+                      "udim2": [
+                        0.28,
+                        0,
+                        0.8,
+                        0
+                      ]
+                    }
+                  },
+                  "children": [
+                    {
+                      "class": "UICorner"
+                    },
+                    {
+                      "class": "UIStroke",
+                      "props": {
+                        "ApplyStrokeMode": {
+                          "enum": "ApplyStrokeMode.Border"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "class": "TextButton",
+                  "name": "Info",
+                  "props": {
+                    "Text": "INFO",
+                    "FontFace": {
+                      "font": "Heading"
+                    },
+                    "TextScaled": true,
+                    "Size": {
+                      "udim2": [
+                        0.28,
+                        0,
+                        0.8,
+                        0
+                      ]
+                    },
+                    "BackgroundColor3": {
+                      "token": "Secondary"
+                    }
+                  },
+                  "children": [
+                    {
+                      "class": "UICorner"
+                    },
+                    {
+                      "class": "UIStroke",
+                      "props": {
+                        "ApplyStrokeMode": {
+                          "enum": "ApplyStrokeMode.Border"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "class": "TextButton",
+                  "name": "Close",
+                  "tags": [
+                    "Danger"
+                  ],
+                  "props": {
+                    "Text": "X",
+                    "FontFace": {
+                      "font": "Heading"
+                    },
+                    "TextScaled": true,
+                    "Size": {
+                      "udim2": [
+                        0.28,
+                        0,
+                        0.8,
+                        0
+                      ]
+                    }
+                  },
+                  "children": [
+                    {
+                      "class": "UICorner"
+                    },
+                    {
+                      "class": "UIStroke",
+                      "props": {
+                        "ApplyStrokeMode": {
+                          "enum": "ApplyStrokeMode.Border"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
