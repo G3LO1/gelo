@@ -9,10 +9,10 @@
     {
       "name": "roblox-studio",
       "source": "./plugins/roblox-studio",
-      "description": "Claude Code skills for making Roblox games in Roblox Studio: idea validation, production planning, maps, and more to come.",
-      "version": "0.3.0",
+      "description": "Claude Code skills for making Roblox games in Roblox Studio: idea validation, production planning, Luau code, maps, and more to come.",
+      "version": "0.4.0",
       "category": "development",
-      "keywords": ["roblox", "roblox-studio", "gamedev", "luau"]
+      "keywords": ["roblox", "roblox-studio", "gamedev", "luau", "rojo"]
     }
   ]
 }
