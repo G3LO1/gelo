@@ -29,6 +29,12 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 
 See [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md) for how to add new skills.
 
+## Example
+
+[`examples/undead-eats`](examples/undead-eats) is a co-op food-truck survival prototype made with the plugin's
+workflow (validated idea, production plan, Luau code from the template, UI from a ui-spec). Its HUD and upgrade
+shop are covered by a client + server integration test: `lune run tests/undead-eats/run`.
+
 ## Development
 
 The Luau template used by `roblox-luau-codegen` has behaviour tests (session locking across two simulated servers, purchases, shutdown saves, remote validation and rate limits) that run on [Lune](https://github.com/lune-org/lune) with a mocked Roblox engine:
