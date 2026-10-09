@@ -26,6 +26,7 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 | [`roblox-game-production-plan`](plugins/roblox-studio/skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
 | [`roblox-luau-codegen`](plugins/roblox-studio/skills/roblox-luau-codegen/SKILL.md) | Writes the game's Luau code from the plan (Rojo project or straight into Studio): a tested template with session-locked player data, idempotent purchases and validated, rate-limited remotes, plus the game's own systems built from ready patterns, checked with StyLua/Selene. |
 | [`roblox-ui-designer`](plugins/roblox-studio/skills/roblox-ui-designer/SKILL.md) | Designs and builds game UI in Figma, Photoshop or straight in Studio: proposes one of 11 researched UI styles with ready tokens, lays out mobile-safe screens, converts PSDs (`psd_to_spec.py`) and Figma designs, and turns everything into one `ui-spec.json` -> validated Studio build script + `.rbxmx` + browser preview with phone thumb-zone overlays. |
+| [`roblox-security-perf-audit`](plugins/roblox-studio/skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 
 See [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md) for how to add new skills.
 
@@ -52,3 +53,11 @@ The `roblox-ui-designer` pipeline (spec -> build script -> validation against Ro
 pip install psd-tools pillow
 bash tests/roblox-ui-designer/run.sh
 ```
+
+The `roblox-security-perf-audit` scanners (every rule against fixtures, no false positives on the template and example, place audit in memory and from files):
+
+```
+bash tests/roblox-security-perf-audit/run.sh
+```
+
+CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
