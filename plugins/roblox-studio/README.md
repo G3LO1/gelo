@@ -8,8 +8,15 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | --- | --- |
 | [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
 | [`roblox-game-idea-validator`](skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
+| [`roblox-game-production-plan`](skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
+
+## Workflow
+
+1. `roblox-game-idea-validator`: is the idea worth building? (GO / PIVOT / KILL)
+2. `roblox-game-production-plan`: everything that has to be made, by whom, and when.
+3. `roblox-map-builder`: build the world in Studio.
 
 ## Install
 
@@ -55,6 +62,9 @@ plugins/roblox-studio/
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
     │   └── references/genres.md
+    ├── roblox-game-production-plan/
+    │   ├── SKILL.md
+    │   └── references/production-checklist.md
     └── roblox-map-builder/
         └── SKILL.md
 ```

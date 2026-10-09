@@ -34,7 +34,7 @@ Score each criterion 1-5 (1 = broken, 3 = average Roblox game, 5 = top-chart qua
 | Social & multiplayer value | 15 | Other players make it better: co-op, competition, trading, showing off, inviting friends is natural |
 | Market & differentiation | 15 | Proven demand AND a clear twist; not the 50th clone of a trend that peaked |
 | Platform & audience fit | 10 | Works on a phone with simple controls and low-end devices; fits the audience's age and session length |
-| Monetization fit | 10 | Players want to pay (cosmetics, convenience, passes, boosts) without it feeling pay-to-win; Premium playtime counts too |
+| Monetization fit | 10 | Players want to pay (cosmetics, convenience, passes, boosts) without it feeling pay-to-win; sessions of 10+ minutes also earn Creator Rewards |
 | Scope vs team | 10 | MVP shippable by this team in about 4-8 weeks; they can keep updating it weekly |
 | Content runway | 5 | Easy to add new content (items, maps, events) without rebuilding systems |
 
@@ -90,4 +90,4 @@ For the cheapest test, use rough community rules of thumb, not official Roblox n
 Score each one with the same table, put the totals side by side, pick one winner and explain the deciding difference. Don't hedge with "they're all good".
 
 ## Hand-off
-If the verdict is GO and the user wants to start building, offer to plan the MVP and to build the map with the `roblox-map-builder` skill from this plugin.
+If the verdict is GO (or PIVOT after the fixes) and the user wants to start building, offer the `roblox-game-production-plan` skill from this plugin to break the game into every task (systems, models, animations, UI, audio, publishing), and `roblox-map-builder` for the map.

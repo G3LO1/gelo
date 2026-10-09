@@ -14,8 +14,8 @@ Snapshot of genre patterns up to mid-2026. Trends move fast: verify current char
 - Discovery is driven by engagement and monetization metrics measured on real players. A new game gets a test window; if retention and playtime are weak, recommendations dry up regardless of idea quality.
 - Players arrive with friends and join friends' servers. Games that are better with friends spread on their own.
 - Live-ops is expected: hit games update weekly or bi-weekly with events, limited items, codes. A game with no update plan decays within weeks.
-- Earning: game passes, developer products, Premium payouts based on Premium members' playtime, subscriptions, rewarded video ads, UGC/avatar items. Paid random items must show odds and are restricted in some countries.
-- Experiences need a maturity/content questionnaire; 17+ content requires age-verified players and cuts the audience.
+- Earning: passes, developer products (Roblox keeps 30%), subscriptions, paid private servers, rewarded video ads, UGC/avatar items, and Creator Rewards, which replaced Premium Payouts in July 2025: 5 Robux per day when an Active Spender plays 10+ minutes and the game is among their first three that day, plus 35% of purchases by new/returning players the game brings in (needs 100+ average DAU). Paid random items must show odds and are restricted in some countries.
+- Experiences need the Maturity & Compliance Questionnaire (labels Minimal, Mild, Moderate, Restricted); Restricted content is 18+ ID-verified players only and cuts the audience. Since late 2025 chat requires an age check, so ideas built on chatting with strangers are weaker.
 - YouTube/TikTok creators drive most viral hits: ideas that produce funny, dramatic or shareable moments get free marketing.
 
 ## Genre table
