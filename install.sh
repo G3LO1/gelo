@@ -1,16 +1,10 @@
 #!/usr/bin/env bash
 # Installs the roblox-studio skills into a project's .claude/skills/ folder (or ~/.claude/skills/ with --global),
-# so Claude Code picks them up there without the plugin.
+# so Claude Code picks them up there without the plugin. Run it from a clone of the repo:
 #
 #   bash install.sh                  -> current folder (./.claude/skills/)
 #   bash install.sh /path/to/game    -> that project
 #   bash install.sh --global         -> every project (~/.claude/skills/)
-#
-# Without a checkout:
-#   curl -fsSL https://raw.githubusercontent.com/G3LO1/gelo/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/G3LO1/gelo/main/install.sh | bash -s -- --global
-#
-# GELO_REF picks a branch or tag to download (default main); GELO_TARBALL_URL overrides the whole URL.
 set -euo pipefail
 
 usage() {
@@ -37,28 +31,22 @@ if [ "$GLOBAL" = 1 ] && [ -n "$PROJECT" ]; then
   exit 1
 fi
 
+SRC=""
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+  SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/plugins/roblox-studio/skills"
+fi
+if [ -z "$SRC" ] || [ ! -d "$SRC" ]; then
+  echo "ERROR: run install.sh from a clone of the repo:" >&2
+  echo "  git clone https://github.com/G3LO1/gelo.git && bash gelo/install.sh /path/to/game" >&2
+  exit 1
+fi
+
 if [ "$GLOBAL" = 1 ]; then
   TARGET="$HOME/.claude/skills"
 else
   PROJECT="${PROJECT:-$PWD}"
   [ -d "$PROJECT" ] || { echo "ERROR: folder $PROJECT does not exist" >&2; exit 1; }
   TARGET="$(cd "$PROJECT" && pwd)/.claude/skills"
-fi
-
-# Skills from this checkout, or from a downloaded archive when the script was piped in.
-SCRIPT_DIR=""
-if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-SRC="$SCRIPT_DIR/plugins/roblox-studio/skills"
-if [ -z "$SCRIPT_DIR" ] || [ ! -d "$SRC" ]; then
-  URL="${GELO_TARBALL_URL:-https://codeload.github.com/G3LO1/gelo/tar.gz/${GELO_REF:-main}}"
-  TMP="$(mktemp -d)"
-  trap 'rm -rf "$TMP"' EXIT
-  echo "Downloading $URL"
-  curl -fsSL "$URL" | tar -xz -C "$TMP"
-  SRC="$(find "$TMP" -mindepth 4 -maxdepth 4 -type d -path '*/plugins/roblox-studio/skills' | head -n 1)"
-  [ -n "$SRC" ] || { echo "ERROR: plugins/roblox-studio/skills not found in $URL" >&2; exit 1; }
 fi
 
 mkdir -p "$TARGET"
