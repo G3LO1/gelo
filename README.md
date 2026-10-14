@@ -15,6 +15,25 @@ On older Claude Code versions, add the marketplace first:
 /plugin install roblox-studio@gelo
 ```
 
+### Or copy the skills into your game's folder
+
+One command puts all skills in the project's `.claude/skills/`, so they work for anyone who opens that folder in
+Claude Code (commit them with the game) and show up as `/roblox-map-builder` etc. Run it from the game's folder:
+
+```
+# macOS / Linux / Git Bash
+curl -fsSL https://raw.githubusercontent.com/G3LO1/gelo/main/install.sh | bash
+
+# Windows PowerShell
+irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1 | iex
+```
+
+From a clone: `bash install.sh [game-folder]` or `powershell -ExecutionPolicy Bypass -File install.ps1 [-Project "D:\Game"]`.
+For every project at once use `--global` / `-Global` (-> `~/.claude/skills/`); piped in, that's
+`| bash -s -- --global` or `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1))) -Global`.
+Running it again updates the skills and leaves your other skills alone. Use the plugin or the copied skills, not both,
+or every skill shows up twice.
+
 The skills work best with the Roblox Studio MCP tools connected, so Claude can build and playtest directly in your place. If you use Blender, connect a Blender MCP server too (e.g. [MCP for Blender](https://github.com/ahujasid/blender-mcp)); the skills ask about it when a task needs 3D models or animation and use it when it's there.
 
 ## Skills
@@ -63,6 +82,7 @@ bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures,
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
+bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
