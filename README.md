@@ -17,27 +17,22 @@ On older Claude Code versions, add the marketplace first:
 
 ### Or copy the skills into your game's folder
 
-The installer puts all skills in the game's `.claude/skills/`, so they work for anyone who opens that folder in
-Claude Code (commit them with the game) and show up as `/roblox-map-builder` etc. The repo is private, so clone it
-once with your GitHub account (anywhere outside the game), then run the installer from the game's folder:
+One command puts all skills in the project's `.claude/skills/`, so they work for anyone who opens that folder in
+Claude Code (commit them with the game) and show up as `/roblox-map-builder` etc. Run it from the game's folder:
 
 ```
-# Windows PowerShell
-git clone https://github.com/G3LO1/gelo.git C:\tools\gelo
-cd D:\YourGame
-powershell -ExecutionPolicy Bypass -File C:\tools\gelo\install.ps1
-
 # macOS / Linux / Git Bash
-git clone https://github.com/G3LO1/gelo.git ~/tools/gelo
-cd /path/to/your-game
-bash ~/tools/gelo/install.sh
+curl -fsSL https://raw.githubusercontent.com/G3LO1/gelo/main/install.sh | bash
+
+# Windows PowerShell
+irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1 | iex
 ```
 
-Another folder: `install.ps1 -Project "D:\OtherGame"` / `install.sh /path/to/other-game`. Every project at once:
-`-Global` / `--global` (-> `~/.claude/skills/`). Restart Claude Code in the game's folder after installing.
-
-To update, `git pull` in the clone and run the installer again: it replaces only these skills and leaves your other
-skills alone. Use the plugin or the copied skills, not both, or every skill shows up twice.
+From a clone: `bash install.sh [game-folder]` or `powershell -ExecutionPolicy Bypass -File install.ps1 [-Project "D:\Game"]`.
+For every project at once use `--global` / `-Global` (-> `~/.claude/skills/`); piped in, that's
+`| bash -s -- --global` or `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1))) -Global`.
+Running it again updates the skills and leaves your other skills alone. Use the plugin or the copied skills, not both,
+or every skill shows up twice.
 
 The skills work best with the Roblox Studio MCP tools connected, so Claude can build and playtest directly in your place. If you use Blender, connect a Blender MCP server too (e.g. [MCP for Blender](https://github.com/ahujasid/blender-mcp)); the skills ask about it when a task needs 3D models or animation and use it when it's there.
 
@@ -87,7 +82,7 @@ bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures,
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
-bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): current/other folder, --global, rerun
+bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
