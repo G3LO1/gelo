@@ -34,6 +34,9 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 /plugin install roblox-studio --marketplace G3LO1/gelo
 ```
 
+Or copy the skills straight into a game's `.claude/skills/` with the repo's `install.sh` / `install.ps1` (see the
+[root README](../../README.md#or-copy-the-skills-into-your-games-folder)).
+
 ## Adding a new skill
 
 1. Create `skills/<skill-name>/SKILL.md` (lowercase, hyphens, the folder name is the skill name).
