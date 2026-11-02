@@ -99,6 +99,6 @@ python3 tools/yt_research.py search "roblox studio lighting tutorial" -n 10 --de
 python3 tools/yt_research.py transcript adgCWET34rU vkEXLmRAQgs -o research/lighting
 ```
 
-The lighting guidance in `roblox-map-builder/references/lighting.md` was made this way.
+The lighting and terrain guidance in `roblox-map-builder/references/` was made this way.
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.

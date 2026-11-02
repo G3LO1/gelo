@@ -61,8 +61,8 @@ python3 tools/yt_research.py transcript ID [ID...] -o "$SCRATCH/<topic>"      # 
 | # | Topic | Target | Status |
 | --- | --- | --- | --- |
 | 1 | Lighting | `roblox-map-builder/references/lighting.md` | done (0.10.0, 17 sources) |
-| 2 | Terrain | `roblox-map-builder/references/terrain.md` | in progress |
-| 3 | Getting players: discovery and positioning (algorithm signals, icon/thumbnail CTR, title/description, retention/playtime, sessions, ads/sponsors, YouTuber/TikTok marketing, updates/events, groups/Discord, what top devs say) | `roblox-launch-kit/references/` (extend `launch.md` or add `growth.md`) | todo |
+| 2 | Terrain | `roblox-map-builder/references/terrain.md` | done (0.11.0, 16 sources) |
+| 3 | Getting players: discovery and positioning (algorithm signals, icon/thumbnail CTR, title/description, retention/playtime, sessions, ads/sponsors, YouTuber/TikTok marketing, updates/events, groups/Discord, what top devs say) | `roblox-launch-kit/references/` (extend `launch.md` or add `growth.md`) | next |
 | 4 | Maps (layout, composition, landmarks, environment art) | `roblox-map-builder` | todo |
 | 5 | Scripting (Luau patterns, architecture, common bugs) | `roblox-luau-codegen/references/` | todo |
 | 6 | The rest: UI, animation/VFX, security/performance, game ideas, production | each skill's references | todo |
