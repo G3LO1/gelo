@@ -103,7 +103,7 @@ plugins/roblox-studio/
     │   └── scripts/check_store_assets.py
     └── roblox-animation-vfx/
         ├── SKILL.md
-        ├── references/             # animation, vfx, blender
+        ├── references/             # animation, vfx, craft, blender
         ├── scripts/                # anim_manifest.py, vfx_showcase.luau, make_textures.py, blender_check.py
         └── assets/                 # Vfx.luau, AnimationSet.luau, textures/
 ```

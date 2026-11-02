@@ -18,7 +18,7 @@ From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type)
 - Owner account (user or group): it must upload the animations and textures.
 
 ## 2. Plan
-Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play).
+Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play). For how it should feel (animation principles, tool Motor6D rigging, combat feel with hit-stop/shake/impact frames, layering VFX, mesh VFX, emit-attribute prefabs) read `references/craft.md`.
 1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX, camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small.
 2. **Animation manifest**: write `animations.json` (format in `scripts/anim_manifest.py`; ids 0 until uploaded). Priorities, looping and markers follow the table in the reference. Use an Animation Graph for locomotion blends and jump/fall/land chains when the team has someone to build it; plain tracks otherwise.
 3. **VFX list**: map moments to `Vfx.luau` presets; add or tune presets for the style (colors, sizes, textures, counts) in its `Vfx.Presets` table.
