@@ -11,6 +11,7 @@ How to measure and what usually fixes it. Sources: create.roblox.com/docs/perfor
 6. Networking
 7. Assets, memory, load time
 8. Phone checklist
+9. Field notes (RDC budgets: ~500 draw calls / 500k tris, ~1.3 GB on 2 GB phones; memory culprits; MicroProfiler and Scene Analysis workflow; measured fixes)
 
 ## 1. Measure first
 - **Developer Console** (F9, also in live servers): Log for errors/warnings, Memory (client and server: LuaHeap, InstanceCount, PlaceScriptMemory, graphics/texture, sounds, animation), Network, Scripts (activity per script).
@@ -69,3 +70,43 @@ Record a baseline: FPS and frame time on the densest view, client memory, server
 - [ ] Join to playable under ~15-20 s on mobile data.
 - [ ] Graphics quality 1-3 still readable (shadows and some effects vanish).
 - [ ] No server heartbeat drops with a full server and the maximum number of NPCs/projectiles.
+
+## 9. Field notes (Roblox RDC talks and developers)
+Labels: [docs] = Roblox talks/docs; [tut xN] = N developer videos agree.
+- **Six usual suspects** [docs: RDC 2024]: too many triangles, too many draw calls, high CPU, high memory, long
+  loading, too much bandwidth. Check each on a real low-end phone, not only in Studio.
+- **Budgets used by Roblox's own performance engineer** for mobile targets [docs: RDC 2024]: roughly 500 draw calls
+  and 500,000 scene triangles as an upper ceiling on the densest view (stricter than the illustrative 1000/1M in the
+  map builder); client memory around **1.3 GB on 2 GB devices** (about 66% of device memory, where OS ejection
+  ramps up); most mobile "crashes" are out-of-memory kills.
+- **Studio misreports client memory:** read it on a real device (F9 Developer Console) or a live server; PC
+  clients behave differently from phones. Real-device testing early and often. [docs: RDC 2024/2025]
+- **Memory culprits** [docs: RDC 2024 + 2026]: textures, part count (each client part costs roughly 1 KB) and audio
+  loaded on the client; also script and animation memory (any reference to an animation keeps the whole track
+  loaded). Keep sounds out of the client until needed; deparent instead of hiding when something shouldn't render.
+- **Parts vs meshes:** after building, merge static part-built scenery into a few meshes; meshes are far more
+  memory-efficient than thousands of parts (a top 2025 game cut memory this way; Roblox also reduced the memory
+  of parts, tags and attributes after it). [docs: RDC 2025]
+- **MicroProfiler workflow:** reproduce the slow action, look for the tallest bars, find the scope; on phones open
+  it with a keyboard (Ctrl+F6) or from the Dev Console; download HTML dumps (they now include network data) and
+  compare two dumps with the flame-graph diff view; server profiles from live servers too. [docs + tut x2]
+- **Scene Analysis** (client and server) for instance composition, script/audio/animation memory; check
+  send/receive in the network stats (F7/Shift+F7 overlays) first. [docs: RDC 2026]
+- **Developer fixes that measured well** [tut x2]:
+  - lower `CollisionFidelity` when "physics parts" memory is high;
+  - one mesh id per repeated object (a duplicate upload with a new id breaks instancing and adds draw calls);
+  - `Humanoid.EvaluateStateMachine = false` for NPCs/rigs that never need humanoid states;
+  - `workspace:BulkMoveTo(parts, cframes, Enum.BulkMoveMode.FireCFrameChanged)` to move many anchored parts per
+    frame (about half the cost of setting CFrames one by one in one test);
+  - fewer unanchored assemblies; adaptive physics stepping; no physics where a tween or CFrame works;
+  - server never tweens or plays animations (clients do); assets the client doesn't need stay in ServerStorage;
+  - turning off global shadows removes shadow draw calls for phones that struggle (cost: look).
+- **Optimize in order:** make it work, test on device, then go to the worst number (render stats -> MicroProfiler
+  -> memory). Physics-heavy games start in the physics scopes. [docs: RDC 2025]
+
+Sources: Roblox, "Using Roblox Tools to Improve Performance | RDC 2024" https://www.youtube.com/watch?v=cWDNVvOh4o0 ;
+Roblox, "Top Game Performance Tales | RDC 2025" https://www.youtube.com/watch?v=rwLEnBtXr30 ;
+Roblox, "Scene Analysis Tool Workshop | RDC 2026" https://www.youtube.com/watch?v=3gnK649VNbY ;
+Crusherfire, "Your Roblox Game LAGS (and how to fix it)" (2025-07) https://www.youtube.com/watch?v=YWyJHwynM1M ;
+Kenton's Videos, MicroProfiler on mobile (2026-10) https://www.youtube.com/watch?v=FKkh_Z3D6q8 ;
+Roblox Creators MicroProfiler / client memory videos https://www.youtube.com/watch?v=XLCZfGEm9tU , https://www.youtube.com/watch?v=OCUZKJJR-TE (titles; excerpts via Perplexity).

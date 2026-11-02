@@ -11,6 +11,7 @@ What to check by hand after the scanners. Sources: create.roblox.com/docs/script
 6. Data and purchases
 7. Detection and consequences
 8. Settings to check
+9. Field notes (noclip/speed/fly checks, hitboxes, honeypots, server authority, device trust, lag-compensated hits)
 
 ## 1. Threat model
 An exploiter fully controls their own client. They can:
@@ -76,3 +77,42 @@ The `roblox-luau-codegen` template does this through `Net` (declared schemas + p
 - Game Settings > Security: Allow HTTP Requests only if the game uses HttpService; Enable Studio Access to API Services only in development places if testers shouldn't touch live data.
 - Third-party teleports and Third-party sales: off unless needed.
 - Team Create collaborators and group roles with edit access: only people who need it; 2FA on accounts that can publish.
+
+## 9. Field notes (developers and newer engine features)
+Labels: [docs] = Roblox docs; [tut xN] = N developer videos agree.
+- **Client physics lies are replicated:** an exploiter can set `CanCollide = false` or `CanTouch = false` on their
+  own copy of a wall, set their WalkSpeed, or delete a floor locally, and the server accepts the resulting movement
+  because the character is client-owned. Detect on the server: raycast or `GetPartsInPart` from the last good
+  position to the new one against server geometry (noclip), distance per second with a lag tolerance (speed),
+  sustained air time without a jump/fall state (fly). Move them back to the last good position (rubber-band)
+  instead of instant bans; false positives (lag, launch pads, knockback, vehicles) must be whitelisted. [tut x3]
+- **Touched as a security signal:** a server-created, invisible, non-colliding hitbox part welded to the character
+  (CanTouch on, never modified by the server afterwards) still fires Touched even if the exploiter disables
+  touching on their client copies; re-check position on the server in the handler. [tut x1]
+- **NPCs and loose parts:** `SetNetworkOwner(nil)` on NPC root parts right after spawning, or exploiters teleport
+  or fling them. [tut x2 + docs]
+- **Client anti-cheats are deletable:** a LocalScript that checks WalkSpeed/JumpPower and fires a "kick me"
+  remote is trivial to remove or spoof; free "anti-cheat" models from the Toolbox often do exactly this, produce
+  false positives, or contain backdoors. Server checks only. [tut x3]
+- **Hide what clients don't need:** modules and remotes that only the server uses belong in ServerScriptService/
+  ServerStorage; load sensitive client UI/modules only when needed; anything replicated can be decompiled, and
+  memory dumps of the client reveal strings. [tut x1]
+- **Honeypots:** a convincing but unused remote (e.g. `GiveCoins`) that bans or flags whoever fires it; also deny
+  badges/leaderboard entries to flagged players. Combine with other signals before banning. [tut x2]
+- **Server authority model** [docs]: `Workspace.AuthorityMode = Server` makes the server simulate characters and
+  physics from client inputs with client prediction, closing speed/fly/teleport classes of exploits for
+  competitive games (requires Deferred signals, NextGenerationReplication, Input Action System player scripts,
+  fixed simulation, streaming). See `roblox-luau-codegen/references/architecture.md` section 6.
+- **Device Trust API** [docs]: a trust level for the joining device you can use to route untrusted devices
+  (e.g. to separate servers or limited modes); it never replaces server validation.
+- **Hit validation with latency:** clients see targets slightly in the past; validate hits with a tolerance on
+  distance/angle, or keep a short server-side history of positions and check against where the target was when
+  the client fired (lag compensation). Reject hits through walls with a server raycast. [tut x2]
+
+Sources: GnomeCode, "How to Secure your Game Against Exploiters" (2023-04) https://www.youtube.com/watch?v=2jvahdJnQRI ;
+ByteBlox, "Exploits Are EASY to Fix, People Are Just Lazy" (2024-04) https://www.youtube.com/watch?v=vKPZGVtIHy4 ;
+"How Roblox Exploits Work (+ how to fix them)" (2023-12) https://www.youtube.com/watch?v=KbW_p_83hgQ ;
+"Your Game is Vulnerable. Here's how to fix it." (2026-08) https://www.youtube.com/watch?v=b1t8ZYJt120 ;
+GuideRealm / Hypoly client anti-cheat tutorials (examples of what not to rely on) https://www.youtube.com/watch?v=YNk9A7SkL_w , https://www.youtube.com/watch?v=9BpHmhDwz0M ;
+creator-docs scripting/security (security-tactics, device-trust, network-ownership), projects/server-authority.
+(Transcript excerpts via Perplexity.)
