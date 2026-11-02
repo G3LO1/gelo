@@ -81,6 +81,7 @@ plugins/roblox-studio/
     ├── roblox-luau-codegen/
     │   ├── SKILL.md
     │   ├── references/patterns.md
+    │   ├── references/architecture.md  # structure, OOP/cleanup, remotes limits, buffers, Parallel Luau, new engine features
     │   ├── scripts/check.sh
     │   └── assets/template/        # Rojo project: Data/Purchase services, Net, Guard, Config
     ├── roblox-ui-designer/
