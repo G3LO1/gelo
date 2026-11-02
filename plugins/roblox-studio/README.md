@@ -74,7 +74,7 @@ plugins/roblox-studio/
 └── skills/
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
-    │   └── references/genres.md
+    │   └── references/             # genres.md, idea-sourcing.md (idea sources, cheap tests, market snapshot)
     ├── roblox-game-production-plan/
     │   ├── SKILL.md
     │   └── references/production-checklist.md

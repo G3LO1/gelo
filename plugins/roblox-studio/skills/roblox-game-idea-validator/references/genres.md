@@ -1,6 +1,6 @@
 # Roblox genre notes
 
-Snapshot of genre patterns up to mid-2026. Trends move fast: verify current charts before relying on saturation calls. Example games show what the bar looks like, they are not a full list.
+Snapshot of genre patterns up to mid-2026, with a late-2026 update at the end (live numbers: `idea-sourcing.md` section 3). Trends move fast: verify current charts before relying on saturation calls. Example games show what the bar looks like, they are not a full list.
 
 ## Contents
 - Platform facts that shape every idea
@@ -54,3 +54,11 @@ Snapshot of genre patterns up to mid-2026. Trends move fast: verify current char
 - Long tutorials before the first fun moment.
 - Pay-to-win as the main income with no free path: players leave and leave bad votes.
 - Riding a trend that already peaked weeks ago with no twist.
+
+## Late-2026 update (charts on 2026-11-02)
+- The "steal" collect-and-defend formula is still the biggest wave: Steal An Egg (July 2026) peaked at 12.4M concurrent and sits near 1M; twisted follow-ups (Break and Steal an Egg) reach 100k+ within weeks. Saturation is extreme; only a strong twist or theme survives.
+- "+1 X" incremental simulators (+1 Spider Arm, +1 Ride Pets to Fight, +1 Anime Eyes): one stat growing every second, a silly fantasy, a short clickable title. Rising, cheap to build, quick to clone.
+- Physics sandboxes and absurd premises (ragdoll playgrounds, Backseat Rally, Teach Your Granny How To Drive) trend through clips; retention depends on content added after the novelty.
+- A fresh obby with one clear gimmick (DONT SPLASH, Oct 2026) still reached ~100k: the obby genre rewards a single readable twist.
+- Cozy idle farms ("My X Farm") earn top like ratios at small scale; anime dice/collection and anime RPGs stay strong; survival-with-friends (99 Nights) and asymmetric horror remain big.
+
