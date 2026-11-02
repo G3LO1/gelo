@@ -90,7 +90,7 @@ plugins/roblox-studio/
     │   └── assets/                 # ui_builder.luau, examples/style-tile-bubbly.json
     ├── roblox-map-builder/
     │   ├── SKILL.md
-    │   └── references/             # lighting.md (17 tutorials), terrain.md (16 tutorials), checked vs docs
+    │   └── references/             # level-design.md, lighting.md, terrain.md (from tutorials, checked vs docs)
     ├── roblox-security-perf-audit/
     │   ├── SKILL.md
     │   ├── references/             # security, performance

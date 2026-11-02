@@ -9,7 +9,7 @@ Goal: maps that look good AND are correct (scale, collision, navigation, perform
 
 ## Workflow
 1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (multiple choice, recommended option first) rather than free text; ask only what is missing. If style unclear, propose 2-3.
-2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing.
+2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing. Layout rules per genre (shooter lanes, simulator hub, obby curve, horror pacing), guidance, modular kits and a travel-time script: `references/level-design.md`.
 3. Terrain pass (outdoor): read `references/terrain.md` (editor facts, Expanded Terrain, shaping/painting/rock/tree technique, card grass, WriteVoxels heightfield + parts->terrain scripts, perf). Macro shape -> routes -> biome blending (irregular bands) -> cliffs/caves -> water. Parts/meshes for collision-critical edges and close-up realism.
 4. Kit + dressing: modular pieces with shared mesh/texture IDs, palette + material rules from the style, asymmetric prop clusters, story-driven wear. Hierarchy: big shapes -> medium rhythm -> small detail.
 5. Lighting pass LAST: read `references/lighting.md` (order of work, what each property really does, fake bounce light, contact shadows, light shafts, zones, day/night, perf), pick sky -> place sun -> style preset -> local lights, tune against screenshots. Never use fog/bloom to hide geometry problems.
