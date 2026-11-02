@@ -51,5 +51,9 @@ out = subprocess.run([sys.executable, str(ROOT / "tools/yt_research.py"), "parse
                      capture_output=True, text=True)
 check("parse-vtt CLI", out.returncode == 0 and out.stdout.startswith("[00:00] First set the lighting"), out)
 
+out = subprocess.run([sys.executable, str(ROOT / "tools/yt_research.py"), "transcript", "--help", "-DoOf32pkPo"],
+                     capture_output=True, text=True)
+check("id starting with '-' is not parsed as an option", out.returncode == 0, out.stderr)
+
 print("all passed" if not fails else f"{fails} failed")
 sys.exit(1 if fails else 0)

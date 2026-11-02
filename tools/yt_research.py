@@ -85,7 +85,8 @@ def _ydl(extra=None):
         import yt_dlp
     except ImportError:
         sys.exit("yt-dlp is not installed: pip install yt-dlp")
-    opts = {"quiet": True, "no_warnings": True, "noprogress": True, "skip_download": True}
+    opts = {"quiet": True, "no_warnings": True, "noprogress": True, "skip_download": True, "socket_timeout": 30,
+            "retries": 2, "extractor_retries": 1}
     opts.update(extra or {})
     return yt_dlp.YoutubeDL(opts)
 
@@ -206,7 +207,16 @@ def cmd_transcript(a):
     if outdir:
         outdir.mkdir(parents=True, exist_ok=True)
     status = 0
+    blocked = 0
     for i, target in enumerate(a.videos):
+        vid = video_id(target)
+        if outdir and any(outdir.glob(f"{vid}-*.md")):
+            print(f"have {vid} (already in {outdir})")
+            continue
+        if blocked >= 2:  # YouTube is rate-limiting this IP; more requests only extend the block
+            print(f"SKIP {target}: not tried, rate-limited; rerun later (finished files are kept)", file=sys.stderr)
+            status = 1
+            continue
         if i and a.sleep:
             time.sleep(a.sleep)  # spacing requests keeps YouTube's "confirm you're not a bot" check away
         info = lines = None
@@ -216,13 +226,16 @@ def cmd_transcript(a):
                 break
             except Exception as ex:
                 err = str(ex).splitlines()[0][:200]
-                if "not a bot" not in err or attempt == 2:
+                limited = "not a bot" in err or "429" in err
+                if not limited or attempt == 2:
                     print(f"SKIP {target}: {err}", file=sys.stderr)
+                    blocked += limited
                     break
-                time.sleep(20 * (attempt + 1))
+                time.sleep(30 * (attempt + 1))
         if info is None:
             status = 1
             continue
+        blocked = 0
         if not lines:
             print(f"SKIP {target}: no '{a.lang}' captions", file=sys.stderr)
             status = 1
@@ -265,6 +278,9 @@ def main(argv=None):
     v.add_argument("file")
     v.add_argument("--every", type=int, default=30)
     v.set_defaults(fn=cmd_parse_vtt)
+    # Video ids may start with "-" (e.g. -DoOf32pkPo); argparse would read them as options, so pass them as URLs.
+    argv = [f"https://www.youtube.com/watch?v={x}" if re.fullmatch(r"-[\w-]{10}", x) else x
+            for x in (sys.argv[1:] if argv is None else argv)]
     a = p.parse_args(argv)
     return a.fn(a) or 0
 
