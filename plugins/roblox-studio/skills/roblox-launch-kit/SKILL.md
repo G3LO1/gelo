@@ -9,7 +9,7 @@ Goal: a launch that gets the game in front of the right players and keeps them, 
 
 Answer in the user's language; store copy in the languages the game targets (English first unless told otherwise).
 
-Read `references/launch.md` every time: it holds the current platform rules (checked October 2026) and changes often.
+Read `references/launch.md` every time: it holds the current platform rules (checked October 2026) and changes often. Read `references/growth.md` for the traffic plan, ads, short-video/creator marketing, retention benchmarks and diagnosing a stagnating game: practical tactics from developers, labelled official vs community rule of thumb.
 
 ## 1. Inputs
 Take what is known from the conversation, `PRODUCTION_PLAN.md`, an idea-validator report or the game itself. Ask once with AskUserQuestion (multiple choice, recommended option first) only what is missing:
@@ -75,13 +75,13 @@ Week 0 (private/friends test), soft launch, ad tests, community (group, Discord/
 
 Rules for the plan:
 - **Soft launch first**: limited audience or a small Plays campaign to measure PTR, bounce and D1 before spending more. Fix onboarding before scaling ads.
-- **Ads**: start with Plays, small daily budget, 3-5 thumbnails per campaign, run several days before judging; Engagement objective only to reach the Kids/Select threshold (watch the Audience Reach dashboard and pause when reached). Ads help the game get considered; they don't count toward ranking, so retention decides what happens after.
+- **Ads**: test creatives' CTR with a tiny campaign first; then start with Plays, small daily budget (bids are automatic), 3-5 thumbnails per campaign, run several days before judging; Engagement objective only to reach the Kids/Select threshold (watch the Audience Reach dashboard and pause when reached). Ads help the game get considered; they don't count toward ranking, so retention decides what happens after.
 - **Experiments**: one variable at a time (onboarding, starter pack, shop placement), 14+ days, one variant vs control.
 - **Live-ops**: an update every 1-2 weeks with one goal metric each, events published as Experience Events (Trending Events needs 1,000+ RSVPs), update announcements to opted-in players, experience notifications for personal moments, new thumbnails tested with each major update. Plan around Saturdays and holidays.
 - **Price optimization** only becomes available with roughly 60,000 transactions in 30 days; until then pick prices from comparable games and test with Experiments.
 
 ## 5. Already live and stagnating
-Diagnose before prescribing: Analytics > Acquisition > Home Recommendations. Impressions fell after PTR fell -> icon/thumbnails/name; after bounce rose -> first session; after D2-7/D8-28 play days fell -> mid-term goals and content; benchmarks show which signal is furthest behind. Check the Creator Dashboard for a reduced-exposure quality banner (non-unique metadata or place, giveaway bait, mismatch). Then propose the 3 changes with the biggest expected effect and how to measure each.
+Diagnose before prescribing (`references/growth.md` sections 1, 3 and 7): Analytics > Acquisition > Home Recommendations. Impressions fell after PTR fell -> icon/thumbnails/name; after bounce rose -> first session; after D2-7/D8-28 play days fell -> mid-term goals and content; benchmarks show which signal is furthest behind. Check the Creator Dashboard for a reduced-exposure quality banner (non-unique metadata or place, giveaway bait, mismatch). Then propose the 3 changes with the biggest expected effect and how to measure each.
 
 ## 6. Report
 - Readiness verdict (ready / ready with risks / blocked by X) and the blockers with owners.

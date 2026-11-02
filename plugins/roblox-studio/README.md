@@ -98,6 +98,7 @@ plugins/roblox-studio/
     ├── roblox-launch-kit/
     │   ├── SKILL.md
     │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
+    │   ├── references/growth.md    # getting players: algorithm facts, packaging, retention benchmarks, ads, short video, creators
     │   └── scripts/check_store_assets.py
     └── roblox-animation-vfx/
         ├── SKILL.md
