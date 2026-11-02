@@ -89,7 +89,8 @@ plugins/roblox-studio/
     │   ├── scripts/                # spec_to_luau.py, validate_ui.luau, psd_to_spec.py, preview_ui.py
     │   └── assets/                 # ui_builder.luau, examples/style-tile-bubbly.json
     ├── roblox-map-builder/
-    │   └── SKILL.md
+    │   ├── SKILL.md
+    │   └── references/lighting.md  # lighting workflow, techniques, presets (from 17 tutorials, checked vs docs)
     ├── roblox-security-perf-audit/
     │   ├── SKILL.md
     │   ├── references/             # security, performance
