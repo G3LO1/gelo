@@ -65,7 +65,7 @@ python3 tools/yt_research.py transcript ID [ID...] -o "$SCRATCH/<topic>"      # 
 | 3 | Getting players: discovery and positioning (algorithm signals, icon/thumbnail CTR, title/description, retention/playtime, sessions, ads/sponsors, YouTuber/TikTok marketing, updates/events, groups/Discord, what top devs say) | `roblox-launch-kit/references/` (`references/growth.md`) | done (0.12.0, official docs/talks + 22 dev videos) |
 | 4 | Maps (layout, composition, landmarks, environment art) | `roblox-map-builder/references/level-design.md` | done (0.13.0, Roblox curriculum + ~20 videos) |
 | 5 | Scripting (Luau patterns, architecture, common bugs) | `roblox-luau-codegen/references/architecture.md` | done (0.14.0, Roblox docs/API + 18 videos) |
-| 6 | The rest: UI, animation/VFX, security/performance, game ideas, production | each skill's references | next |
+| 6 | The rest: UI (done 0.15.0, `roblox-ui-designer/references/ux.md`), animation/VFX, security/performance, game ideas, production | each skill's references | in progress: animation/VFX next |
 
 For #3 also cross-check Roblox's own guidance (creator-docs `production/promotion/`, `production/analytics/`,
 discovery/recommendation docs, DevForum announcements) because tutorial claims about "the algorithm" are often

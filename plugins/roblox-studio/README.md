@@ -86,7 +86,7 @@ plugins/roblox-studio/
     │   └── assets/template/        # Rojo project: Data/Purchase services, Net, Guard, Config
     ├── roblox-ui-designer/
     │   ├── SKILL.md
-    │   ├── references/             # ui-styles, studio, figma, photoshop, ui-spec
+    │   ├── references/             # ui-styles, ux, studio, figma, photoshop, ui-spec
     │   ├── scripts/                # spec_to_luau.py, validate_ui.luau, psd_to_spec.py, preview_ui.py
     │   └── assets/                 # ui_builder.luau, examples/style-tile-bubbly.json
     ├── roblox-map-builder/
