@@ -1,0 +1,29 @@
+{
+  "game": "Sample Tycoon (fictional, format example)",
+  "date": "2026-11-03",
+  "build": "soft launch, 1,200 plays",
+  "scores": {
+    "core_loop": {"score": 3, "evidence": "Playtest x3: collect -> upgrade -> rebirth loop works; after 20 min nothing new happens (no new verbs, only bigger numbers)."},
+    "onboarding": {"score": 2, "evidence": "Fresh join: no objective on screen, first reward after ~2.5 min; Creator Hub funnel shows 41% leave before step 2."},
+    "progression": {"score": 3, "evidence": "Rebirths and a saved upgrade tree exist; day-1 retention 14%, day-7 2% (below the ~20% / ~5% rule of thumb)."},
+    "ux_mobile": {"score": 2, "evidence": "Emulator 360x640: shop button sits under the jump button, 3 labels clipped; all text hard-coded English."},
+    "polish": {"score": 3, "evidence": "Cohesive low-poly style and music; no hit/purchase feedback, no animations on collectors."},
+    "content": {"score": 3, "evidence": "Items live in a data table (24 entries) so adding content is cheap; only one map and no event so far."},
+    "monetization": {"score": 4, "evidence": "2 passes + 3 products, one idempotent ProcessReceipt, prices read from MarketplaceService, free path to everything."},
+    "stability": {"score": 4, "evidence": "scan_luau.py: 0 high / 1 medium (unrated remote, Shop.server.luau:88); session-locked saves; not measured on a low-end phone."}
+  },
+  "blockers": [],
+  "strengths": [
+    "Clean monetization that does not gate content behind Robux.",
+    "Data-driven item table makes new content a same-day task."
+  ],
+  "improvements": [
+    {"title": "Add a 5-step tutorial with an on-screen objective, logged as a funnel", "criterion": "onboarding", "impact": 5, "effort": 2, "why": "41% leave before step 2; first reward comes too late."},
+    {"title": "Mobile pass: move shop button out of the thumb zone, fit text at 360x640", "criterion": "ux_mobile", "impact": 4, "effort": 2, "why": "Most players are on phones and the main button is covered."},
+    {"title": "Add pickup/purchase feedback: sound, tween and particle burst", "criterion": "polish", "impact": 3, "effort": 1, "why": "Core actions are silent and flat."},
+    {"title": "Add a daily reward and a 7-day streak", "criterion": "progression", "impact": 4, "effort": 2, "why": "Day-7 retention is 2%; no reason to return tomorrow."},
+    {"title": "Add a second verb to the loop (timed event: collect while a boss spawns)", "criterion": "core_loop", "impact": 4, "effort": 4, "why": "Nothing new happens after 20 minutes."},
+    {"title": "Rate-limit and validate the Shop remote", "criterion": "stability", "impact": 3, "effort": 1, "why": "The scanner's only medium finding."},
+    {"title": "Localize UI strings (EN + PL) with a LocalizationTable", "criterion": "ux_mobile", "impact": 2, "effort": 3, "why": "Hard-coded English text."}
+  ]
+}

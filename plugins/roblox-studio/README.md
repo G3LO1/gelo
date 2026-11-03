@@ -14,6 +14,9 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
 | [`roblox-animation-vfx`](skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. Works with a Blender MCP server when you have one (offers to connect it otherwise): rig clean-up, animation blocking, flipbooks and FBX exports checked by `blender_check.py`. |
+| [`roblox-game-reviewer`](skills/roblox-game-reviewer/SKILL.md) | Rates the current state of any game: `/review-game` reads the project itself (`collect_state.py`: systems present, saving, purchases, tutorial, audio, animation, VFX, TODOs, placeholder IDs, debug flags, tests, scanner counts), then scores 8 criteria (core loop, onboarding, retention, UI/mobile, polish, content, monetization, stability) with evidence, flags blockers and returns a verdict (SHIP-READY / SOLID / NEEDS WORK / BROKEN) plus an improvement backlog ranked by impact per effort, each routed to the skill that fixes it. `review_score.py` validates the review, does the math and shows the change against the previous review. |
+
+The plugin also ships the command `/roblox-studio:review-game [folder]` (a short alias for the reviewer; with copied skills use `/roblox-game-reviewer`).
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
@@ -25,8 +28,9 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 4. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
 5. `roblox-animation-vfx`: animation list and manifest, effects for every moment, wired into that code.
 6. `roblox-map-builder`: build the world in Studio.
-7. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
-8. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
+7. `roblox-game-reviewer` (`/review-game`): at any milestone, rate where the game stands and what to fix first.
+8. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
+9. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
 
 ## Install
 
@@ -70,6 +74,7 @@ Or copy the skills straight into a game's `.claude/skills/` with the repo's `ins
 ```
 plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
+├── commands/review-game.md      # /review-game
 ├── README.md
 └── skills/
     ├── roblox-game-idea-validator/
@@ -94,6 +99,11 @@ plugins/roblox-studio/
     │   ├── SKILL.md
     │   ├── references/             # security, performance
     │   └── scripts/                # scan_luau.py, audit_studio.luau, audit_place.luau
+    ├── roblox-game-reviewer/
+    │   ├── SKILL.md
+    │   ├── references/rubric.md    # what a 1/3/5 looks like per criterion, evidence sources, blockers
+    │   ├── scripts/                # collect_state.py (reads any project), review_score.py (math, verdict, ranking, progress)
+    │   └── assets/example-review.json
     ├── roblox-launch-kit/
     │   ├── SKILL.md
     │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
