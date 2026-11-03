@@ -20,6 +20,8 @@ Read `references/ui-styles.md`. Pick 2-3 styles that fit genre + audience + worl
 To show rather than tell, build a style tile for the chosen style (or for each candidate): copy `assets/examples/style-tile-bubbly.json`, swap tokens/fonts/shape values for the style, and build it in Studio (or mock it in Figma when the Figma MCP server is connected, see `references/figma.md`).
 
 ## 3. Design the screens
+Read `references/ux.md` first: what each screen must show (hierarchy, attention, conventions, consistency), flows, feedback, shop layout and when to show purchase offers, and UI frameworks for the code side.
+
 For each screen write down before drawing anything: purpose, elements (with names), states (default, empty, loading, error, locked/owned), how it opens/closes, and which elements code drives (labels, buttons, lists). Then lay it out following `references/studio.md` (safe areas, thumb zones, anchors, scale, aspect constraints, text sizes). Names are the contract with the code: `CoinsLabel`, `BuyButton`, `ItemList`.
 
 ## 4. Build through the chosen route

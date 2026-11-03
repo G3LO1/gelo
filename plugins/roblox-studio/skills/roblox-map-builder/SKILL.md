@@ -9,10 +9,10 @@ Goal: maps that look good AND are correct (scale, collision, navigation, perform
 
 ## Workflow
 1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (multiple choice, recommended option first) rather than free text; ask only what is missing. If style unclear, propose 2-3.
-2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing.
-3. Terrain pass (outdoor): macro shape -> routes -> biome blending (irregular bands) -> cliffs/caves -> water. Parts/meshes for collision-critical edges.
+2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing. Layout rules per genre (shooter lanes, simulator hub, obby curve, horror pacing), guidance, modular kits and a travel-time script: `references/level-design.md`.
+3. Terrain pass (outdoor): read `references/terrain.md` (editor facts, Expanded Terrain, shaping/painting/rock/tree technique, card grass, WriteVoxels heightfield + parts->terrain scripts, perf). Macro shape -> routes -> biome blending (irregular bands) -> cliffs/caves -> water. Parts/meshes for collision-critical edges and close-up realism.
 4. Kit + dressing: modular pieces with shared mesh/texture IDs, palette + material rules from the style, asymmetric prop clusters, story-driven wear. Hierarchy: big shapes -> medium rhythm -> small detail.
-5. Lighting pass LAST: apply style preset, tune against screenshots. Never use fog/bloom to hide geometry problems.
+5. Lighting pass LAST: read `references/lighting.md` (order of work, what each property really does, fake bounce light, contact shadows, light shafts, zones, day/night, perf), pick sky -> place sun -> style preset -> local lights, tune against screenshots. Never use fog/bloom to hide geometry problems.
 6. Validate (checklist below), fix, re-check, then report briefly: what was built, what was verified, what needs a human (real phone test, uploads, manual Studio toggles).
 
 ## Studio loop
@@ -23,10 +23,10 @@ When the style needs meshes the Studio tools can't make well (modular kit pieces
 
 ## Hard rules
 - Use Lighting.LightingStyle (Realistic|Soft) + PrioritizeLightingQuality; Lighting.Technology is deprecated (Future=Realistic+prioritized, ShadowMap=Soft+prioritized, Voxel=Soft+not prioritized). VERIFIED: LightingStyle is script-writable via execute_luau in Edit mode.
-- Atmosphere overrides legacy FogStart/FogEnd. Neon does not light anything (add Point/Surface/SpotLight). ShadowSoftness is Realistic-only. ClockTime never advances without a script. Shadows vanish below graphics level 4.
-- Terrain color: Terrain:SetMaterialColor() (per material, global). Terrain.Decoration (grass blades), GrassLength (0.1-1), StreamingEnabled are Studio-side and NOT scriptable: for low-poly/cartoon tell the user to untick Decoration in Properties. MaterialVariant on terrain = global override of the base material. Terrain voxels are 4x4x4 studs.
+- Ambient = hue of sky-occluded areas (shadows/indoors), OutdoorAmbient = outdoors (clamped >= Ambient per channel); GlobalShadows off -> no sun shadows and Ambient everywhere. ExposureCompensation range -5..5 (1 = 2x). Atmosphere overrides legacy FogStart/FogEnd. Neon does not light anything (add Point/Surface/SpotLight). ShadowSoftness is Realistic-only. ClockTime never advances without a script. Shadows vanish below graphics level 4.
+- Terrain color: Terrain:SetMaterialColor() (per material, global). Terrain.Decoration (grass blades), GrassLength (0.1-1), StreamingEnabled are Studio-side and NOT scriptable: for low-poly/cartoon tell the user to untick Decoration in Properties. MaterialVariant on terrain = global override of the base material, unless Workspace Expanded Terrain is Enabled (up to 62 custom paintable terrain materials; terrain thinner than 16 voxels can vanish with a small streaming radius). Terrain voxels are 4x4x4 studs; grass blades only on Grass.
 - Place templates ship with Bloom/DepthOfField/SunRays: when applying a preset delete or merge them so template and custom effects don't stack.
-- No universal part/light-count limit: budget the visible scene on a baseline device; measure (Shift+F2 render stats, F9 memory, Ctrl+Alt+F6 MicroProfiler). Illustrative only: <1000 draw calls, <1M visible tris; imported mesh max 20,000 tris.
+- No universal part/light-count limit: budget the visible scene on a baseline device; measure (Shift+F2 render stats, F9 memory, Ctrl+Alt+F6 MicroProfiler). Roblox's own mobile ceiling (RDC 2024): ~500 draw calls and ~500k scene tris on the densest view, client memory ~1.3 GB on 2 GB phones (see roblox-security-perf-audit performance.md section 9); imported mesh max 20,000 tris.
 - Procedural generation must be seeded (Random.new(seed+n), math.noise), constrained (slope, spacing, path/landmark reservations) and validated (connectivity, spawn safety, pathfinding).
 - Don't recreate specific copyrighted maps/assets; use lessons only. Inspect Toolbox models for scripts and scale.
 

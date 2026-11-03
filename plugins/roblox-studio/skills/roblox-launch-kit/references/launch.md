@@ -61,7 +61,7 @@ Answer accurately and update it when content changes. Categories: violence, bloo
 ## 4. How discovery works (discovery.md)
 Recommended for You works in two stages: **retrieval** (which games are considered for a user; helped by ads, curation, search, charts, friends, notifications, social sharing, even a small number of players) and **ranking** (how far it goes: ONLY the engagement of users who arrived organically from Recommended for You counts; ad, search, friend and social traffic do not count here).
 
-Signals, averaged per user (small games are not disadvantaged):
+A custom thumbnail is required for any Home recommendation impressions. Since 2026 the play-day/playtime signals use D1, D2-7 and D8-28 windows (separately and combined); weak early results aren't penalized (moving window, daily re-testing). Signals, averaged per user (small games are not disadvantaged):
 - Most important: play through rate (plays after seeing it in Recommended for You); first play bounce rate (negative; < 60 s and 61-180 s sessions); play days per user and playtime per user (D1, D2-7, D8-28; playtime capped at 60 min per user per day).
 - Important: intentional co-play days (friends joining, invites, private servers), qualified play sessions per user, spend days per user, Robux spent per user.
 - Explore and expand: after an update Roblox may test the game on new cohorts; if they engage, it widens distribution.
@@ -91,6 +91,7 @@ Other surfaces: Search (semantic, natural-language queries in supported language
 - Requirements: age 13+, verified email. Pay by card (18+, $1 temporary hold) or Robux converted to ad credits (13+, minimum 1 credit, irreversible). Group games supported (group ad account; "Configure and spend group revenue" permission for group funds).
 - Objectives: **Plays** (most players likely to start a session; good for testing and to help recommendations learn), **Earnings** (limited availability; likely spenders), **Engagement** (age-checked highly engaged players who count toward the Kids and Select threshold; higher cost per play; doesn't auto-pause when the threshold is reached).
 - Audiences: All, New (never played or 180+ days), Recent (played in 30 days; needs 10,000+ recent players), Lapsed (30-180 days; needs 20,000+ lapsed players); advanced targeting by location, age, gender, genre, device.
+- Automated bidding: you set budget and duration, Roblox sets the bid (old manual-bid advice is outdated). Attribution: a first play via an ad credits that ad for 30 days; users returning after 7+ days count as resurrected (7- or 30-day credit). Ad-acquired users are never counted in RFY ranking, even when they later return via Home, and RFY impressions can dip during ads without any penalty.
 - Daily or lifetime budget, start date/time, duration; auto-reload for ad credits; payment method fixed after publishing. Up to 10 thumbnails per campaign (16:9, shown evenly), from Creator Hub, uploaded, or AI-generated. Campaigns show on Home (Sponsored) and in search. Moderation usually within 24 hours.
 - Non-unique games can end with no spend and no conversions.
 - Remember: ad players help retrieval but don't count in the ranking stage of Recommended for You. Use ads to test thumbnails/onboarding and to seed the first cohorts, not as a substitute for retention.

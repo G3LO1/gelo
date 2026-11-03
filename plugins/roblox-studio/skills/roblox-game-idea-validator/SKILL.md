@@ -22,7 +22,7 @@ If the user just wants a quick take, skip questions, state your assumptions in o
 ## 2. Market check
 Trends on Roblox turn over in months, so check the live market when web search is available: current top experiences in the genre (roblox.com/charts, RoMonitor Stats, Rolimons game list), their concurrent players, how many recent clones exist, and whether the trend is rising or fading. Name 2-4 real competitors and what they already do well. Without web access, use `references/genres.md` and say that the market data may be stale.
 
-Read `references/genres.md` for genre-specific strengths, saturation and traps whenever the idea fits a known genre.
+Read `references/genres.md` for genre-specific strengths, saturation and traps whenever the idea fits a known genre. Read `references/idea-sourcing.md` for the latest market snapshot (re-check live charts anyway), and whenever the user has no idea yet or wants several candidates: it lists how successful developers find ideas (charts, Home-page gaps, stat dashboards, TikTok and other platforms with demand signals, core fantasy, one-sentence test) and how to test one cheaply (package first, 2-4 week MVP, playtest, a week of small ads).
 
 ## 3. Score
 Score each criterion 1-5 (1 = broken, 3 = average Roblox game, 5 = top-chart quality). Points = weight x score / 5 (e.g. weight 20, score 3 -> 12). Write the points for every row in the scorecard and add up that column for the total out of 100, so the reader can check the math.
@@ -84,7 +84,7 @@ Concrete changes that raise the weakest scores (mechanics, not slogans). If PIVO
 The smallest prototype that proves the core loop (1-2 weeks), what to playtest, and the numbers that mean "keep going".
 ```
 
-For the cheapest test, use rough community rules of thumb, not official Roblox numbers, and say they vary by genre: day-1 retention around 20%+ and day-7 around 5%+ is promising, average session over ~10-15 minutes is healthy, and the icon/thumbnail should earn clicks in a small paid ad test before full production.
+For the cheapest test, use rough community rules of thumb, not official Roblox numbers, and say they vary by genre: for small paid ad cohorts developers in 2026 call day-1 retention around 12-15% and day-7 around 2-3% healthy (20%+ / 5%+ is strong), average playtime 10+ minutes during ads (20+ once Home recommends the game), first Home Recommendation impressions within 1-2 weeks, and pivot to the next idea if the numbers don't move after ~2 weeks of fixes; and the icon/thumbnail should earn clicks in a small paid ad test before full production.
 
 ## Comparing several ideas
 Score each one with the same table, put the totals side by side, pick one winner and explain the deciding difference. Don't hedge with "they're all good".

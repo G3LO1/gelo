@@ -74,22 +74,24 @@ plugins/roblox-studio/
 └── skills/
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
-    │   └── references/genres.md
+    │   └── references/             # genres.md, idea-sourcing.md (idea sources, cheap tests, market snapshot)
     ├── roblox-game-production-plan/
     │   ├── SKILL.md
-    │   └── references/production-checklist.md
+    │   └── references/             # production-checklist.md, team.md (boards, hiring, payouts, collaboration, AI)
     ├── roblox-luau-codegen/
     │   ├── SKILL.md
     │   ├── references/patterns.md
+    │   ├── references/architecture.md  # structure, OOP/cleanup, remotes limits, buffers, Parallel Luau, new engine features
     │   ├── scripts/check.sh
     │   └── assets/template/        # Rojo project: Data/Purchase services, Net, Guard, Config
     ├── roblox-ui-designer/
     │   ├── SKILL.md
-    │   ├── references/             # ui-styles, studio, figma, photoshop, ui-spec
+    │   ├── references/             # ui-styles, ux, studio, figma, photoshop, ui-spec
     │   ├── scripts/                # spec_to_luau.py, validate_ui.luau, psd_to_spec.py, preview_ui.py
     │   └── assets/                 # ui_builder.luau, examples/style-tile-bubbly.json
     ├── roblox-map-builder/
-    │   └── SKILL.md
+    │   ├── SKILL.md
+    │   └── references/             # level-design.md, lighting.md, terrain.md (from tutorials, checked vs docs)
     ├── roblox-security-perf-audit/
     │   ├── SKILL.md
     │   ├── references/             # security, performance
@@ -97,10 +99,11 @@ plugins/roblox-studio/
     ├── roblox-launch-kit/
     │   ├── SKILL.md
     │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
+    │   ├── references/growth.md    # getting players: algorithm facts, packaging, retention benchmarks, ads, short video, creators
     │   └── scripts/check_store_assets.py
     └── roblox-animation-vfx/
         ├── SKILL.md
-        ├── references/             # animation, vfx, blender
+        ├── references/             # animation, vfx, craft, blender
         ├── scripts/                # anim_manifest.py, vfx_showcase.luau, make_textures.py, blender_check.py
         └── assets/                 # Vfx.luau, AnimationSet.luau, textures/
 ```

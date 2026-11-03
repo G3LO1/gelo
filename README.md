@@ -83,6 +83,23 @@ bash tests/roblox-launch-kit/run.sh            # store asset checker on generate
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
 bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
+python3 tests/yt-research/test_yt_research.py # tools/yt_research.py caption parsing (offline)
 ```
+
+### Researching tutorials
+
+`tools/yt_research.py` searches YouTube and pulls full, cleaned transcripts (timestamps, chapters, deep links) so
+Claude can learn from tutorials and fold verified findings into the skills. Opening this repo in Claude Code loads
+the [`youtube-research`](.claude/skills/youtube-research/SKILL.md) dev skill with the workflow (search, read,
+verify against Roblox docs, write a sourced `references/*.md`). It is not part of the plugin.
+
+```
+pip install yt-dlp
+python3 tools/yt_research.py search "roblox studio lighting tutorial" -n 10 --details
+python3 tools/yt_research.py transcript adgCWET34rU vkEXLmRAQgs -o research/lighting
+```
+
+The level-design, lighting and terrain guidance in `roblox-map-builder/references/` and the growth playbook in
+`roblox-launch-kit/references/growth.md` were made this way.
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
