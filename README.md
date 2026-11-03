@@ -48,6 +48,7 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 | [`roblox-security-perf-audit`](plugins/roblox-studio/skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](plugins/roblox-studio/skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
 | [`roblox-animation-vfx`](plugins/roblox-studio/skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. Works with a Blender MCP server when you have one (offers to connect it otherwise): rig clean-up, animation blocking, flipbooks and FBX exports checked by `blender_check.py`. |
+| [`roblox-game-reviewer`](plugins/roblox-studio/skills/roblox-game-reviewer/SKILL.md) | Rates the current state of any game: `/review-game` reads the project itself (`collect_state.py`: systems present, saving, purchases, tutorial, audio, animation, VFX, TODOs, placeholder IDs, debug flags, tests, scanner counts), then scores 8 criteria (core loop, onboarding, retention, UI/mobile, polish, content, monetization, stability) with evidence, flags blockers and returns a verdict (SHIP-READY / SOLID / NEEDS WORK / BROKEN) plus an improvement backlog ranked by impact per effort, each routed to the skill that fixes it. `review_score.py` validates the review, does the math and shows the change against the previous review. |
 
 See [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md) for how to add new skills.
 
@@ -82,6 +83,7 @@ bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures,
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
+bash tests/roblox-game-reviewer/run.sh         # review_score.py (math, verdicts, blocker cap, validation, progress) + collect_state.py on a fixture project
 bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
 ```
 
