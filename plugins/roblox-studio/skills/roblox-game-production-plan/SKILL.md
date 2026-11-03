@@ -38,6 +38,8 @@ Use these unless the user has their own:
 5. **Live-ops**: update cadence (weekly or bi-weekly), event calendar, what gets measured each update.
 
 ## 4. Output
+When the team is more than one person or will hire help, read `references/team.md` and add to the plan: board setup with definitions of done, work order (art/UI for the core loop before the programmer, weekly test window), hiring and payment terms (scope of work, paid test task, avoid revenue-percentage deals with unproven teams), group roles and payouts (DevEx rates), Team Create/packages/Git, and where AI tools fit.
+
 Write the plan as a Markdown file in the user's project (default `PRODUCTION_PLAN.md`, ask before overwriting an existing one) and summarize it in chat. When the user wants to import tasks into a board (Trello, Notion, GitHub Projects, Jira), also write `tasks.csv` with columns `id,discipline,task,owner,size,priority,milestone,depends_on`.
 
 Plan structure:

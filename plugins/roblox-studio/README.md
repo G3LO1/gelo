@@ -77,7 +77,7 @@ plugins/roblox-studio/
     │   └── references/             # genres.md, idea-sourcing.md (idea sources, cheap tests, market snapshot)
     ├── roblox-game-production-plan/
     │   ├── SKILL.md
-    │   └── references/production-checklist.md
+    │   └── references/             # production-checklist.md, team.md (boards, hiring, payouts, collaboration, AI)
     ├── roblox-luau-codegen/
     │   ├── SKILL.md
     │   ├── references/patterns.md
