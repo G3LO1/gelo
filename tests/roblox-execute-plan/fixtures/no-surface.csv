@@ -1,0 +1,11 @@
+id,discipline,task,owner,size,priority,milestone,depends_on,status
+SYS-01,Systems,Project skeleton,Sk,S,MVP,M1,,todo
+SYS-02,Systems,Game loop,Sk,M,MVP,M1,SYS-01,todo
+SYS-03,Systems,Carry item,Sk,S,MVP,M1,SYS-01,todo
+MAP-01,Map,Greybox map,Bd,M,MVP,M1,,todo
+MAP-02,Map,Place spawns,Bd,S,MVP,M1,MAP-01;SYS-01,todo
+UI-01,UI,Write ui-spec,Ui,S,MVP,M1,,todo
+UI-02,UI,Build HUD in Studio,Ui,M,MVP,M1,UI-01;SYS-02,todo
+MOD-01,Models,Truck model,Bd,M,MVP,M2,MAP-01,todo
+SYS-04,Systems,Stations,Sk,M,MVP,M2,SYS-03,todo
+DATA-01,Data,Saving,Sk,M,Launch,M2,SYS-02,todo

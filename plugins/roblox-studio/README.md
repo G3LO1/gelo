@@ -10,6 +10,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-game-idea-validator`](skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 | [`roblox-game-production-plan`](skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
 | [`roblox-luau-codegen`](skills/roblox-luau-codegen/SKILL.md) | Writes the game's Luau code from the plan (Rojo project or straight into Studio): a tested template with session-locked player data, idempotent purchases and validated, rate-limited remotes, plus the game's own systems built from ready patterns, checked with StyLua/Selene. |
+| [`roblox-execute-plan`](skills/roblox-execute-plan/SKILL.md) | Carries out the production plan wave by wave, in the mode that fits how you build: **A** Rojo and files (parallel agents in separate git worktrees), **B** Studio only through MCP (one writer at a time, checkpoint copy and manifest per milestone), **C** mixed (parallel file lane plus serial Studio lane with sync points). `plan_waves.py` turns `tasks.csv` into waves (dependency, cycle and milestone checks, resumes from `done`), quality gates run before each next step, and a handoff prompt continues the work in a new session. |
 | [`roblox-ui-designer`](skills/roblox-ui-designer/SKILL.md) | Designs and builds game UI in Figma, Photoshop or straight in Studio: proposes one of 11 researched UI styles with ready tokens, lays out mobile-safe screens, converts PSDs (`psd_to_spec.py`) and Figma designs, and turns everything into one `ui-spec.json` -> validated Studio build script + `.rbxmx` + browser preview with phone thumb-zone overlays. |
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
@@ -21,12 +22,13 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 
 1. `roblox-game-idea-validator`: is the idea worth building? (GO / PIVOT / KILL)
 2. `roblox-game-production-plan`: everything that has to be made, by whom, and when.
-3. `roblox-ui-designer`: pick a UI style and build the screens (Figma, Photoshop or Studio).
-4. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
-5. `roblox-animation-vfx`: animation list and manifest, effects for every moment, wired into that code.
-6. `roblox-map-builder`: build the world in Studio.
-7. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
-8. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
+3. `roblox-execute-plan`: carry the plan out in waves (Rojo and files, Studio only, or mixed), with parallel agents and handoff between sessions. It calls the skills below for each task.
+4. `roblox-ui-designer`: pick a UI style and build the screens (Figma, Photoshop or Studio).
+5. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
+6. `roblox-animation-vfx`: animation list and manifest, effects for every moment, wired into that code.
+7. `roblox-map-builder`: build the world in Studio.
+8. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
+9. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
 
 ## Install
 
@@ -78,6 +80,11 @@ plugins/roblox-studio/
     ├── roblox-game-production-plan/
     │   ├── SKILL.md
     │   └── references/production-checklist.md
+    ├── roblox-execute-plan/
+    │   ├── SKILL.md
+    │   ├── references/             # workflow-a-rojo, workflow-b-studio, workflow-c-hybrid, handoff
+    │   ├── scripts/plan_waves.py
+    │   └── assets/EXECUTION_STATE.template.md
     ├── roblox-luau-codegen/
     │   ├── SKILL.md
     │   ├── references/patterns.md

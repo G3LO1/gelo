@@ -38,7 +38,11 @@ Use these unless the user has their own:
 5. **Live-ops**: update cadence (weekly or bi-weekly), event calendar, what gets measured each update.
 
 ## 4. Output
-Write the plan as a Markdown file in the user's project (default `PRODUCTION_PLAN.md`, ask before overwriting an existing one) and summarize it in chat. When the user wants to import tasks into a board (Trello, Notion, GitHub Projects, Jira), also write `tasks.csv` with columns `id,discipline,task,owner,size,priority,milestone,depends_on`.
+Write the plan as a Markdown file in the user's project (default `PRODUCTION_PLAN.md`, ask before overwriting an existing one) and summarize it in chat. Also write `tasks.csv` when the user wants to import tasks into a board (Trello, Notion, GitHub Projects, Jira) or to carry the plan out with `roblox-execute-plan` (offer it, it is the default next step), with columns `id,discipline,task,owner,size,priority,milestone,depends_on,surface,status`:
+- `milestone`: exactly one of `M1`..`M5` per task (the milestones above). A task that spans two milestones goes into the later one, or is split.
+- `depends_on`: task ids separated by `;` (empty if none), and never a task from a later milestone.
+- `surface`: `file` for what lives in the project's files (scripts, data tables, specs, `ui-spec.json`, docs), `studio` for what is built straight into the place (map, models, UI built in Studio, anything written with Studio tools).
+- `status`: `todo` for every task when the plan is written (`roblox-execute-plan` sets `done` as work is finished).
 
 Plan structure:
 
@@ -68,4 +72,4 @@ The exact tasks each person starts with on day 1.
 ```
 
 ## Hand-off
-For the world/map tasks offer the `roblox-map-builder` skill from this plugin; for animation and VFX tasks `roblox-animation-vfx` (which also drives Blender through a Blender MCP server when one is connected). When Roblox Studio MCP tools are connected and the user wants to start, offer to set up the place structure (folders, RemoteEvents, a data module, placeholder UI) from the plan.
+To carry the plan out (in waves, with parallel agents or over several sessions, depending on whether the game is built with Rojo, straight in Studio or both) offer `roblox-execute-plan`. For the world/map tasks offer the `roblox-map-builder` skill from this plugin; for animation and VFX tasks `roblox-animation-vfx` (which also drives Blender through a Blender MCP server when one is connected). When Roblox Studio MCP tools are connected and the user wants to start, offer to set up the place structure (folders, RemoteEvents, a data module, placeholder UI) from the plan.
