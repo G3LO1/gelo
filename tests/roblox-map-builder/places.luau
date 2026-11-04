@@ -3,13 +3,23 @@
 
 local roblox = require("@lune/roblox")
 
-local Instance, Enum, Vector3, Color3 = roblox.Instance, roblox.Enum, roblox.Vector3, roblox.Color3
+local Instance, Enum, Vector3, Color3, CFrame = roblox.Instance, roblox.Enum, roblox.Vector3, roblox.Color3, roblox.CFrame
+
+-- Lune keeps Position and CFrame apart (Position does not move the CFrame, and only the
+-- CFrame is saved), so positions are always written as a CFrame.
+local function apply(instance, props)
+	for key, value in props do
+		if key == "Position" then
+			instance.CFrame = CFrame.new(value)
+		else
+			instance[key] = value
+		end
+	end
+end
 
 local function new(className, props, parent)
 	local instance = Instance.new(className)
-	for key, value in props do
-		instance[key] = value
-	end
+	apply(instance, props)
 	instance.Parent = parent
 	return instance
 end
@@ -18,9 +28,7 @@ local function configured(parent, props)
 	local p = Instance.new("Part")
 	p.Anchored = true
 	p.Size = Vector3.new(8, 1, 8)
-	for key, value in props do
-		p[key] = value
-	end
+	apply(p, props)
 	p.Parent = parent
 	return p
 end
