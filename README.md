@@ -40,7 +40,7 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 
 | Skill | What it does |
 | --- | --- |
-| [`roblox-map-builder`](plugins/roblox-studio/skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
+| [`roblox-map-builder`](plugins/roblox-studio/skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant maps (terrain, buildings, lighting, props, procedural generation) in any style, then checks them: a validator for spawns, reachability (pathfinding), doors, z-fighting, floating props, collision and lighting, a seeded scatter module and lighting presets for 12 styles. |
 | [`roblox-game-idea-validator`](plugins/roblox-studio/skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 | [`roblox-game-production-plan`](plugins/roblox-studio/skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
 | [`roblox-luau-codegen`](plugins/roblox-studio/skills/roblox-luau-codegen/SKILL.md) | Writes the game's Luau code from the plan (Rojo project or straight into Studio): a tested template with session-locked player data, idempotent purchases and validated, rate-limited remotes, plus the game's own systems built from ready patterns, checked with StyLua/Selene. |
@@ -80,6 +80,7 @@ The other skills' scripts have tests too:
 ```
 bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures, no false positives on the template/example, place audit
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
+bash tests/roblox-map-builder/run.sh           # map validator rules on a clean and a bad map, validate_place CLI, seeded Scatter, lighting presets vs Roblox's API database
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
 bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
