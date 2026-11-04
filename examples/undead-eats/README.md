@@ -3,7 +3,7 @@
 Example game built with the `roblox-studio` plugin: idea validated, planned, then coded with
 `roblox-luau-codegen` and given a UI with `roblox-ui-designer`.
 
-Rojo project. Implemented so far from `PRODUCTION_PLAN.md`: SYS-01..SYS-05, DATA-01, SYS-07 (truck
+Rojo project. Implemented so far from its production plan: SYS-01..SYS-05, DATA-01, SYS-07 (truck
 health model; repair interaction still TODO), SYS-11 (upgrade shop), UI-02 (HUD) and UI-06 (upgrade shop UI).
 
 ```
