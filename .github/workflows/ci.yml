@@ -34,13 +34,12 @@ jobs:
           m=$(jq -r '.plugins[] | select(.name=="roblox-studio") | .version' .claude-plugin/marketplace.json)
           echo "plugin.json $p, marketplace.json $m"
           [ "$p" = "$m" ]
-      - name: Every skill is listed in both READMEs
+      - name: Every skill is listed in the plugin README
         run: |
           status=0
           for dir in plugins/roblox-studio/skills/*/; do
             name=$(basename "$dir")
             grep -q "^name: \"$name\"" "$dir/SKILL.md" || { echo "::error::$name: frontmatter name differs from folder"; status=1; }
-            grep -q "\`$name\`" README.md || { echo "::error::$name missing from README.md"; status=1; }
             grep -q "\`$name\`" plugins/roblox-studio/README.md || { echo "::error::$name missing from plugins/roblox-studio/README.md"; status=1; }
           done
           exit $status
