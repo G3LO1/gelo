@@ -72,6 +72,37 @@ P="$WORK/sh-pipe"; mkdir -p "$P"; prepare_project "$P"
 expect_installed "$P/.claude/skills"; expect_untouched_neighbours "$P"
 echo "ok   piped in (curl | bash), downloads the archive"
 
+P="$WORK/sh-codex"; mkdir -p "$P"
+bash "$ROOT/install.sh" --target codex "$P" >/dev/null
+expect_installed "$P/.agents/skills"
+[ ! -e "$P/.claude" ] || fail "--target codex also wrote .claude"
+echo "ok   --target codex"
+
+P="$WORK/sh-agy"; mkdir -p "$P"
+bash "$ROOT/install.sh" --target=antigravity "$P" >/dev/null
+expect_installed "$P/.agents/skills"
+echo "ok   --target=antigravity (project)"
+
+P="$WORK/sh-all"; mkdir -p "$P"
+bash "$ROOT/install.sh" --target all "$P" >/dev/null
+expect_installed "$P/.claude/skills"; expect_installed "$P/.agents/skills"
+echo "ok   --target all"
+
+H="$WORK/sh-home-codex"; mkdir -p "$H"
+HOME="$H" bash "$ROOT/install.sh" --target codex --global >/dev/null
+expect_installed "$H/.agents/skills"
+H="$WORK/sh-home-agy"; mkdir -p "$H"
+HOME="$H" bash "$ROOT/install.sh" --target antigravity --global >/dev/null
+expect_installed "$H/.gemini/config/skills"
+H="$WORK/sh-home-all"; mkdir -p "$H"
+HOME="$H" bash "$ROOT/install.sh" --global --target all >/dev/null
+expect_installed "$H/.claude/skills"; expect_installed "$H/.agents/skills"; expect_installed "$H/.gemini/config/skills"
+echo "ok   --target with --global"
+
+! bash "$ROOT/install.sh" --target bogus "$WORK" 2>/dev/null || fail "unknown target accepted"
+! bash "$ROOT/install.sh" --target 2>/dev/null || fail "--target without value accepted"
+echo "ok   bad targets rejected"
+
 ! bash "$ROOT/install.sh" "$WORK/missing" 2>/dev/null || fail "missing folder accepted"
 ! bash "$ROOT/install.sh" --global "$WORK" 2>/dev/null || fail "--global with a folder accepted"
 ! bash "$ROOT/install.sh" --bogus 2>/dev/null || fail "unknown option accepted"
@@ -106,6 +137,19 @@ if command -v pwsh >/dev/null 2>&1; then
   GELO_ZIP_URL="http://127.0.0.1:$PORT/gelo.zip" $PS -Command "& ([scriptblock]::Create((Get-Content -Raw '$ROOT/install.ps1'))) -Project '$P'" >/dev/null
   expect_installed "$P/.claude/skills"
   echo "ok   scriptblock with arguments"
+
+  P="$WORK/ps-codex"; mkdir -p "$P"
+  $PS -File "$ROOT/install.ps1" -Project "$P" -Target codex >/dev/null
+  expect_installed "$P/.agents/skills"
+  [ ! -e "$P/.claude" ] || fail "ps1: -Target codex also wrote .claude"
+  P="$WORK/ps-all"; mkdir -p "$P"
+  $PS -File "$ROOT/install.ps1" -Project "$P" -Target all >/dev/null
+  expect_installed "$P/.claude/skills"; expect_installed "$P/.agents/skills"
+  H="$WORK/ps-home-agy"; mkdir -p "$H"
+  HOME="$H" $PS -File "$ROOT/install.ps1" -Global -Target antigravity >/dev/null
+  expect_installed "$H/.gemini/config/skills"
+  ! $PS -File "$ROOT/install.ps1" -Target bogus >/dev/null 2>&1 || fail "ps1: unknown target accepted"
+  echo "ok   -Target codex / all / antigravity -Global"
 
   ! $PS -File "$ROOT/install.ps1" -Project "$WORK/missing" >/dev/null 2>&1 || fail "ps1: missing folder accepted"
   ! $PS -File "$ROOT/install.ps1" -Global -Project "$WORK" >/dev/null 2>&1 || fail "ps1: -Global with -Project accepted"

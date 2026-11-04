@@ -40,7 +40,7 @@ Roblox Studio does not open Figma files. The design is made in Figma, then eithe
 Position and size: convert pixel boxes to Scale relative to the parent frame, AnchorPoint from the nearest third of the parent (left/center/right, top/middle/bottom), then a `UIAspectRatioConstraint` with w/h for fixed-shape elements (same rule `psd_to_spec.py` uses).
 
 ## 3. Route A: Claude with the Figma MCP server
-When the Figma MCP tools are connected (tool names start with `mcp__Figma__`), follow the Figma server's own instructions: it requires loading its `figma-use` skill before `use_figma` (and `figma-generate-design` for building screens). Then:
+When the Figma MCP tools are connected (tool names start with `mcp__Figma__` in Claude Code; other agents use their own prefix, the tool names are the same), follow the Figma server's own instructions: it requires loading its `figma-use` skill before `use_figma` (and `figma-generate-design` for building screens). Then:
 - **Mock styles or screens in Figma**: create a file (`create_new_file`), build one frame per screen in the chosen style using the tokens from `ui-styles.md` (as Figma variables) and the mapping above, and check it with `get_screenshot`. Good for showing 2-3 style options side by side before building in Studio.
 - **Read a designer's file**: `get_metadata` (layer tree, positions, sizes), `get_variable_defs` (tokens), `get_screenshot` (visual reference), `download_assets` for image exports. Write `ui-spec.json` from it with the mapping above, export raster parts into `ui/images/`, then run the normal spec -> build -> validate steps.
 - Ask before creating or changing files in the user's Figma account.

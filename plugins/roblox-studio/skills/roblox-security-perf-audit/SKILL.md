@@ -10,7 +10,7 @@ Goal: find what will actually hurt the game in production (exploiters, backdoors
 Answer in the user's language; rule IDs, code and identifiers stay in English.
 
 ## 1. Scope
-Find out, from the conversation or with one AskUserQuestion round (multiple choice, recommended first), only what is missing:
+Find out, from the conversation or with one AskUserQuestion (or numbered options in chat if the agent has no such tool) round (multiple choice, recommended first), only what is missing:
 - What to audit: code on disk (Rojo project), a place in Studio (Roblox Studio MCP connected), a `.rbxl/.rbxlx/.rbxm/.rbxmx` file, or a single script pasted in chat.
 - The symptom, if any: exploiters doing X, data loss/duplication, lag (where, on which devices), memory crashes, a suspicious free model. A symptom narrows the audit; without one, run everything.
 - Whether you may change code or only report. Default: report first, then patch what the user approves.

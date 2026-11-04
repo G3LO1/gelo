@@ -10,7 +10,7 @@ Goal: tell the developer the truth about their idea before they spend weeks buil
 Be direct. Most ideas are average; inflated scores waste the developer's time and money, and they asked because they want a real answer. Praise what is genuinely strong, name what kills the idea, and always show how it could be made better. Answer in the user's language.
 
 ## 1. Brief
-Pull these from the pitch first; ask only for what is missing and actually changes the verdict, with AskUserQuestion (multiple choice, recommended option first), at most one round:
+Pull these from the pitch first; ask only for what is missing and actually changes the verdict, with AskUserQuestion (or numbered options in chat if the agent has no such tool) (multiple choice, recommended option first), at most one round:
 - Core loop: what the player does every 30 seconds and every session.
 - Target audience (age band, casual/hardcore) and main device (assume phone-first if unknown).
 - Team: size, skills (scripting, building, modeling, UI), time per week, budget for ads.

@@ -12,7 +12,7 @@ Answer in the user's language; store copy in the languages the game targets (Eng
 Read `references/launch.md` every time: it holds the current platform rules (checked October 2026) and changes often.
 
 ## 1. Inputs
-Take what is known from the conversation, `PRODUCTION_PLAN.md`, an idea-validator report or the game itself. Ask once with AskUserQuestion (multiple choice, recommended option first) only what is missing:
+Take what is known from the conversation, `PRODUCTION_PLAN.md`, an idea-validator report or the game itself. Ask once with AskUserQuestion (or numbered options in chat if the agent has no such tool) (multiple choice, recommended option first) only what is missing:
 - State: not public yet / soft-launched / live and stagnating (then ask for the numbers: DAU, D1/D7 retention, average session, play through rate, Home Recommendation trend).
 - Target audience: all ages (needs the Kids/Select evaluation) or 16+; owner: personal account or group; creator age and verification status.
 - Launch date and whether it is fixed (event, creator collab, school holidays).
