@@ -75,6 +75,8 @@ jobs:
         run: bash tests/roblox-launch-kit/run.sh
       - name: Animation & VFX
         run: bash tests/roblox-animation-vfx/run.sh
+      - name: SessionStart hook
+        run: bash tests/hooks/run.sh
       - name: Installers (install.sh, install.ps1)
         run: bash tests/install/run.sh
       - name: Lint template

@@ -9,6 +9,8 @@ Goal: tell the developer the truth about their idea before they spend weeks buil
 
 Be direct. Most ideas are average; inflated scores waste the developer's time and money, and they asked because they want a real answer. Praise what is genuinely strong, name what kills the idea, and always show how it could be made better. Answer in the user's language.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Brief
 Pull these from the pitch first; ask only for what is missing and actually changes the verdict, with AskUserQuestion (multiple choice, recommended option first), at most one round:
 - Core loop: what the player does every 30 seconds and every session.
@@ -90,4 +92,5 @@ For the cheapest test, use rough community rules of thumb, not official Roblox n
 Score each one with the same table, put the totals side by side, pick one winner and explain the deciding difference. Don't hedge with "they're all good".
 
 ## Hand-off
+End with an AskUserQuestion "What next?" (recommended first, plus "Nothing, we're done").
 If the verdict is GO (or PIVOT after the fixes) and the user wants to start building, offer the `roblox-game-production-plan` skill from this plugin to break the game into every task (systems, models, animations, UI, audio, publishing), and `roblox-map-builder` for the map.

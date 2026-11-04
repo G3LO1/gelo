@@ -7,19 +7,21 @@ description: "Build aesthetic, accurate and performant Roblox Studio maps (terra
 
 Goal: maps that look good AND are correct (scale, collision, navigation, performance). Process beats presets: greybox first, style second, validate always. All numbers below are starting points to playtest, not Roblox standards.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## Workflow
-1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (multiple choice, recommended option first) rather than free text; ask only what is missing. If style unclear, propose 2-3.
+1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (multiple choice, recommended option first; rules in `../roblox-start/references/asking.md`) rather than free text; ask only what is missing. If style unclear, make the 2-3 proposals the options (a palette in each `preview`).
 2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing.
 3. Terrain pass (outdoor): macro shape -> routes -> biome blending (irregular bands) -> cliffs/caves -> water. Parts/meshes for collision-critical edges.
 4. Kit + dressing: modular pieces with shared mesh/texture IDs, palette + material rules from the style, asymmetric prop clusters, story-driven wear. Hierarchy: big shapes -> medium rhythm -> small detail.
 5. Lighting pass LAST: apply style preset, tune against screenshots. Never use fog/bloom to hide geometry problems.
-6. Validate (checklist below), fix, re-check, then report briefly: what was built, what was verified, what needs a human (real phone test, uploads, manual Studio toggles).
+6. Validate (checklist below), fix, re-check, then report briefly: what was built, what was verified, what needs a human (real phone test, uploads, manual Studio toggles). Close with an AskUserQuestion "What next?" (e.g. animation and effects, code, audit, nothing).
 
 ## Studio loop
 With Roblox Studio tools (execute_luau, multi_edit, insert_asset, screen_capture, start_stop_play, get_console_output, inspect_instance, search_game_tree, generate_mesh/material/texture): build -> screen_capture from player height -> playtest -> read console -> revise. Always list_roblox_studios first and confirm the target place before modifying. Inspect before editing; small reversible edits; put output under Workspace/Map/{Architecture,TerrainDetails,Props,Gameplay,Spawns}; store Seed as an attribute on Map; never touch existing user scripts without saying so.
 
 ## Custom meshes with Blender
-When the style needs meshes the Studio tools can't make well (modular kit pieces, stylized trees/rocks, props), check for a connected Blender MCP server (tools with `blender` in the name; ToolSearch `blender`). If there is none, ask once whether the user has Blender and offer to connect it (`../roblox-animation-vfx/references/blender.md` section 1), or continue with parts, terrain, generate_mesh and Creator Store assets. With Blender: Roblox units and axes, pieces on the map grid with consistent pivots, <= 20,000 triangles, one material per mesh, shared textures; run `../roblox-animation-vfx/scripts/blender_check.py` (mode model) through the code tool, export, import piece by piece (3D Importer: Upload to Roblox with the owner as Creator, Insert Using Scene Position), assemble in Studio.
+When the style needs meshes the Studio tools can't make well (modular kit pieces, stylized trees/rocks, props), check for a connected Blender MCP server (tools with `blender` in the name; ToolSearch `blender`). If there is none, ask once with AskUserQuestion (continue without Blender is the recommended option; "help me connect Blender" follows `../roblox-animation-vfx/references/blender.md` section 1) and otherwise continue with parts, terrain, generate_mesh and Creator Store assets. With Blender: Roblox units and axes, pieces on the map grid with consistent pivots, <= 20,000 triangles, one material per mesh, shared textures; run `../roblox-animation-vfx/scripts/blender_check.py` (mode model) through the code tool, export, import piece by piece (3D Importer: Upload to Roblox with the owner as Creator, Insert Using Scene Position), assemble in Studio.
 
 ## Hard rules
 - Use Lighting.LightingStyle (Realistic|Soft) + PrioritizeLightingQuality; Lighting.Technology is deprecated (Future=Realistic+prioritized, ShadowMap=Soft+prioritized, Voxel=Soft+not prioritized). VERIFIED: LightingStyle is script-writable via execute_luau in Edit mode.

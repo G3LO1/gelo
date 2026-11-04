@@ -9,6 +9,8 @@ Goal: find what will actually hurt the game in production (exploiters, backdoors
 
 Answer in the user's language; rule IDs, code and identifiers stay in English.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Scope
 Find out, from the conversation or with one AskUserQuestion round (multiple choice, recommended first), only what is missing:
 - What to audit: code on disk (Rojo project), a place in Studio (Roblox Studio MCP connected), a `.rbxl/.rbxlx/.rbxm/.rbxmx` file, or a single script pasted in chat.
@@ -45,7 +47,7 @@ For performance, read `references/performance.md`. If Studio is connected, playt
 ## 4. Fix
 - Order: CRITICAL security and backdoors -> data loss/duplication -> purchases -> high performance issues (freezes, crashes) -> medium -> low.
 - Patch with the smallest change that removes the cause; reuse the project's own validation layer. In projects built with `roblox-luau-codegen`, use `Net` schemas + `Guard` validators and `DataService.Update` instead of hand-rolled checks.
-- Never delete or rewrite the user's scripts or models without saying exactly what and why and getting a yes; for Toolbox backdoors, show the offending lines first.
+- Never delete or rewrite the user's scripts or models without saying exactly what and why and getting a yes through AskUserQuestion (fix criticals only / fix all / report only); for Toolbox backdoors, show the offending lines first.
 - After fixing, run the same scanners again and show the before/after counts; re-run the playtest when Studio is connected.
 
 ## 5. Report
@@ -56,4 +58,5 @@ For performance, read `references/performance.md`. If Studio is connected, playt
 5. Manual steps: Studio settings (LoadStringEnabled, HTTP, API access, third-party teleports/sales), sandboxing models, testing on a real phone, rotating keys after a backdoor.
 
 ## Hand-off
+End with an AskUserQuestion "What next?" whose options are these (recommended first) plus "Nothing, we're done".
 Offer `roblox-luau-codegen` to rebuild a broken system on the tested template (session-locked data, idempotent purchases, validated remotes), and `roblox-map-builder` to rebuild heavy map areas with a modular kit and streaming.

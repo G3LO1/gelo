@@ -9,6 +9,8 @@ Goal: UI that fits the game's style, reads instantly on a phone, works with touc
 
 Answer in the user's language; instance names, tokens and code stay in English.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Inputs
 - Take the screens from the plan (`PRODUCTION_PLAN.md` UI tasks) or the conversation: which screens, what each must show and do, which are MVP.
 - Ask once, with AskUserQuestion, only what is missing: where the UI will be designed (**Studio directly** = recommended default when there is no designer; **Figma**; **Photoshop**), existing art/brand/logo, platforms (phone-first unless told otherwise).
@@ -25,7 +27,7 @@ For each screen write down before drawing anything: purpose, elements (with name
 ## 4. Build through the chosen route
 Work in a `ui/` folder in the project: `ui/ui-spec.json`, `ui/images/`, `ui/BuildUi.luau`, `ui/<Name>.rbxmx`. The spec format is in `references/ui-spec.md`.
 - **Studio directly**: write `ui-spec.json` yourself (tokens from the chosen style, `styles` for button states and shared looks, screens as designed).
-- **Figma**: follow `references/figma.md` (Claude reads or builds the file through the Figma MCP server, or a community plugin converts it). Ask before creating or editing files in the user's Figma.
+- **Figma**: follow `references/figma.md` (Claude reads or builds the file through the Figma MCP server, or a community plugin converts it). Ask with AskUserQuestion before creating or editing files in the user's Figma.
 - **Photoshop**: follow `references/photoshop.md`; run `scripts/psd_to_spec.py` on the PSD, then add tokens/styles to the generated spec.
 
 Then for every route:
@@ -40,6 +42,7 @@ The build script never deletes: a ScreenGui with the same name is kept as `<Name
 Go through the checklist at the end of `references/studio.md`. Don't claim the UI looks right on phones unless a screenshot or emulator check actually happened; list what still needs a human eye.
 
 ## 6. Hand-off
+End with an AskUserQuestion "What next?" whose options are the offers below (recommended first) plus "Nothing, we're done".
 - Images to upload (Asset Manager > Bulk Import) and where their IDs go (`images` in the spec, then rebuild); no `rbxassetid://0` may ship. Item/shop icons rendered from 3D models: with a connected Blender MCP server Claude can render them with one camera/light/outline setup for all items (`../roblox-animation-vfx/references/blender.md` section 8); otherwise ViewportFrames in the UI or renders by the team.
 - The element names and tags the code should use; offer `roblox-luau-codegen` to write the controllers (UI pattern in its `references/patterns.md`: bind by name, `DataController.OnChanged`, `Net.fire`).
 - Tokens live in `ReplicatedStorage.UIStyles.<Name>`: editing them in the Style Editor restyles the game (themes, events).
