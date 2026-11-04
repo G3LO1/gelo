@@ -14,6 +14,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
 | [`roblox-animation-vfx`](skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. Works with a Blender MCP server when you have one (offers to connect it otherwise): rig clean-up, animation blocking, flipbooks and FBX exports checked by `blender_check.py`. |
+| [`roblox-monetization`](skills/roblox-monetization/SKILL.md) | Monetizes the game without clicking through Creator Hub: picks game passes and developer products (Starter Pack, 2x Cash, +25% Size, server events), prices them, makes their icons (`codex-image` or any image tool, placeholder art otherwise), creates and updates them through the Open Cloud API with the key from an environment variable (`monetize.py sync`: idempotent, adopts by name, re-uploads only changed icons), and writes the IDs into a Luau module read by `MonetizationService` (receipts, perks, multipliers) and `ShopController` (prompts, live prices, shop grid, purchase popup). |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
@@ -24,9 +25,10 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 3. `roblox-ui-designer`: pick a UI style and build the screens (Figma, Photoshop or Studio).
 4. `roblox-luau-codegen`: write the code for the plan's systems and UI controllers.
 5. `roblox-animation-vfx`: animation list and manifest, effects for every moment, wired into that code.
-6. `roblox-map-builder`: build the world in Studio.
-7. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
-8. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
+6. `roblox-monetization`: game passes and developer products created through Open Cloud, icons, IDs wired into the shop.
+7. `roblox-map-builder`: build the world in Studio.
+8. `roblox-security-perf-audit`: before launch (and whenever exploiters or lag show up), audit code and place and fix what matters.
+9. `roblox-launch-kit`: publishing requirements, store page, pricing, ads and the first month of live-ops.
 
 ## Install
 
@@ -98,9 +100,14 @@ plugins/roblox-studio/
     │   ├── SKILL.md
     │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
     │   └── scripts/check_store_assets.py
-    └── roblox-animation-vfx/
+    ├── roblox-animation-vfx/
+    │   ├── SKILL.md
+    │   ├── references/             # animation, vfx, blender
+    │   ├── scripts/                # anim_manifest.py, vfx_showcase.luau, make_textures.py, blender_check.py
+    │   └── assets/                 # Vfx.luau, AnimationSet.luau, textures/
+    └── roblox-monetization/
         ├── SKILL.md
-        ├── references/             # animation, vfx, blender
-        ├── scripts/                # anim_manifest.py, vfx_showcase.luau, make_textures.py, blender_check.py
-        └── assets/                 # Vfx.luau, AnimationSet.luau, textures/
+        ├── references/             # open-cloud, catalog
+        ├── scripts/monetize.py     # check, prompts, icons, sync (Open Cloud), luau
+        └── assets/                 # MonetizationService.luau, ShopController.luau, monetization.example.json
 ```

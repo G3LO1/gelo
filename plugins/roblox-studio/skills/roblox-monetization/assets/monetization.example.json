@@ -1,0 +1,45 @@
+{
+  "universeId": 0,
+  "luauOutput": "src/shared/Monetization.luau",
+  "lockFile": "monetization.lock.json",
+  "iconsDir": "icons",
+  "iconStyle": "Roblox simulator shop icon, bright saturated colors, thick dark outline, glossy cartoon shading, one centered object, radial gradient background, no text, no Robux symbol, no logos",
+  "items": [
+    {
+      "key": "StarterPack",
+      "kind": "product",
+      "name": "Starter Pack",
+      "description": "5,000 Cash to get your first upgrades fast.",
+      "price": 49,
+      "iconPrompt": "an open treasure chest overflowing with green cash bundles and gold coins",
+      "grant": { "type": "currency", "field": "Cash", "amount": 5000 }
+    },
+    {
+      "key": "DoubleCash",
+      "kind": "pass",
+      "name": "2x Cash",
+      "description": "Earn double Cash from everything, forever.",
+      "price": 199,
+      "iconPrompt": "two stacks of green cash with a big glowing golden 2x badge shape (no letters)",
+      "grant": { "type": "multiplier", "stat": "Cash", "value": 2 }
+    },
+    {
+      "key": "BiggerSize",
+      "kind": "pass",
+      "name": "+25% Size",
+      "description": "Grow 25% bigger than everyone else.",
+      "price": 149,
+      "iconPrompt": "a cartoon character silhouette growing taller with upward arrows around it",
+      "grant": { "type": "multiplier", "stat": "Size", "value": 1.25 }
+    },
+    {
+      "key": "ServerEvent",
+      "kind": "product",
+      "name": "Server Event",
+      "description": "Start a 5-minute Cash Rain for the whole server.",
+      "price": 99,
+      "iconPrompt": "a stormy sky raining green cash bills over a small island",
+      "grant": { "type": "handler" }
+    }
+  ]
+}
