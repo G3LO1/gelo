@@ -14,9 +14,9 @@ How the skills in this plugin use Blender when the user has a Blender MCP server
 9. blender_check.py
 
 ## 1. Detect, ask, offer
-**Detect**: Blender MCP tools are connected when the tool list (including deferred tools: ToolSearch with the query `blender`) has tools from a Blender server, e.g. `execute_blender_code`, `get_scene_info`, `get_object_info`, `get_viewport_screenshot` (names differ between servers; anything under an `mcp__blender...` prefix counts). If connected, say so in one line and use it where section 3 says it helps.
+**Detect**: Blender MCP tools are connected when the tool list (including deferred tools: ToolSearch with the query `blender`, where the agent has it) has tools from a Blender server, e.g. `execute_blender_code`, `get_scene_info`, `get_object_info`, `get_viewport_screenshot` (names differ between servers; anything under an `mcp__blender...` prefix counts). If connected, say so in one line and use it where section 3 says it helps.
 
-**Ask** (only when not connected, only when the task involves 3D models, character animation, flipbook textures or rendered icons, and only once per project): AskUserQuestion, options in this order:
+**Ask** (only when not connected, only when the task involves 3D models, character animation, flipbook textures or rendered icons, and only once per project): AskUserQuestion (or numbered options in chat if the agent has no such tool), options in this order:
 1. "I have Blender + a Blender MCP server, I'll connect it": wait for the tools, then continue.
 2. "I have Blender, show me how to connect it": give the setup from section 2 (two commands), then continue without it until it's connected.
 3. "No Blender: do it in Studio": Animation Editor, Studio modeling/Creator Store assets, generate_mesh/material tools of the Roblox Studio MCP where available.
@@ -28,6 +28,7 @@ Record the answer in `PRODUCTION_PLAN.md` assumptions (or say it in the summary)
 The most used server is MCP for Blender (github.com/ahujasid/blender-mcp, PyPI `mcp-for-blender`): a Blender add-on opens a local socket (default localhost:9876) and an MCP server talks to it. With uv installed (official installer, not `pip install uv`):
 ```
 claude mcp add blender uvx mcp-for-blender     # Claude Code
+codex mcp add blender -- uvx mcp-for-blender    # Codex (Antigravity: add the same command under MCP servers in its settings)
 uvx mcp-for-blender install-addon              # installs and enables the Blender add-on
 ```
 Then open Blender, press N in the 3D viewport, open the "MCP for Blender" tab and Start MCP Server if it isn't running. It sends a minimal anonymous usage record by default; `DISABLE_TELEMETRY=true` in the server's environment turns that off. Other Blender MCP servers exist (some with explicit keyframe tools and no free-form code); any of them works with these instructions as long as it can run Blender Python or set keyframes and take viewport screenshots. Check the server's README for the current install steps.

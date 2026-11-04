@@ -10,7 +10,7 @@ Goal: every action in the game reads instantly and feels good (anticipation, imp
 Answer in the user's language; names, ids and code in English.
 
 ## 1. Inputs
-From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type) or the conversation. Ask once with AskUserQuestion (recommended option first) only what is missing:
+From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type) or the conversation. Ask once with AskUserQuestion (or numbered options in chat if the agent has no such tool) (recommended option first) only what is missing:
 - Rig: players' own R15 avatars (recommended default), custom StarterCharacter, R6, non-humanoid NPCs.
 - Who animates: the user in the Animation Editor / Blender / Moon Animator, Animation Capture from video, Creator Store/catalog animations, or Claude only plans and wires them.
 - **Blender**: check whether a Blender MCP server is connected (tools with `blender` in the name; ToolSearch `blender` for deferred ones). If it is, use it for blocking/procedural animations, rig clean-up, flipbook textures and exports. If it isn't and the work needs it, ask once whether they have Blender and offer to connect it, as described in `references/blender.md` section 1; continue with the Studio route if they don't.

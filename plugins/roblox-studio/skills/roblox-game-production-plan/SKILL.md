@@ -12,7 +12,7 @@ Answer in the user's language. Plans are only useful if they are specific to thi
 ## 1. Inputs
 Start from what is already known in the conversation, especially a `roblox-game-idea-validator` report (use its fixes, not the original weaker pitch). If the idea was never validated and looks risky, say so in one line and offer to validate it first, but don't block.
 
-Ask only for what is missing, with AskUserQuestion (multiple choice, recommended option first), one round:
+Ask only for what is missing, with AskUserQuestion (or numbered options in chat if the agent has no such tool) (multiple choice, recommended option first), one round:
 - Team: people, roles (scripter, builder, 3D modeler, animator, UI, sound), hours per week, any money for assets, ads or freelancers.
 - Deadline or target: playable prototype date, public launch date.
 - Art direction: style (low-poly, cartoon, realistic...), avatar type (players' own R15 avatars, custom StarterCharacter, or R6).

@@ -12,7 +12,7 @@ Answer in the user's language; write code, identifiers and code comments in Engl
 ## 1. Inputs
 - Look for `PRODUCTION_PLAN.md` / `tasks.csv` in the project (from the `roblox-game-production-plan` skill) and use its task IDs, data fields, products and analytics events. Without a plan, work from the conversation; for a single small script, skip the plan entirely.
 - Scope: by default the scripting, data, monetization and analytics tasks of the current milestone (MVP first). State the task list you will implement in one line and continue; ask only if the scope is unclear.
-- Delivery, ask once with AskUserQuestion if it is not obvious:
+- Delivery, ask once with AskUserQuestion (or numbered options in chat if the agent has no such tool) if it is not obvious:
   1. **Rojo project on disk** (default when working in a folder or repo): files under `src/`, synced to Studio with Rojo.
   2. **Straight into Studio** when Roblox Studio MCP tools are connected: same hierarchy, created with the Studio tools (`list_roblox_studios` first, confirm the place).
   3. **Paste-ready**: every file with its exact Studio location and script type.

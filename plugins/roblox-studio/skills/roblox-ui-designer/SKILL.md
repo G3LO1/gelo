@@ -11,11 +11,11 @@ Answer in the user's language; instance names, tokens and code stay in English.
 
 ## 1. Inputs
 - Take the screens from the plan (`PRODUCTION_PLAN.md` UI tasks) or the conversation: which screens, what each must show and do, which are MVP.
-- Ask once, with AskUserQuestion, only what is missing: where the UI will be designed (**Studio directly** = recommended default when there is no designer; **Figma**; **Photoshop**), existing art/brand/logo, platforms (phone-first unless told otherwise).
+- Ask once, with AskUserQuestion (or numbered options in chat if the agent has no such tool), only what is missing: where the UI will be designed (**Studio directly** = recommended default when there is no designer; **Figma**; **Photoshop**), existing art/brand/logo, platforms (phone-first unless told otherwise).
 - Read the game's genre, audience and world art style from the plan or the map style; the UI must match them.
 
 ## 2. Style direction
-Read `references/ui-styles.md`. Pick 2-3 styles that fit genre + audience + world art, recommend one, and present each in a few lines: mood, palette swatches (hex), fonts, shape language, one example game. Let the user choose (AskUserQuestion with the recommended option first).
+Read `references/ui-styles.md`. Pick 2-3 styles that fit genre + audience + world art, recommend one, and present each in a few lines: mood, palette swatches (hex), fonts, shape language, one example game. Let the user choose (AskUserQuestion (or numbered options in chat if the agent has no such tool) with the recommended option first).
 
 To show rather than tell, build a style tile for the chosen style (or for each candidate): copy `assets/examples/style-tile-bubbly.json`, swap tokens/fonts/shape values for the style, and build it in Studio (or mock it in Figma when the Figma MCP server is connected, see `references/figma.md`).
 

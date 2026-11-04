@@ -35,7 +35,8 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 ```
 
 Or copy the skills straight into a game's `.claude/skills/` with the repo's `install.sh` / `install.ps1` (see the
-[root README](../../README.md#or-copy-the-skills-into-your-games-folder)).
+[root README](../../README.md#or-copy-the-skills-into-your-games-folder)). With `--target codex|antigravity|all`
+the same installers put them where [Codex and Antigravity](../../README.md#codex-and-antigravity) look.
 
 ## Adding a new skill
 

@@ -8,7 +8,7 @@ description: "Build aesthetic, accurate and performant Roblox Studio maps (terra
 Goal: maps that look good AND are correct (scale, collision, navigation, performance). Process beats presets: greybox first, style second, validate always. All numbers below are starting points to playtest, not Roblox standards.
 
 ## Workflow
-1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (multiple choice, recommended option first) rather than free text; ask only what is missing. If style unclear, propose 2-3.
+1. Brief: gameplay, camera + avatar, target device (phone?), STYLE, area size, landmark, time of day, existing assets/palette. Ask every decision with AskUserQuestion (or numbered options in chat if the agent has no such tool) (multiple choice, recommended option first) rather than free text; ask only what is missing. If style unclear, propose 2-3.
 2. Greybox with plain Parts on ONE grid; one landmark per zone; routes spawn -> goals; check scale vs avatar. Screenshot + playtest before detailing.
 3. Terrain pass (outdoor): macro shape -> routes -> biome blending (irregular bands) -> cliffs/caves -> water. Parts/meshes for collision-critical edges.
 4. Kit + dressing: modular pieces with shared mesh/texture IDs, palette + material rules from the style, asymmetric prop clusters, story-driven wear. Hierarchy: big shapes -> medium rhythm -> small detail.

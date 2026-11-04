@@ -1,6 +1,6 @@
 # gelo
 
-Claude Code plugin for making Roblox games in Roblox Studio.
+Claude Code plugin for making Roblox games in Roblox Studio. The skills also run in OpenAI Codex and Google Antigravity (see below).
 
 ## Install
 
@@ -33,6 +33,26 @@ For every project at once use `--global` / `-Global` (-> `~/.claude/skills/`); p
 `| bash -s -- --global` or `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1))) -Global`.
 Running it again updates the skills and leaves your other skills alone. Use the plugin or the copied skills, not both,
 or every skill shows up twice.
+
+### Codex and Antigravity
+
+The skills are plain `SKILL.md` folders, so other agents read them too. Pick the agent with `--target` / `-Target`
+(`claude` is the default, `codex`, `antigravity`, or `all`):
+
+| Target | Project folder | With `--global` / `-Global` | Use |
+| --- | --- | --- | --- |
+| `codex` | `.agents/skills/` | `~/.agents/skills/` | `/skills` or `$roblox-map-builder`; also picked by `description` |
+| `antigravity` | `.agents/skills/` | `~/.gemini/config/skills/` | picked by `description` |
+| `all` | Claude Code + Codex + Antigravity | all three global folders | |
+
+```
+curl -fsSL https://raw.githubusercontent.com/G3LO1/gelo/main/install.sh | bash -s -- --target codex
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1))) -Target antigravity
+```
+
+The `/plugin` marketplace install is Claude Code only. Where an agent has no multiple-choice question tool, the skills
+ask with numbered options in chat. MCP servers (Roblox Studio, Figma, Blender) are set up in each agent's own MCP
+settings; the skills use them under whatever prefix the agent gives their tools.
 
 The skills work best with the Roblox Studio MCP tools connected, so Claude can build and playtest directly in your place. If you use Blender, connect a Blender MCP server too (e.g. [MCP for Blender](https://github.com/ahujasid/blender-mcp)); the skills ask about it when a task needs 3D models or animation and use it when it's there.
 
@@ -82,7 +102,7 @@ bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures,
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)
-bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, piped-in download
+bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, --target, piped-in download
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
