@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# SessionStart hook: tells Claude to open every Roblox game conversation with the roblox-start skill.
+# Prints the JSON Claude Code expects (hookSpecificOutput.additionalContext). No dependencies, no network.
+set -euo pipefail
+
+read -r -d '' CONTEXT <<'TEXT' || true
+<EXTREMELY_IMPORTANT>
+The roblox-studio plugin is installed.
+
+When the user's first request in this session is about making, fixing, improving, launching or planning a Roblox game (including vague ones such as "I want to make a game", "fix my game", "what now", "co teraz", "chce zrobic gre"), invoke the roblox-start skill with the Skill tool (roblox-studio:roblox-start) BEFORE any other response or action, including clarifying questions and exploring the project. It asks the user what to do with AskUserQuestion and hands over to the right roblox-* skill.
+
+Skip roblox-start only when the request already names one specific job a roblox-* skill covers (for example "scan my remotes for exploits"): then invoke that skill directly. Do not invoke it for work unrelated to Roblox.
+
+In every roblox-* skill, each choice and each confirmation goes through AskUserQuestion, never through plain text.
+</EXTREMELY_IMPORTANT>
+TEXT
+
+# JSON-escape: backslash, quote, newline, tab.
+esc=${CONTEXT//\\/\\\\}
+esc=${esc//\"/\\\"}
+esc=${esc//$'\n'/\\n}
+esc=${esc//$'\t'/\\t}
+
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$esc"

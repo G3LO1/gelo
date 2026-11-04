@@ -20,6 +20,8 @@ Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. C
 
 ## Workflow
 
+With the plugin installed, a SessionStart hook (`hooks/session-start`, on `startup` and `clear`) tells Claude to open every Roblox game conversation with `roblox-start`, so you don't have to remember it. Copying the skills with `install.sh` doesn't carry hooks: there, run `roblox-start` yourself.
+
 Not sure where to begin? Run `roblox-start`: it asks what you want to do (new game, fix, launch, one job) and picks the skill. Every skill asks its choices and confirmations as clickable questions (rules: [`asking.md`](skills/roblox-start/references/asking.md)).
 
 1. `roblox-game-idea-validator`: is the idea worth building? (GO / PIVOT / KILL)
@@ -73,6 +75,7 @@ Or copy the skills straight into a game's `.claude/skills/` with the repo's `ins
 ```
 plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
+├── hooks/                       # hooks.json + session-start (starts roblox-start every session)
 ├── README.md
 └── skills/
     ├── roblox-start/
