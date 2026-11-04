@@ -1,0 +1,10 @@
+{
+  "name": "LowPolyTree",
+  "pivot": "bottom",
+  "parts": [
+    { "name": "trunk", "shape": "cylinder", "size": [1.2, 5, 1.2], "position": [0, 2.5, 0], "segments": 7, "color": "#7a4b2a", "material": "wood" },
+    { "name": "crown low", "shape": "cone", "size": [6, 4.5, 6], "position": [0, 6, 0], "segments": 8, "color": "#3f9b4a", "material": "plastic" },
+    { "name": "crown mid", "shape": "cone", "size": [4.6, 4, 4.6], "position": [0, 8, 0], "rotation": [0, 22.5, 0], "segments": 8, "color": "#3f9b4a", "material": "plastic" },
+    { "name": "crown top", "shape": "cone", "size": [3, 3.2, 3], "position": [0, 10, 0], "segments": 8, "color": "#3f9b4a", "material": "plastic" }
+  ]
+}

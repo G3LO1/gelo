@@ -77,6 +77,8 @@ jobs:
         run: bash tests/roblox-animation-vfx/run.sh
       - name: Monetization (Open Cloud mock + runtime)
         run: bash tests/roblox-monetization/run.sh
+      - name: Bringforth (assets API mock, feed, Studio plugin)
+        run: bash tests/roblox-bringforth/run.sh
       - name: Installers (install.sh, install.ps1)
         run: bash tests/install/run.sh
       - name: Lint template
@@ -97,3 +99,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/blender"
           python tests/roblox-animation-vfx/blender_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/blender_check.py "$RUNNER_TEMP/blender"
+      - name: make_model.py GLBs imported in real Blender
+        run: |
+          mkdir -p "$RUNNER_TEMP/glb"
+          python tests/roblox-bringforth/blender_glb_test.py plugins/roblox-studio/skills/roblox-bringforth plugins/roblox-studio/skills/roblox-animation-vfx/scripts/blender_check.py "$RUNNER_TEMP/glb"

@@ -12,7 +12,7 @@ Creator Hub > All tools > Open Cloud > API Keys > Create API Key. Permissions ar
 | `game-passes` | read, write | `game-pass:read`, `game-pass:write` |
 | `developer-products` | read, write | `developer-product:read`, `developer-product:write` |
 
-The experience must be in the key's list. A group-owned experience needs a key created under the group (the group's API Keys page) by someone with the permission. Optional IP allowlist (`0.0.0.0/0` = any) and expiration date; an expired, disabled or revoked key gives 401.
+The experience must be in the key's list. A group-owned experience needs a key created under the group (the group's API Keys page) by someone with the permission. Optional IP allowlist (`0.0.0.0/0` = any) and expiration date; Roblox also auto-expires keys that are not used or updated for 60 days. An expired, disabled or revoked key gives 401.
 
 ## Endpoints
 
