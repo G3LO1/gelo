@@ -39,8 +39,8 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 ## Skills
 
 Ten skills covering the whole path from idea to live-ops: idea validation, production plan, monetization and economy,
-Luau code, UI, animation and VFX, maps, security and performance audit, launch kit. The full list with descriptions and the recommended workflow
-is in [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md).
+Luau code, UI, animation and VFX, maps, security and performance audit, launch kit and a model router (light, standard or strong model per step, checked by a stronger one). The full list with
+descriptions and the recommended workflow is in [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md).
 
 Adding a new skill: see the same README.
 
