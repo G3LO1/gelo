@@ -1,0 +1,26 @@
+{
+  "game": "Undead Eats",
+  "audience": "all_ages",
+  "pvp": false,
+  "assumptions": { "dau": 2000, "payer_conversion": 0.03, "purchases_per_payer_month": 2, "usd_per_robux": 0.0035, "platform_cut": 0.3 },
+  "currencies": [
+    { "id": "Coins", "kind": "soft",
+      "faucets": [{ "id": "ServingCustomers", "per_hour": 3000 }],
+      "sinks": [{ "id": "TruckUpgrades", "per_hour": 2000 }, { "id": "Turrets", "per_hour": 900 }] },
+    { "id": "Gems", "kind": "premium",
+      "faucets": [{ "id": "DailyReward", "per_hour": 2 }],
+      "sinks": [{ "id": "Cosmetics", "per_hour": 12 }] }
+  ],
+  "goals": [
+    { "id": "FirstUpgrade", "currency": "Coins", "cost": 100 },
+    { "id": "MaxTruck", "currency": "Coins", "cost": 60000 }
+  ],
+  "products": [
+    { "id": "DoubleCoins", "type": "pass", "name": "2x Coins", "price": 299, "asset_id": 1001, "mix": 3, "free_path": "Coins still flow at 1x", "gates_core": false },
+    { "id": "VIP", "type": "pass", "name": "VIP Truck Skin", "price": 499, "asset_id": 1002, "mix": 1 },
+    { "id": "CoinsSmall", "type": "product", "name": "1,000 Coins", "price": 49, "asset_id": 2001, "mix": 5, "grants": { "Coins": 1000 } },
+    { "id": "CoinsMedium", "type": "product", "name": "6,000 Coins", "price": 249, "asset_id": 2002, "mix": 3, "grants": { "Coins": 6000 } },
+    { "id": "CoinsLarge", "type": "product", "name": "30,000 Coins", "price": 999, "asset_id": 2003, "mix": 1, "grants": { "Coins": 30000 } },
+    { "id": "Revive", "type": "product", "name": "Revive", "price": 75, "asset_id": 2004, "mix": 4, "grants": { "Gems": 1 } }
+  ]
+}

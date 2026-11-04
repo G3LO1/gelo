@@ -72,6 +72,8 @@ jobs:
         run: bash tests/roblox-security-perf-audit/run.sh
       - name: Launch kit
         run: bash tests/roblox-launch-kit/run.sh
+      - name: Monetization designer
+        run: bash tests/roblox-monetization-designer/run.sh
       - name: Animation & VFX
         run: bash tests/roblox-animation-vfx/run.sh
       - name: Installers (install.sh, install.ps1)

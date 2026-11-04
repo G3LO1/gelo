@@ -1,0 +1,31 @@
+{
+  "game": "Bad Example",
+  "audience": "all_ages",
+  "pvp": true,
+  "assumptions": { "dau": 1000, "payer_conversion": 0.2 },
+  "currencies": [
+    { "id": "Coins", "kind": "soft", "faucets": [{ "id": "Mining", "per_hour": 100 }], "sinks": [{ "id": "Shop", "per_hour": 400 }] },
+    { "id": "Cash", "kind": "soft", "faucets": [{ "id": "Quests", "per_hour": 500 }], "sinks": [{ "id": "Fees", "per_hour": 100 }] },
+    { "id": "Gems", "kind": "premium", "faucets": [], "sinks": [{ "id": "Skins", "per_hour": 10 }] },
+    { "id": "Dust", "kind": "soft", "faucets": [], "sinks": [] },
+    { "id": "Bad Name", "kind": "soft", "faucets": [], "sinks": [] }
+  ],
+  "goals": [
+    { "id": "First", "currency": "Coins", "cost": 50 },
+    { "id": "Wall", "currency": "Cash", "cost": 20000 },
+    { "id": "Ghost", "currency": "Nope", "cost": 5 }
+  ],
+  "products": [
+    { "id": "Sword", "type": "pass", "name": "Mega Sword", "price": 1500, "asset_id": 11, "power": true, "gates_core": true, "grants": { "Coins": 1 } },
+    { "id": "Crate", "type": "product", "name": "Loot Crate", "price": 399, "asset_id": 12, "grants": { "Gems": 5 }, "random": true, "timer": true },
+    { "id": "Crate", "type": "product", "name": "Dup", "price": 150, "asset_id": 13, "grants": { "Gems": 4 } },
+    { "id": "Gems10", "type": "product", "name": "10 Gems", "price": 500, "asset_id": 14, "grants": { "Gems": 10 } },
+    { "id": "Gems12", "type": "product", "name": "12 Gems", "price": 1000, "asset_id": 15, "grants": { "Gems": 12 } },
+    { "id": "Empty", "type": "product", "name": "Empty", "price": 200, "asset_id": 16 },
+    { "id": "Ghosty", "type": "product", "name": "Ghost", "price": 200, "asset_id": 17, "grants": { "Rubies": 3 } },
+    { "id": "Free", "type": "pass", "name": "Free", "price": 0, "asset_id": 18 },
+    { "id": "NoAsset", "type": "pass", "name": "No Asset", "price": 300 },
+    { "id": "Odd", "type": "gift", "price": 10 },
+    { "id": "Sub", "type": "subscription", "name": "Plus", "price": 199, "asset_id": 5 }
+  ]
+}
