@@ -38,7 +38,7 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 
 ## Skills
 
-Nine skills covering the whole path from idea to live-ops: idea validation, production plan, monetization and economy,
+Ten skills covering the whole path from idea to live-ops: idea validation, production plan, monetization and economy,
 Luau code, UI, animation and VFX, maps, security and performance audit, launch kit. The full list with descriptions and the recommended workflow
 is in [`plugins/roblox-studio/README.md`](plugins/roblox-studio/README.md).
 
@@ -73,6 +73,7 @@ The other skills' scripts have tests too:
 ```
 bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures, no false positives on the template/example, place audit
 bash tests/roblox-launch-kit/run.sh            # store asset checker on generated good/bad store folders
+bash tests/roblox-model-router/run.sh         # model detection on fake Claude Code/Codex/Antigravity setups, agent frontmatter
 bash tests/roblox-monetization-designer/run.sh # economy/price checker on good/bad specs, generated Products module
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures
                                                # + blender_check.py on real Blender when bpy is installed (BPY_PYTHON=...)

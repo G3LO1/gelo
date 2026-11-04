@@ -14,11 +14,16 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-security-perf-audit`](skills/roblox-security-perf-audit/SKILL.md) | Audits an existing game: static Luau scanner (exploitable remotes, Toolbox backdoors, data-loss and purchase bugs, hard-coded Robux prices, lag patterns) plus a place audit that runs in Studio or on `.rbxl/.rbxm` files (physics, shadows, particles, NPCs, streaming), then a prioritized fix list. |
 | [`roblox-launch-kit`](skills/roblox-launch-kit/SKILL.md) | Gets a game launched and growing: publishing requirements (Kids/Select audiences, verification, fee, evaluation), questionnaire, store page copy and a checker for icon/thumbnails/title/description with a Home-tile preview, discovery signals, Managed Pricing, analytics and experiments, Ads Manager plan, events and a 30-day live-ops calendar. |
 | [`roblox-monetization-designer`](skills/roblox-monetization-designer/SKILL.md) | Designs what to sell and how the economy flows: currencies with faucets and sinks, time to first goal, price ladders and packs, passes/products/subscriptions, offer moments, fair-play and kids-safe rules (pay-to-win, random-item odds, dark patterns), live prices under Managed Pricing, plus a revenue scenario. `monetization_check.py` validates `monetization.json` and generates the Luau `Products` catalog. |
+| [`roblox-model-router`](skills/roblox-model-router/SKILL.md) | Splits a bigger task across models: light (Haiku-class) for searching and running the checkers, standard (Sonnet-class) for building, strong (Opus-class) for design decisions and for reviewing what the weaker models made. `detect_models.py` reads which models this user really has (settings, allowlists, pins, forced subagent model; Codex and Antigravity config) and the skill re-checks the official docs instead of trusting remembered model names. Ships the Claude Code subagents `roblox-scout`, `roblox-builder`, `roblox-reviewer`. |
 | [`roblox-animation-vfx`](skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. Works with a Blender MCP server when you have one (offers to connect it otherwise): rig clean-up, animation blocking, flipbooks and FBX exports checked by `blender_check.py`. |
+
+The plugin also ships three Claude Code subagents (`agents/`): `roblox-scout` (haiku), `roblox-builder` (sonnet) and `roblox-reviewer` (opus, read-only). They use model aliases, so each resolves to the newest model of its family that the user's account and provider allow. The copied skills from `install.sh` do not include agents; `roblox-model-router` then falls back to the Agent tool's `model` parameter.
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
 ## Workflow
+
+For any big task, `roblox-model-router` decides which model does which step and has a stronger one review the result.
 
 1. `roblox-game-idea-validator`: is the idea worth building? (GO / PIVOT / KILL)
 2. `roblox-game-production-plan`: everything that has to be made, by whom, and when.
@@ -73,6 +78,7 @@ Or copy the skills straight into a game's `.claude/skills/` with the repo's `ins
 plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
 ├── README.md
+├── agents/                      # roblox-scout (haiku), roblox-builder (sonnet), roblox-reviewer (opus)
 └── skills/
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
@@ -101,6 +107,10 @@ plugins/roblox-studio/
     │   ├── references/monetization.md   # product types, economy, prices, fairness, technical rules
     │   ├── scripts/monetization_check.py
     │   └── assets/examples/monetization-example.json
+    ├── roblox-model-router/
+    │   ├── SKILL.md
+    │   ├── references/hosts.md      # Claude Code, Codex, Antigravity notes (verify at run time)
+    │   └── scripts/detect_models.py
     ├── roblox-launch-kit/
     │   ├── SKILL.md
     │   ├── references/launch.md    # publishing, store page, discovery, pricing, ads, live-ops
