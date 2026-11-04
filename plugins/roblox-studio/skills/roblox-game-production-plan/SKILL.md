@@ -9,8 +9,10 @@ Goal: a plan the team can start working from tomorrow, where nothing the game ne
 
 Answer in the user's language. Plans are only useful if they are specific to this game: "Animations" is not a task, "Chef chop loop (R15, Action priority, 1.2 s)" is.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Inputs
-Start from what is already known in the conversation, especially a `roblox-game-idea-validator` report (use its fixes, not the original weaker pitch). If the idea was never validated and looks risky, say so in one line and offer to validate it first, but don't block.
+Start from what is already known in the conversation, especially a `roblox-game-idea-validator` report (use its fixes, not the original weaker pitch). If the idea was never validated and looks risky, say so in one line and ask with AskUserQuestion whether to validate it first ("Validate first" / "Plan anyway (Recommended)" when the risk is small), but don't block.
 
 Ask only for what is missing, with AskUserQuestion (multiple choice, recommended option first), one round:
 - Team: people, roles (scripter, builder, 3D modeler, animator, UI, sound), hours per week, any money for assets, ads or freelancers.
@@ -38,7 +40,7 @@ Use these unless the user has their own:
 5. **Live-ops**: update cadence (weekly or bi-weekly), event calendar, what gets measured each update.
 
 ## 4. Output
-Write the plan as a Markdown file in the user's project (default `PRODUCTION_PLAN.md`, ask before overwriting an existing one) and summarize it in chat. When the user wants to import tasks into a board (Trello, Notion, GitHub Projects, Jira), also write `tasks.csv` with columns `id,discipline,task,owner,size,priority,milestone,depends_on`.
+Write the plan as a Markdown file in the user's project (default `PRODUCTION_PLAN.md`; if it exists, ask with AskUserQuestion: write a new file / overwrite / update in place) and summarize it in chat. When the user wants to import tasks into a board (Trello, Notion, GitHub Projects, Jira), also write `tasks.csv` with columns `id,discipline,task,owner,size,priority,milestone,depends_on`.
 
 Plan structure:
 
@@ -68,4 +70,5 @@ The exact tasks each person starts with on day 1.
 ```
 
 ## Hand-off
+End with an AskUserQuestion "What next?" whose options are the offers below (recommended first) plus "Nothing, we're done".
 For the world/map tasks offer the `roblox-map-builder` skill from this plugin; for animation and VFX tasks `roblox-animation-vfx` (which also drives Blender through a Blender MCP server when one is connected). When Roblox Studio MCP tools are connected and the user wants to start, offer to set up the place structure (folders, RemoteEvents, a data module, placeholder UI) from the plan.

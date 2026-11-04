@@ -9,9 +9,11 @@ Goal: code that keeps working on a live server full of exploiters, phones and Da
 
 Answer in the user's language; write code, identifiers and code comments in English.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Inputs
 - Look for `PRODUCTION_PLAN.md` / `tasks.csv` in the project (from the `roblox-game-production-plan` skill) and use its task IDs, data fields, products and analytics events. Without a plan, work from the conversation; for a single small script, skip the plan entirely.
-- Scope: by default the scripting, data, monetization and analytics tasks of the current milestone (MVP first). State the task list you will implement in one line and continue; ask only if the scope is unclear.
+- Scope: by default the scripting, data, monetization and analytics tasks of the current milestone (MVP first). State the task list you will implement in one line and continue; if the scope is unclear, ask with AskUserQuestion (current milestone / chosen systems / everything in the plan).
 - Delivery, ask once with AskUserQuestion if it is not obvious:
   1. **Rojo project on disk** (default when working in a folder or repo): files under `src/`, synced to Studio with Rojo.
   2. **Straight into Studio** when Roblox Studio MCP tools are connected: same hierarchy, created with the Studio tools (`list_roblox_studios` first, confirm the place).
@@ -54,4 +56,4 @@ Never claim the game works in Studio unless a playtest actually ran.
 - Files created or changed, grouped by plan task ID.
 - What was verified (checks, playtest) and what was not.
 - Manual steps for the team: Game Settings > Security > Enable Studio Access to API Services (DataStores in Studio), create products/passes and paste IDs into `Config`, upload animations and sounds to the account or group that owns the experience and paste IDs, install Rojo (`rojo serve` + Studio plugin) if using files.
-- Offer to mark the implemented tasks as done in `PRODUCTION_PLAN.md`.
+- Ask with AskUserQuestion whether to mark the implemented tasks as done in `PRODUCTION_PLAN.md`, then "What next?" with the skills below as options.

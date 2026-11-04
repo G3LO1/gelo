@@ -9,6 +9,8 @@ Goal: a launch that gets the game in front of the right players and keeps them, 
 
 Answer in the user's language; store copy in the languages the game targets (English first unless told otherwise).
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 Read `references/launch.md` every time: it holds the current platform rules (checked October 2026) and changes often.
 
 ## 1. Inputs
@@ -40,10 +42,10 @@ Then run the checker on the actual files (folder layout: `icon.png`, `thumbnails
 ```
 python3 scripts/check_store_assets.py <store-dir> --preview store-preview.html
 ```
-Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, offer to mock thumbnails from real screenshots, but final images must show real gameplay.
+Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, ask with AskUserQuestion whether to mock thumbnails from real screenshots; final images must show real gameplay.
 
 ## 4. Launch plan
-Write `LAUNCH_KIT.md` in the project (ask before overwriting):
+Write `LAUNCH_KIT.md` in the project (if it exists, ask with AskUserQuestion: write a new file / overwrite / update in place):
 
 ```
 # <Game>: launch kit
@@ -90,4 +92,5 @@ Diagnose before prescribing: Analytics > Acquisition > Home Recommendations. Imp
 - What needs a human: verification, 2FA, paying the fee, uploading assets, the questionnaire, ad payment.
 
 ## Hand-off
+End with an AskUserQuestion "What next?" whose options are these (recommended first) plus "Nothing, we're done".
 `roblox-security-perf-audit` before going public; `roblox-ui-designer` for shop/onboarding UI fixes; `roblox-luau-codegen` for analytics events, dynamic prices, daily rewards, invite prompts and notifications; `roblox-game-idea-validator` if the numbers say the core loop itself doesn't hold players.

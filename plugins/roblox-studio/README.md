@@ -6,6 +6,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 
 | Skill | What it does |
 | --- | --- |
+| [`roblox-start`](skills/roblox-start/SKILL.md) | The entry point: asks with clickable questions (AskUserQuestion) whether you're making a new game, fixing one, launching it or doing one specific job, then starts the right skill with your answers. Start here when you don't know which skill you need. |
 | [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
 | [`roblox-game-idea-validator`](skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 | [`roblox-game-production-plan`](skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
@@ -18,6 +19,8 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
 
 ## Workflow
+
+Not sure where to begin? Run `roblox-start`: it asks what you want to do (new game, fix, launch, one job) and picks the skill. Every skill asks its choices and confirmations as clickable questions (rules: [`asking.md`](skills/roblox-start/references/asking.md)).
 
 1. `roblox-game-idea-validator`: is the idea worth building? (GO / PIVOT / KILL)
 2. `roblox-game-production-plan`: everything that has to be made, by whom, and when.
@@ -55,7 +58,7 @@ Or copy the skills straight into a game's `.claude/skills/` with the repo's `ins
 
    The `description` decides when Claude loads the skill, so put the trigger phrases there.
 3. Optional extras go next to `SKILL.md` (`references/*.md`, `scripts/*`, `assets/*`); link them from `SKILL.md` so Claude reads them only when needed.
-4. Add a row to the table above, bump `version` in `.claude-plugin/plugin.json` and in the root `.claude-plugin/marketplace.json` (keep them equal).
+4. Ask choices and confirmations with AskUserQuestion, following [`asking.md`](skills/roblox-start/references/asking.md). Add a row to the table above, bump `version` in `.claude-plugin/plugin.json` and in the root `.claude-plugin/marketplace.json` (keep them equal).
 5. Validate before pushing:
 
    ```
@@ -72,6 +75,9 @@ plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
 ├── README.md
 └── skills/
+    ├── roblox-start/
+    │   ├── SKILL.md                # entry point: routes with AskUserQuestion
+    │   └── references/asking.md    # how every skill asks (shared rules and templates)
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
     │   └── references/genres.md

@@ -9,11 +9,13 @@ Goal: every action in the game reads instantly and feels good (anticipation, imp
 
 Answer in the user's language; names, ids and code in English.
 
+Every choice and every confirmation goes through AskUserQuestion, not plain text (rules and templates: `../roblox-start/references/asking.md`). Don't ask what the conversation or project already answers.
+
 ## 1. Inputs
 From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type) or the conversation. Ask once with AskUserQuestion (recommended option first) only what is missing:
 - Rig: players' own R15 avatars (recommended default), custom StarterCharacter, R6, non-humanoid NPCs.
 - Who animates: the user in the Animation Editor / Blender / Moon Animator, Animation Capture from video, Creator Store/catalog animations, or Claude only plans and wires them.
-- **Blender**: check whether a Blender MCP server is connected (tools with `blender` in the name; ToolSearch `blender` for deferred ones). If it is, use it for blocking/procedural animations, rig clean-up, flipbook textures and exports. If it isn't and the work needs it, ask once whether they have Blender and offer to connect it, as described in `references/blender.md` section 1; continue with the Studio route if they don't.
+- **Blender**: check whether a Blender MCP server is connected (tools with `blender` in the name; ToolSearch `blender` for deferred ones). If it is, use it for blocking/procedural animations, rig clean-up, flipbook textures and exports. If it isn't and the work needs it, ask once with AskUserQuestion (continue without Blender is the recommended option; "help me connect Blender" follows `references/blender.md` section 1); continue with the Studio route if they don't.
 - Art style (cartoon, low-poly, realistic, anime, horror, sci-fi, cozy) if not already known from the map or UI style.
 - Owner account (user or group): it must upload the animations and textures.
 
@@ -51,4 +53,5 @@ Don't claim an animation or effect looks right without a screenshot or playtest;
 Moment table, the manifest status (done / todo ids), files added (Animations.luau, AnimationSet.luau, Vfx.luau, textures), what was verified (manifest check, showcase validation, playtest, screenshots) and the manual steps (animating, uploading animations and textures with the owner account, permissions, pasting ids).
 
 ## Hand-off
+End with an AskUserQuestion "What next?" whose options are these (recommended first) plus "Nothing, we're done".
 `roblox-luau-codegen` to wire remotes and controllers that trigger animations and effects (UI controller pattern, `Net.fire`); `roblox-ui-designer` for UI feedback (pops, toasts, reward screens); `roblox-map-builder` for ambient effects and lighting that the VFX must read against.
