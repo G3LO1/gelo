@@ -1,0 +1,33 @@
+name: Release
+
+# Push a tag like v0.10.0 (equal to the version in plugin.json) and this publishes the GitHub release with the
+# ChatGPT / LLM pack, the all-in-one prompt and the skills zip. Notes come from .github/releases/<tag>.md when it
+# exists, otherwise GitHub generates them.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: LLM pack matches the skills
+        run: python3 llm/build.py --check
+      - name: Package
+        run: python3 scripts/package_release.py "$GITHUB_REF_NAME" out
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=".github/releases/$GITHUB_REF_NAME.md"
+          if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
+          gh release create "$GITHUB_REF_NAME" out/* --title "gelo $GITHUB_REF_NAME" --verify-tag "$@"

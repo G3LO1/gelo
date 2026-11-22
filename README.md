@@ -116,6 +116,10 @@ python3 llm/build.py --check                   # LLM pack in llm/dist matches th
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin validate`, StyLua and Selene on every push to `main` and every pull request.
 
+To release: bump `version` in both manifests, add notes in `.github/releases/vX.Y.Z.md`, then push the tag
+`vX.Y.Z`. `.github/workflows/release.yml` publishes the GitHub release with the ChatGPT / LLM pack, the all-in-one
+prompt and the skills zip (`python3 scripts/package_release.py vX.Y.Z out` builds the same files locally).
+
 ## License
 
 [MIT](LICENSE) © G3LO1. Use the skills, scripts and the Luau template in your own games, paid ones included; keep the copyright notice in copied files.
