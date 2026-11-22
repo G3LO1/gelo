@@ -113,6 +113,98 @@ check(allValid, "every preset builds with valid Roblox properties")
 check(budgets, "loops <= MaxLoopRate (mobile cap 100/s), bursts <= MaxBurst, lifetimes <= 20 s, glows unlit")
 check(flashesRemoved, "reduced flashing removes flash emitters and lights")
 check(scaledDown, "low quality emits fewer particles")
+print("Layered flipbook (ElementBurst)")
+local burstPreset = Vfx.Presets.ElementBurst
+check(burstPreset ~= nil and table.concat(Vfx.variants("ElementBurst"), ",") == "Fire,Frost", "ElementBurst has Fire and Frost variants")
+local flipLayers, atlases = {}, {}
+for _, spec in burstPreset.emitters do
+	if spec.flipbook then
+		table.insert(flipLayers, spec.layer)
+		atlases[spec.texture] = true
+	end
+end
+local atlasCount = 0
+for _ in atlases do
+	atlasCount += 1
+end
+check(#flipLayers == 2 and atlasCount == 1, `two flipbook layers ({table.concat(flipLayers, ", ")}) on one atlas`)
+check(#Vfx.variants("HitSpark") == 0, "presets without variants list none")
+
+local function byLayer(attachment)
+	local map = {}
+	for _, e in emitters(attachment) do
+		map[e:GetAttribute("Layer")] = e
+	end
+	return map
+end
+local plain = byLayer(Vfx.build("ElementBurst"))
+check(
+	plain.Outer.Texture == "rbxasset://textures/particles/sparkles_main.dds"
+		and plain.Outer.FlipbookLayout == roblox.Enum.ParticleFlipbookLayout.None,
+	"atlas without an uploaded id plays as a plain particle (no flipbook on the sparkle)"
+)
+Vfx.Textures.Burst4x4 = "rbxassetid://456"
+local fire = byLayer(Vfx.build("ElementBurst", { variant = "Fire", quality = 1 }))
+local frost = byLayer(Vfx.build("ElementBurst", { variant = "Frost", quality = 1 }))
+local flipOk, sameTexture = true, true
+for _, layer in flipLayers do
+	for _, e in { fire[layer], frost[layer] } do
+		if e.FlipbookLayout ~= roblox.Enum.ParticleFlipbookLayout.Grid4x4 or e.FlipbookMode ~= roblox.Enum.ParticleFlipbookMode.OneShot then
+			flipOk = false
+		end
+	end
+	if fire[layer].Texture ~= "rbxassetid://456" or frost[layer].Texture ~= fire[layer].Texture then
+		sameTexture = false
+	end
+end
+check(flipOk, "flipbook layers use Grid4x4 / OneShot")
+check(sameTexture, "both variants play the same uploaded atlas")
+local coloursMatch, coloursDiffer = true, true
+for layer, colours in burstPreset.variants.Frost do
+	local got = frost[layer].Color.Keypoints
+	if got[1].Value ~= colours[1] or got[#got].Value ~= colours[#colours] then
+		coloursMatch = false
+	end
+	if fire[layer].Color.Keypoints[1].Value == got[1].Value then
+		coloursDiffer = false
+	end
+end
+check(coloursMatch, "every layer takes its colours from the variant")
+check(coloursDiffer, "Fire and Frost differ on every layer")
+local default = byLayer(Vfx.build("ElementBurst"))
+check(default.Core.Color.Keypoints[1].Value == fire.Core.Color.Keypoints[1].Value, "default variant is Fire")
+check(not pcall(Vfx.build, "ElementBurst", { variant = "Poison" }), "unknown variant is an error")
+check(not pcall(Vfx.build, "HitSpark", { variant = "Fire" }), "variant on a preset without variants is an error")
+local override = byLayer(Vfx.build("ElementBurst", { variant = "Frost", color = Vfx.Rarity.Epic }))
+check(override.Outer.Color.Keypoints[1].Value == Vfx.Rarity.Epic, "color option still overrides a variant")
+local gentle = byLayer(Vfx.build("ElementBurst", { variant = "Frost", quality = 0.3, reducedFlashing = true }))
+check(gentle.Flash == nil, "reduced flashing drops the flash layer")
+check(
+	gentle.Outer and gentle.Core and gentle.Outer.FlipbookLayout == roblox.Enum.ParticleFlipbookLayout.Grid4x4,
+	"low quality + reduced flashing keeps both flipbook layers"
+)
+check(gentle.Embers:GetAttribute("Burst") < frost.Embers:GetAttribute("Burst"), "low quality emits fewer embers")
+Vfx.Presets.FlipTest = {
+	kind = "loop",
+	emitters = {
+		{
+			texture = "Burst4x4",
+			rate = 2,
+			lifetime = { 1, 1 },
+			speed = { 0, 0 },
+			size = { { 0, 1 }, { 1, 1 } },
+			transparency = { { 0, 0 }, { 1, 1 } },
+			flipbook = { layout = "Grid4x4", mode = "Loop", framerate = 60, startRandom = true },
+		},
+	},
+}
+local looping = emitters(Vfx.build("FlipTest"))[1]
+check(
+	looping.FlipbookFramerate.Max == Vfx.MaxFlipbookFramerate and looping.FlipbookStartRandom,
+	"loop framerate capped at 30, random start"
+)
+Vfx.Presets.FlipTest = nil
+
 local tinted = Vfx.build("RarityGlow", { color = Vfx.Rarity.Legendary })
 check(emitters(tinted)[1].Color.Keypoints[1].Value == Vfx.Rarity.Legendary, "color option tints the effect")
 local trail = Vfx.build("SpeedTrail")

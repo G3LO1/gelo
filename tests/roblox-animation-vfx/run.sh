@@ -42,23 +42,68 @@ sed 's/^/  /' $TMP/vfx.txt | grep -E "ok|FAIL|passed|    "
 lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau $TMP/VfxShowcase.rbxmx | grep -q "^OK" && [ -s $TMP/VfxShowcase.rbxmx ] \
 	&& ok "showcase model builds" || bad "showcase model"
 lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau --quality 0.3 --reduced-flashing | grep -q "^OK" && ok "showcase at low quality + reduced flashing" || bad "showcase low quality"
+lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau --texture Burst4x4=rbxassetid://456 --list > $TMP/full.txt
+lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau --texture Burst4x4=rbxassetid://456 --quality 0.3 --reduced-flashing --list > $TMP/low.txt
+grep -q "ElementBurst_Fire: Outer 2 Grid4x4 OneShot, Core 1 Grid4x4 OneShot, Embers 10, Flash 1$" $TMP/full.txt \
+	&& grep -q "ElementBurst_Frost: Outer 2 Grid4x4 OneShot, Core 1 Grid4x4 OneShot, Embers 10, Flash 1$" $TMP/full.txt \
+	&& ok "showcase: one pad per variant, both on the 4x4 atlas" || { bad "showcase variants:"; cat $TMP/full.txt; }
+grep -q "ElementBurst_Fire: Outer 1 Grid4x4 OneShot, Core 1 Grid4x4 OneShot, Embers 5$" $TMP/low.txt \
+	&& grep -q "ElementBurst_Frost: Outer 1 Grid4x4 OneShot, Core 1 Grid4x4 OneShot, Embers 5$" $TMP/low.txt \
+	&& ok "showcase at 0.3 + reduced flashing: flipbook layers kept, fewer embers, no flash" || { bad "showcase low variants:"; cat $TMP/low.txt; }
+lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau --texture Nope=rbxassetid://1 > /dev/null; [ $? -eq 2 ] && ok "showcase rejects unknown --texture names" || bad "showcase --texture check"
 sed 's/emitter.LightEmission = spec.lightEmission or 0/emitter.LightEmmission = spec.lightEmission or 0/' $SKILL/assets/Vfx.luau > $TMP/BrokenVfx.luau
 lune run $SKILL/scripts/vfx_showcase.luau $TMP/BrokenVfx.luau | grep -q "LightEmmission is not a valid member" && ok "a property typo is caught" || bad "property typo not caught"
 
 echo "textures"
 python3 $SKILL/scripts/make_textures.py $TMP/textures > /dev/null
-python3 - "$TMP/textures" "$SKILL/assets/textures" <<'PY' && ok "generator output matches the committed textures, 128x128 RGBA" || bad "textures"
+python3 - "$TMP/textures" "$SKILL/assets/textures" <<'PY' && ok "generator output matches the committed textures (128 px, 512 px atlas), RGBA" || bad "textures"
 import sys
 from PIL import Image, ImageChops
 new, committed = sys.argv[1], sys.argv[2]
-for name in ["glow", "star", "spark", "smoke", "ring"]:
+sizes = {"glow": 128, "star": 128, "spark": 128, "smoke": 128, "ring": 128, "burst_4x4": 512}
+for name, size in sizes.items():
     a, b = Image.open(f"{new}/{name}.png"), Image.open(f"{committed}/{name}.png")
-    assert a.size == (128, 128) and a.mode == "RGBA", name
+    assert a.size == (size, size) and a.mode == "RGBA", name
     # small tolerance: blur/resampling differ slightly between Pillow versions
     worst = max(hi for _, hi in ImageChops.difference(a, b).getextrema())
     assert worst <= 16, f"{name} differs from the committed file (max channel diff {worst})"
     assert a.getchannel("A").getextrema()[1] > 200, f"{name} is empty"
 PY
+
+echo "flipbook_check.py"
+python3 $SKILL/scripts/flipbook_check.py $SKILL/assets/textures/burst_4x4.png --preview $TMP/preview.png > $TMP/flip.txt; code=$?
+[ $code -eq 0 ] && grep -q "512x512, Grid4x4, 16 frames of 128x128 px, margin 4 px" $TMP/flip.txt && grep -q "OK: 0 error(s), 0 warning(s)" $TMP/flip.txt && [ -s $TMP/preview.png ] \
+	&& ok "committed atlas: 4x4 grid, transparent margins, no empty frames, preview written" || { bad "committed atlas:"; cat $TMP/flip.txt; }
+python3 - "$SKILL/assets/textures/burst_4x4.png" "$TMP" <<'PY'
+import sys
+from PIL import Image, ImageDraw
+src, tmp = sys.argv[1], sys.argv[2]
+atlas = Image.open(src).convert("RGBA")
+edge = atlas.copy()
+ImageDraw.Draw(edge).rectangle((128 * 2 + 125, 128 + 60, 128 * 3 - 1, 128 + 70), fill=(255, 255, 255, 255))  # frame 6, right edge
+edge.save(f"{tmp}/edge.png")
+empty = atlas.copy()
+empty.paste(Image.new("RGBA", (128, 128), (255, 255, 255, 0)), (128 * 3, 128 * 3))  # frame 15
+empty.save(f"{tmp}/empty.png")
+atlas.resize((510, 510)).save(f"{tmp}/odd.png")
+wide = Image.new("RGBA", (1024, 512), (255, 255, 255, 0))  # 8x4 grid of the same 128 px frames
+for index in range(32):
+    frame = index % 16
+    cell = atlas.crop(((frame % 4) * 128, (frame // 4) * 128, (frame % 4) * 128 + 128, (frame // 4) * 128 + 128))
+    wide.paste(cell, ((index % 8) * 128, (index // 8) * 128))
+wide.save(f"{tmp}/wide.png")
+atlas.convert("RGB").save(f"{tmp}/opaque.png")
+tinted = Image.new("RGBA", atlas.size, (255, 90, 20, 0))
+tinted.putalpha(atlas.getchannel("A"))
+tinted.save(f"{tmp}/tinted.png")
+PY
+flip() { python3 $SKILL/scripts/flipbook_check.py "$@" > $TMP/flip.txt; echo $?; }
+[ "$(flip $TMP/edge.png)" = 1 ] && grep -q "frame 6 (row 2, col 3) reaches the right edge" $TMP/flip.txt && ok "pixels in the margin fail with the frame and edge" || { bad "edge bleed not caught:"; cat $TMP/flip.txt; }
+[ "$(flip $TMP/empty.png)" = 1 ] && grep -q "frame 15 is empty" $TMP/flip.txt && ok "empty frame fails" || bad "empty frame not caught"
+[ "$(flip $TMP/odd.png)" = 1 ] && grep -q "510x510 is not an exact multiple of the 4x4 grid" $TMP/flip.txt && ok "sheet not divisible by the grid fails" || { bad "odd size not caught:"; cat $TMP/flip.txt; }
+[ "$(flip $TMP/opaque.png)" = 1 ] && grep -q "no alpha channel" $TMP/flip.txt && ok "atlas without alpha fails" || bad "missing alpha not caught"
+[ "$(flip $TMP/tinted.png)" = 0 ] && grep -q "warning: masks are not white" $TMP/flip.txt && ok "coloured masks only warn" || { bad "coloured mask warning:"; cat $TMP/flip.txt; }
+[ "$(flip $TMP/wide.png --grid 8x4)" = 0 ] && grep -q "FlipbookSizeX=8, FlipbookSizeY=4" $TMP/flip.txt && grep -q "is not square" $TMP/flip.txt && ok "non-standard grid points to Custom layout" || { bad "custom grid:"; cat $TMP/flip.txt; }
 
 echo "blender_check.py (real Blender via the bpy module; set BPY_PYTHON to a Python with bpy installed)"
 if [ -n "${BPY_PYTHON:-}" ] || python3 -c "import bpy" 2>/dev/null; then

@@ -95,9 +95,10 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
-- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`. Check every flipbook atlas with `python3 scripts/flipbook_check.py atlas.png --grid 4 --preview preview.png` before uploading (grid size, transparent margins, empty frames).
+- Layered flipbooks (`references/vfx.md` section 8): one atlas of white masks, one emitter per `layer`, colours per layer in the preset's `variants`; `ElementBurst` (Fire, Frost) is the worked example. Play a variant with `Vfx.play(name, target, { variant = "Frost" })`.
 - Check every preset against Roblox's API database and get a model to look at:
-  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
+  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`; `--list` prints every pad's layers; `--texture Name=id` previews textures before they are in `Vfx.Textures`). Variants get one pad each. Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
 
 ## 4. Check
@@ -286,6 +287,7 @@ Checked against create.roblox.com/docs/effects (particle emitters, beams, trails
 5. Budgets and accessibility
 6. Networking
 7. Textures
+8. Layered flipbooks
 
 ## 1. Feedback map
 Every verb in the mechanic matrix gets feedback on three channels, sized by importance: **visual** (VFX, UI pop, camera), **audio** (SFX), **motion** (animation, hit-stop, shake). Big moments (level up, rare drop, purchase, boss kill) get all three and stand out; frequent moments (footsteps, coin pickup, every hit) stay small and cheap so they don't become noise.
@@ -302,13 +304,14 @@ Every verb in the mechanic matrix gets feedback on three channels, sized by impo
 | Rarity / item highlight | RarityGlow (loop) | low rate |
 | Ambience | Fireflies (loop) | very low rate |
 | Speed / dash | SpeedTrail (loop) | trail |
+| Elemental hit / spell impact | ElementBurst (variants Fire, Frost) | medium, layered flipbook |
 
 ## 2. ParticleEmitter essentials
 - **Rate** is particles per second for continuous emitters; for one-shots keep `Enabled = false` and call `emitter:Emit(count)`. One emitter can create up to 400 particles/s (100/s on mobile).
 - **Lifetime** (NumberRange) is capped at 20 s. **Speed** (NumberRange, studs/s) along **EmissionDirection** (NormalId of the parent) with **SpreadAngle** (Vector2 degrees). **Shape** Box/Sphere/Cylinder/Disc with ShapeStyle (Volume/Surface), ShapeInOut, ShapePartial for rings and shells.
 - **Size**, **Transparency** (NumberSequence over lifetime), **Color** (ColorSequence), **Squash** (stretch along motion: sparks, rain), **Rotation/RotSpeed**, **Drag**, **Acceleration** (gravity, rising embers), **VelocityInheritance**, **LockedToPart** (particles move with the part: auras), **TimeScale** (slow-motion), **ZOffset** (draw order toward the camera), **WindAffectsDrag**.
 - **LightEmission** 0 = normal blending, 1 = additive (glows, fire, magic); grayscale textures without alpha work with LightEmission 1. **LightInfluence** 0 makes particles ignore scene lighting (glows look the same day and night). **Brightness** for HDR-style punch in Realistic lighting.
-- **Flipbooks**: `FlipbookLayout` Grid2x2 / Grid4x4 / Grid8x8 / Custom (FlipbookSizeX/Y), `FlipbookMode` Loop / OneShot / PingPong / Random, `FlipbookFramerate`, `FlipbookStartRandom`. Good for fire, smoke and stylized impacts.
+- **Flipbooks**: `FlipbookLayout` Grid2x2 / Grid4x4 / Grid8x8 / Custom (FlipbookSizeX/Y), `FlipbookMode` Loop / OneShot / PingPong / Random, `FlipbookFramerate` (NumberRange, max 30 fps), `FlipbookStartRandom`. OneShot spreads the frames evenly over each particle's Lifetime (no framerate). The texture must be an exact multiple of the grid, or Roblox reports it in `FlipbookIncompatible`. Good for fire, smoke and stylized impacts; layered flipbooks are in section 8.
 - Particle size drives cost through fill-rate: big particles covering the screen are expensive, and overlapping transparent layers cost overdraw.
 
 ## 3. Beams, trails, highlights, lights
@@ -344,6 +347,16 @@ Match the world (see the map builder's style presets) and the UI style:
 - `scripts/make_textures.py` generates original white-on-transparent textures (glow, star, spark, smoke, ring); `assets/textures/` holds a 128 px set. Upload them (Asset Manager bulk import) with the account or group that owns the experience and paste the ids into `Vfx.Textures`.
 - 64-256 px is enough for most particles; reuse a few textures across many effects; flipbooks up to 1024 px sheets only for hero effects.
 - White textures + `Color` let one texture serve every color; keep alpha soft at the edges to avoid hard squares.
+- `burst_4x4.png` is a 512 px 4x4 flipbook atlas (16 white mask frames of 128 px) for `ElementBurst`.
+
+## 8. Layered flipbooks
+One effect, several emitters (layers), each tinted on its own, all reading white masks, so colour is decided in game and one atlas serves every element.
+- **Draw** the frames in white on transparency: a silhouette per frame, alpha for softness. 16 frames in a 4x4 grid cover a 0.4-0.8 s impact; 8x8 only for hero effects (1024 px, memory). Leave a transparent margin around every frame: pixels at a cell edge bleed into the neighbour frame once the sheet is mip-filtered on phones.
+- **Check** before uploading: `python3 scripts/flipbook_check.py atlas.png --grid 4 --preview preview.png` fails on a size that isn't a multiple of the grid, no alpha, a frame reaching its cell edge (it names the frame and side) and empty frames; it warns about non-square or non-power-of-two sheets, sheets over 1024 px, grids that need `Custom`, and coloured masks. The preview outlines failing frames in red.
+- **Layers** in a preset: give each emitter a `layer` name and the atlas in `flipbook = { layout = "Grid4x4", mode = "OneShot" }` (or `Loop`/`PingPong`/`Random` with `framerate`, `startRandom`). `ElementBurst` plays the same atlas twice: a wide soft `Outer` layer (LightEmission 0.4, random rotation) and a small additive `Core` (ZOffset 0.5), plus `Embers` sparks and a `Flash` glow marked `flash`.
+- **Variants**: `variants = { Fire = { Outer = {...}, Core = {...} }, Frost = {...} }` maps each layer to its colours; `variant` is the default. Play with `Vfx.play("ElementBurst", pos, { variant = "Frost" })`; `Vfx.variants(name)` lists them; an unknown variant is an error; `color` still overrides everything (one-off tints). A new element is a table entry, not a new texture.
+- **Quality and flashing**: low quality scales particle counts (the flipbook layers keep at least one particle each, so the effect keeps its shape), reduced flashing removes `flash` layers. Look at both before shipping: `lune run scripts/vfx_showcase.luau assets/Vfx.luau Showcase.rbxmx --quality 0.3 --reduced-flashing --list`.
+- **Until the atlas is uploaded** a flipbook layer plays the default sparkle as a plain particle (flipbook off), so the game never shows a sparkle cut into 16 pieces. To look at the real atlas in Studio before uploading, copy the PNG into Studio's `content/textures/gelo/` folder and build the showcase with `--texture Burst4x4=rbxasset://textures/gelo/burst_4x4.png` (local preview only; players need the uploaded id).
 
 ## Files not included here
 
@@ -351,6 +364,7 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 
 - `assets/AnimationSet.luau`
 - `assets/Vfx.luau`
+- `assets/textures/burst_4x4.png`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
 - `assets/textures/smoke.png`
@@ -358,6 +372,7 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 - `assets/textures/star.png`
 - `scripts/anim_manifest.py`
 - `scripts/blender_check.py`
+- `scripts/flipbook_check.py`
 - `scripts/make_textures.py`
 - `scripts/vfx_showcase.luau`
 
