@@ -1,5 +1,7 @@
 # gelo
 
+<img src="plugins/roblox-studio/.claude-plugin/icon.png" alt="gelo icon" width="96" align="right">
+
 Claude Code plugin for making Roblox games in Roblox Studio, callable as **`/gelo`** or **`@gelo`** in Claude Code,
 ChatGPT, Codex, Gemini and any other LLM.
 
