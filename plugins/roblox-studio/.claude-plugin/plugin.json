@@ -6,5 +6,6 @@
     "name": "G3LO1"
   },
   "repository": "https://github.com/G3LO1/gelo",
+  "license": "MIT",
   "keywords": ["gelo", "roblox", "roblox-studio", "gamedev", "luau", "rojo", "ui", "figma", "photoshop", "security", "performance", "launch", "marketing", "animation", "vfx", "blender"]
 }
