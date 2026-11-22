@@ -1,12 +1,20 @@
 name: Release
 
-# Push a tag like v0.10.0 (equal to the version in plugin.json) and this publishes the GitHub release with the
-# ChatGPT / LLM pack, the all-in-one prompt and the skills zip. Notes come from .github/releases/<tag>.md when it
-# exists, otherwise GitHub generates them.
+# Publishes the GitHub release with the ChatGPT / LLM pack, the all-in-one prompt and the skills zip.
+# Start it either way:
+#   - push a tag like v0.10.0, or
+#   - Actions -> Release -> Run workflow with the tag (it is created on the chosen branch's commit).
+# The tag must equal "v" + the version in plugin.json. Notes come from .github/releases/<tag>.md when it exists,
+# otherwise GitHub generates them. If the release already exists, its files are replaced.
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, e.g. v0.10.0 (must match plugin.json)"
+        required: true
 
 permissions:
   contents: write
@@ -15,19 +23,29 @@ jobs:
   release:
     name: Publish release
     runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - name: Tag format
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad tag '$TAG', expected vX.Y.Z"; exit 1; }
       - name: LLM pack matches the skills
         run: python3 llm/build.py --check
       - name: Package
-        run: python3 scripts/package_release.py "$GITHUB_REF_NAME" out
+        run: python3 scripts/package_release.py "$TAG" out
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes=".github/releases/$GITHUB_REF_NAME.md"
-          if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
-          gh release create "$GITHUB_REF_NAME" out/* --title "gelo $GITHUB_REF_NAME" --verify-tag "$@"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" out/* --clobber
+            echo "Updated the files of the existing release $TAG"
+          else
+            notes=".github/releases/$TAG.md"
+            if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
+            gh release create "$TAG" out/* --title "gelo $TAG" --target "$GITHUB_SHA" "$@"
+          fi
