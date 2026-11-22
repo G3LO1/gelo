@@ -34,9 +34,10 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
-- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`. Check every flipbook atlas with `python3 scripts/flipbook_check.py atlas.png --grid 4 --preview preview.png` before uploading (grid size, transparent margins, empty frames).
+- Layered flipbooks (`references/vfx.md` section 8): one atlas of white masks, one emitter per `layer`, colours per layer in the preset's `variants`; `ElementBurst` (Fire, Frost) is the worked example. Play a variant with `Vfx.play(name, target, { variant = "Frost" })`.
 - Check every preset against Roblox's API database and get a model to look at:
-  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
+  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`; `--list` prints every pad's layers; `--texture Name=id` previews textures before they are in `Vfx.Textures`). Variants get one pad each. Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
 
 ## 4. Check

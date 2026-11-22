@@ -11,10 +11,16 @@
 --   Vfx.play("LevelUp", character.HumanoidRootPart)        -- one-shot on a part / attachment
 --   local glow = Vfx.attach("RarityGlow", toolHandle, { color = Vfx.Rarity.Epic })
 --   glow:Stop()                                            -- loops: stop fades them out
+--   Vfx.play("ElementBurst", position, { variant = "Frost" }) -- layered flipbook, colour variant
 --   Vfx.setQuality(0.5)  Vfx.setReducedFlashing(true)       -- from the settings menu
 --
 -- Textures: upload the PNGs from the skill's assets/textures/ (or your own) and paste the ids
--- into Vfx.Textures. Until then everything uses the engine's default sparkle texture.
+-- into Vfx.Textures. Until then everything uses the engine's default sparkle texture (and
+-- flipbook layers fall back to a plain particle, since the sparkle is not an atlas).
+--
+-- Layered flipbooks: an emitter with `flipbook` plays an atlas of white mask frames; each emitter
+-- is a `layer`, and a preset's `variants` give every layer its own colours. All variants share
+-- one atlas, so a new element costs a table entry, not a new texture.
 
 local Vfx = {}
 
@@ -24,6 +30,7 @@ Vfx.Textures = {
 	Spark = "rbxassetid://0", -- TODO: upload spark.png
 	Smoke = "rbxassetid://0", -- TODO: upload smoke.png
 	Ring = "rbxassetid://0", -- TODO: upload ring.png
+	Burst4x4 = "rbxassetid://0", -- TODO: upload burst_4x4.png (4x4 flipbook atlas)
 }
 local DEFAULT_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 
@@ -37,6 +44,15 @@ Vfx.Rarity = {
 -- Mobile caps emitters at 100 particles/s; keep looping rates well under it.
 Vfx.MaxLoopRate = 60
 Vfx.MaxBurst = 60
+-- ParticleEmitter.FlipbookFramerate tops out at 30 fps.
+Vfx.MaxFlipbookFramerate = 30
+
+type Flipbook = {
+	layout: string, -- "Grid2x2" | "Grid4x4" | "Grid8x8"
+	mode: string?, -- "OneShot" (frames spread over the lifetime, default) | "Loop" | "PingPong" | "Random"
+	framerate: number?, -- frames per second for Loop / PingPong / Random (max 30)
+	startRandom: boolean?, -- each particle starts on a random frame
+}
 
 type Emitter = {
 	texture: string,
@@ -58,6 +74,8 @@ type Emitter = {
 	zOffset: number?,
 	lockedToPart: boolean?,
 	flash: boolean?, -- bright flash: removed with reduced flashing
+	layer: string?, -- layer name; a preset variant colours it
+	flipbook: Flipbook?, -- texture is an atlas of frames
 }
 
 type Preset = {
@@ -66,6 +84,8 @@ type Preset = {
 	emitters: { Emitter },
 	light: { color: Color3, brightness: number, range: number, time: number }?,
 	trail: { color: { Color3 }, lifetime: number, width: { { number } } }?,
+	variants: { [string]: { [string]: { Color3 } } }?, -- variant -> layer -> colours
+	variant: string?, -- default variant
 }
 
 local function gold(): { Color3 }
@@ -328,6 +348,78 @@ Vfx.Presets = {
 			},
 		},
 	},
+	-- Layered flipbook: two layers play the same 4x4 atlas (a wide soft outer burst and a hot
+	-- additive core), plus embers and a flash. Fire and Frost only change the layer colours.
+	ElementBurst = {
+		kind = "oneshot",
+		duration = 1.2,
+		variant = "Fire",
+		emitters = {
+			{
+				layer = "Outer",
+				texture = "Burst4x4",
+				flipbook = { layout = "Grid4x4", mode = "OneShot" },
+				burst = 2,
+				lifetime = { 0.55, 0.65 },
+				speed = { 0, 0 },
+				size = { { 0, 3.2 }, { 1, 4.6 } },
+				transparency = { { 0, 0.15 }, { 1, 0.45 } },
+				lightEmission = 0.4,
+				rotSpeed = { -40, 40 },
+			},
+			{
+				layer = "Core",
+				texture = "Burst4x4",
+				flipbook = { layout = "Grid4x4", mode = "OneShot" },
+				burst = 1,
+				lifetime = { 0.45, 0.45 },
+				speed = { 0, 0 },
+				size = { { 0, 1.6 }, { 1, 2.6 } },
+				transparency = { { 0, 0 }, { 1, 0.3 } },
+				lightEmission = 1,
+				zOffset = 0.5,
+			},
+			{
+				layer = "Embers",
+				texture = "Spark",
+				burst = 10,
+				lifetime = { 0.35, 0.7 },
+				speed = { 10, 18 },
+				spread = 180,
+				drag = 4,
+				acceleration = Vector3.new(0, 4, 0),
+				size = { { 0, 0.3 }, { 1, 0 } },
+				transparency = { { 0, 0 }, { 1, 1 } },
+				lightEmission = 1,
+				squash = { { 0, 1.2 }, { 1, 0.4 } },
+			},
+			{
+				layer = "Flash",
+				texture = "Glow",
+				burst = 1,
+				lifetime = { 0.12, 0.12 },
+				speed = { 0, 0 },
+				size = { { 0, 3 }, { 1, 1 } },
+				transparency = { { 0, 0.3 }, { 1, 1 } },
+				lightEmission = 1,
+				flash = true,
+			},
+		},
+		variants = {
+			Fire = {
+				Outer = { Color3.fromRGB(255, 125, 35), Color3.fromRGB(190, 40, 20) },
+				Core = { Color3.fromRGB(255, 245, 200), Color3.fromRGB(255, 185, 60) },
+				Embers = { Color3.fromRGB(255, 220, 120), Color3.fromRGB(255, 110, 30) },
+				Flash = { Color3.fromRGB(255, 210, 150) },
+			},
+			Frost = {
+				Outer = { Color3.fromRGB(90, 175, 255), Color3.fromRGB(40, 70, 200) },
+				Core = { Color3.fromRGB(235, 250, 255), Color3.fromRGB(140, 220, 255) },
+				Embers = { Color3.fromRGB(205, 240, 255), Color3.fromRGB(90, 170, 255) },
+				Flash = { Color3.fromRGB(190, 230, 255) },
+			},
+		},
+	},
 	SpeedTrail = {
 		kind = "loop",
 		emitters = {},
@@ -381,7 +473,19 @@ function Vfx.scaled(count: number, quality: number?): number
 	return math.max(1, math.floor(count * (0.35 + 0.65 * q) + 0.5))
 end
 
-export type Options = { color: Color3?, scale: number?, quality: number?, reducedFlashing: boolean? }
+export type Options = { color: Color3?, variant: string?, scale: number?, quality: number?, reducedFlashing: boolean? }
+
+-- Variant names of a preset, sorted (empty when it has none).
+function Vfx.variants(name: string): { string }
+	local preset = Vfx.Presets[name]
+	assert(preset, `Vfx: unknown effect "{name}"`)
+	local names = {}
+	for variant in preset.variants or {} do
+		table.insert(names, variant)
+	end
+	table.sort(names)
+	return names
+end
 
 -- Builds the effect's instances under a new Attachment (not parented). Pure: no Emit, no
 -- timers, safe to call anywhere (tests run it outside Roblox).
@@ -392,9 +496,18 @@ function Vfx.build(name: string, options: Options?): (Attachment, Preset)
 	local quality = opts.quality or state.quality
 	local reduced = if opts.reducedFlashing == nil then state.reducedFlashing else opts.reducedFlashing
 	local scale = opts.scale or 1
+	local variantName = opts.variant or preset.variant
+	local variant = nil
+	if variantName then
+		assert(preset.variants and preset.variants[variantName], `Vfx: effect "{name}" has no variant "{variantName}"`)
+		variant = (preset.variants :: any)[variantName]
+	end
 
 	local attachment = Instance.new("Attachment")
 	attachment.Name = `Vfx_{name}`
+	if variantName then
+		attachment:SetAttribute("Variant", variantName)
+	end
 	for index, spec in preset.emitters do
 		if spec.flash and reduced then
 			continue
@@ -402,6 +515,20 @@ function Vfx.build(name: string, options: Options?): (Attachment, Preset)
 		local emitter = Instance.new("ParticleEmitter")
 		emitter.Name = `{name}{index}`
 		emitter.Texture = texture(spec.texture)
+		if spec.layer then
+			emitter:SetAttribute("Layer", spec.layer)
+		end
+		-- An atlas without an uploaded id would cut the default sparkle into frames: play it plain.
+		if spec.flipbook and emitter.Texture ~= DEFAULT_TEXTURE then
+			local flipbook = spec.flipbook :: Flipbook
+			emitter.FlipbookLayout = (Enum.ParticleFlipbookLayout :: any)[flipbook.layout]
+			emitter.FlipbookMode = (Enum.ParticleFlipbookMode :: any)[flipbook.mode or "OneShot"]
+			if flipbook.framerate then
+				local fps = math.min(flipbook.framerate, Vfx.MaxFlipbookFramerate)
+				emitter.FlipbookFramerate = NumberRange.new(fps, fps)
+			end
+			emitter.FlipbookStartRandom = flipbook.startRandom == true
+		end
 		emitter.Enabled = preset.kind == "loop"
 		emitter.Rate = if spec.rate then math.min(Vfx.scaled(spec.rate, quality), Vfx.MaxLoopRate) else 0
 		emitter.Lifetime = NumberRange.new(spec.lifetime[1], spec.lifetime[2])
@@ -413,6 +540,9 @@ function Vfx.build(name: string, options: Options?): (Attachment, Preset)
 		emitter.Size = sequence(sizePoints)
 		emitter.Transparency = sequence(spec.transparency)
 		local colors = spec.color or { Color3.new(1, 1, 1) }
+		if variant and spec.layer and variant[spec.layer] then
+			colors = variant[spec.layer]
+		end
 		if opts.color then
 			colors = { opts.color }
 		end

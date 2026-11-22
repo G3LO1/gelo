@@ -4,7 +4,8 @@
 uploaded and used anywhere.
 
 Usage: make_textures.py [out-dir] [--size 128]
-Writes glow.png, star.png, spark.png, smoke.png, ring.png.
+Writes glow.png, star.png, spark.png, smoke.png, ring.png and burst_4x4.png (a 4x4 flipbook
+atlas of size*4 px; check your own atlases with flipbook_check.py).
 """
 
 import argparse
@@ -76,7 +77,49 @@ def ring(size):
     return radial(size, lambda dx, dy: math.exp(-((math.hypot(dx, dy) - 0.78) ** 2) / 0.004))
 
 
-TEXTURES = {"glow": glow, "star": star, "spark": spark, "smoke": smoke, "ring": ring}
+def smoothstep(edge0, edge1, x):
+    t = max(0.0, min(1.0, (x - edge0) / (edge1 - edge0)))
+    return t * t * (3 - 2 * t)
+
+
+def burst_frame(size, t, waves):
+    """One frame of an expanding, hollowing burst (t = 0..1). Stays inside 85% of the
+    half-cell, so every frame keeps a transparent margin and never bleeds into its neighbours."""
+
+    def noise(theta, phase):
+        return sum(a * math.sin(k * theta + p + phase * w) for k, a, p, w in waves) / 0.9
+
+    def fn(dx, dy):
+        r = math.hypot(dx, dy)
+        theta = math.atan2(dy, dx)
+        grow = 1 - (1 - t) ** 2
+        edge = (0.22 + 0.5 * grow) * (1 + 0.18 * max(-1.0, min(1.0, noise(theta, t * 3))))
+        if r >= edge:
+            return 0.0
+        outer = smoothstep(edge, edge - 0.1, r)
+        inner_radius = edge * 0.85 * t**1.3
+        inner = smoothstep(inner_radius - 0.06, inner_radius + 0.05, r) if t > 0 else 1.0
+        # tongues break apart in the second half
+        breakup = max(0.0, min(1.0, 0.55 + 0.45 * noise(theta * 1.5 + r * 6, 5 + t * 4) + (1 - t) * 1.2))
+        fade = 1 - 0.8 * max(0.0, (t - 0.4) / 0.6) ** 1.3
+        return outer * inner * breakup * fade
+
+    return radial(size, fn)
+
+
+def burst_4x4(size, seed=7):
+    """Layered flipbook atlas: 16 white mask frames in a 4x4 grid (frame size = --size, so
+    128 px frames give a 512 px sheet). Vfx.luau tints each layer per colour variant."""
+    rng = random.Random(seed)
+    waves = [(k, rng.uniform(0.15, 0.3), rng.uniform(0, math.tau), rng.uniform(-1, 1)) for k in (3, 5, 7, 11)]
+    atlas = Image.new("RGBA", (size * 4, size * 4), (255, 255, 255, 0))
+    for index in range(16):
+        frame = burst_frame(size, index / 15, waves)
+        atlas.paste(frame, ((index % 4) * size, (index // 4) * size))
+    return atlas
+
+
+TEXTURES = {"glow": glow, "star": star, "spark": spark, "smoke": smoke, "ring": ring, "burst_4x4": burst_4x4}
 
 
 def main():
