@@ -1,9 +1,13 @@
-# Installs the roblox-studio skills into a project's .claude\skills\ folder (or ~\.claude\skills\ with -Global),
-# so Claude Code picks them up there without the plugin.
+# Installs the roblox-studio skills (with the /gelo router) into a project's .claude\skills\ folder
+# (or ~\.claude\skills\ with -Global), so Claude Code picks them up there without the plugin.
+# -For agents puts them in .agents\skills\ instead, the shared Agent Skills folder read by Codex, ChatGPT desktop,
+# Gemini CLI, Cursor and others; -For all does both.
 #
 #   powershell -ExecutionPolicy Bypass -File install.ps1                    -> current folder (.\.claude\skills\)
 #   powershell -ExecutionPolicy Bypass -File install.ps1 -Project "D:\Game" -> that project
 #   powershell -ExecutionPolicy Bypass -File install.ps1 -Global            -> every project (~\.claude\skills\)
+#   powershell -ExecutionPolicy Bypass -File install.ps1 -For agents       -> .\.agents\skills\ (Codex, ChatGPT desktop, ...)
+#   powershell -ExecutionPolicy Bypass -File install.ps1 -For all          -> both
 #
 # Without a checkout:
 #   irm https://raw.githubusercontent.com/G3LO1/gelo/main/install.ps1 | iex
@@ -12,7 +16,9 @@
 # $env:GELO_REF picks a branch or tag to download (default main); $env:GELO_ZIP_URL overrides the whole URL.
 param(
   [string]$Project = "",
-  [switch]$Global
+  [switch]$Global,
+  [ValidateSet("claude", "agents", "all")]
+  [string]$For = "claude"
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,14 +26,13 @@ $ErrorActionPreference = "Stop"
 if ($Global -and $Project) { throw "Use either -Global or -Project, not both" }
 
 if ($Global) {
-  $target = Join-Path $HOME ".claude\skills"
+  $base = $HOME
 } else {
   if (-not $Project) { $Project = (Get-Location).Path }
   if (-not (Test-Path -PathType Container $Project)) { throw "Folder $Project does not exist" }
-  $target = Join-Path (Resolve-Path $Project).Path ".claude\skills"
+  $base = (Resolve-Path $Project).Path
 }
-# Windows paths everywhere, but keep it working under pwsh on macOS/Linux too.
-$target = $target -replace '[\\/]', [IO.Path]::DirectorySeparatorChar
+$dirs = switch ($For) { "claude" { @(".claude") } "agents" { @(".agents") } "all" { @(".claude", ".agents") } }
 
 # Skills from this checkout, or from a downloaded archive when the script was piped in.
 $src = $null
@@ -54,21 +59,28 @@ try {
     $src = $found
   }
 
-  New-Item -ItemType Directory -Force -Path $target | Out-Null
-  $count = 0
-  foreach ($dir in Get-ChildItem -Path $src -Directory) {
-    if (-not (Test-Path (Join-Path $dir.FullName "SKILL.md"))) { continue }
-    # Replace only our own skills; anything else in the folder stays.
-    $dest = Join-Path $target $dir.Name
-    if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
-    Copy-Item -Recurse -Force $dir.FullName $dest
-    Write-Host "  $($dir.Name)"
-    $count++
+  foreach ($d in $dirs) {
+    # Windows paths everywhere, but keep it working under pwsh on macOS/Linux too.
+    $target = (Join-Path $base (Join-Path $d "skills")) -replace '[\\/]', [IO.Path]::DirectorySeparatorChar
+    New-Item -ItemType Directory -Force -Path $target | Out-Null
+    $count = 0
+    foreach ($dir in Get-ChildItem -Path $src -Directory) {
+      if (-not (Test-Path (Join-Path $dir.FullName "SKILL.md"))) { continue }
+      # Replace only our own skills; anything else in the folder stays.
+      $dest = Join-Path $target $dir.Name
+      if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
+      Copy-Item -Recurse -Force $dir.FullName $dest
+      Write-Host "  $($dir.Name)"
+      $count++
+    }
+    if ($count -eq 0) { throw "No skills found in $src" }
+    Write-Host "OK: $count skills installed in $target"
+    if ($d -eq ".claude") {
+      Write-Host "Claude Code: start a new session there and type /gelo (or e.g. /roblox-map-builder)"
+    } else {
+      Write-Host "Codex: `$gelo, ChatGPT desktop: @gelo, Gemini CLI / Cursor / others: ask for gelo (restart the tool first)"
+    }
   }
-  if ($count -eq 0) { throw "No skills found in $src" }
-
-  Write-Host "OK: $count skills installed in $target"
-  Write-Host "Restart Claude Code in that folder (or start a new session) and type e.g. /roblox-map-builder"
 } finally {
   if ($tmp -and (Test-Path $tmp)) { Remove-Item -Recurse -Force $tmp }
 }

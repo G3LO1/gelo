@@ -6,6 +6,7 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 
 | Skill | What it does |
 | --- | --- |
+| [`gelo`](skills/gelo/SKILL.md) | The `/gelo` / `@gelo` entry point: menu, routing by alias (`idea`, `plan`, `ui`, `code`, `anim`, `map`, `audit`, `launch`) or by meaning, and the whole pipeline step by step. |
 | [`roblox-map-builder`](skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant Roblox Studio maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
 | [`roblox-game-idea-validator`](skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 | [`roblox-game-production-plan`](skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
@@ -16,6 +17,10 @@ Claude Code skills for making Roblox games in Roblox Studio. They work best with
 | [`roblox-animation-vfx`](skills/roblox-animation-vfx/SKILL.md) | Plans and wires animations and effects from the game's mechanics: rig choice, priorities, markers, Animation Graph and IK, an animation manifest validator that generates the Luau module, an `AnimationSet` runtime, a `Vfx` preset library (hits, pickups, level ups, purchases, glows, trails) with quality and reduced-flashing settings, generated particle textures and a Studio showcase model validated against Roblox's API. Works with a Blender MCP server when you have one (offers to connect it otherwise): rig clean-up, animation blocking, flipbooks and FBX exports checked by `blender_check.py`. |
 
 Skills are namespaced by the plugin, e.g. `/roblox-studio:roblox-map-builder`. Claude also picks them up automatically when a request matches the skill's `description`.
+
+The quickest way in is `/gelo <task>` (full name `/roblox-studio:gelo`), or `@gelo` anywhere in a message: the `gelo`
+skill picks the right one of the skills below and loads it. Its routes table (between the `gelo:routes` markers) is
+also the routes table of the LLM pack in [`llm/`](../../llm/README.md).
 
 ## Workflow
 
@@ -55,7 +60,7 @@ Or copy the skills straight into a game's `.claude/skills/` with the repo's `ins
 
    The `description` decides when Claude loads the skill, so put the trigger phrases there.
 3. Optional extras go next to `SKILL.md` (`references/*.md`, `scripts/*`, `assets/*`); link them from `SKILL.md` so Claude reads them only when needed.
-4. Add a row to the table above, bump `version` in `.claude-plugin/plugin.json` and in the root `.claude-plugin/marketplace.json` (keep them equal).
+4. Add a row to the table above, a route to the table in `skills/gelo/SKILL.md`, run `python3 llm/build.py`, bump `version` in `.claude-plugin/plugin.json` and in the root `.claude-plugin/marketplace.json` (keep them equal).
 5. Validate before pushing:
 
    ```
@@ -72,6 +77,8 @@ plugins/roblox-studio/
 ├── .claude-plugin/plugin.json   # plugin manifest
 ├── README.md
 └── skills/
+    ├── gelo/
+    │   └── SKILL.md                # /gelo and @gelo: menu, routing, pipeline
     ├── roblox-game-idea-validator/
     │   ├── SKILL.md
     │   └── references/genres.md

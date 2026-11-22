@@ -28,6 +28,8 @@ jobs:
         run: claude plugin validate plugins/roblox-studio
       - name: Validate marketplace
         run: claude plugin validate .
+      - name: LLM pack (llm/dist) matches the skills
+        run: python3 llm/build.py --check
       - name: Versions match
         run: |
           p=$(jq -r .version plugins/roblox-studio/.claude-plugin/plugin.json)

@@ -67,6 +67,22 @@ HOME="$H" bash "$ROOT/install.sh" --global >/dev/null
 expect_installed "$H/.claude/skills"
 echo "ok   --global"
 
+P="$WORK/sh-agents"; mkdir -p "$P"
+bash "$ROOT/install.sh" --for agents "$P" >/dev/null
+expect_installed "$P/.agents/skills"
+[ ! -e "$P/.claude" ] || fail "--for agents also wrote .claude"
+echo "ok   --for agents"
+
+P="$WORK/sh-all"; mkdir -p "$P"; prepare_project "$P"
+bash "$ROOT/install.sh" "$P" --for=all >/dev/null
+expect_installed "$P/.claude/skills"; expect_installed "$P/.agents/skills"; expect_untouched_neighbours "$P"
+echo "ok   --for=all"
+
+H="$WORK/sh-home-agents"; mkdir -p "$H"
+HOME="$H" bash "$ROOT/install.sh" --global --for agents >/dev/null
+expect_installed "$H/.agents/skills"
+echo "ok   --global --for agents"
+
 P="$WORK/sh-pipe"; mkdir -p "$P"; prepare_project "$P"
 (cd "$WORK" && GELO_TARBALL_URL="http://127.0.0.1:$PORT/gelo.tar.gz" bash -s -- "$P" <"$ROOT/install.sh" >/dev/null)
 expect_installed "$P/.claude/skills"; expect_untouched_neighbours "$P"
@@ -75,6 +91,8 @@ echo "ok   piped in (curl | bash), downloads the archive"
 ! bash "$ROOT/install.sh" "$WORK/missing" 2>/dev/null || fail "missing folder accepted"
 ! bash "$ROOT/install.sh" --global "$WORK" 2>/dev/null || fail "--global with a folder accepted"
 ! bash "$ROOT/install.sh" --bogus 2>/dev/null || fail "unknown option accepted"
+! bash "$ROOT/install.sh" --for nope "$WORK" 2>/dev/null || fail "bad --for accepted"
+! bash "$ROOT/install.sh" "$WORK" --for 2>/dev/null || fail "--for without a value accepted"
 [ ! -e "$WORK/missing" ] || fail "missing folder was created"
 echo "ok   bad arguments rejected"
 
@@ -97,6 +115,17 @@ if command -v pwsh >/dev/null 2>&1; then
   expect_installed "$H/.claude/skills"
   echo "ok   -Global"
 
+  P="$WORK/ps-all"; mkdir -p "$P"; prepare_project "$P"
+  $PS -File "$ROOT/install.ps1" -Project "$P" -For all >/dev/null
+  expect_installed "$P/.claude/skills"; expect_installed "$P/.agents/skills"; expect_untouched_neighbours "$P"
+  echo "ok   -For all"
+
+  P="$WORK/ps-agents"; mkdir -p "$P"
+  $PS -File "$ROOT/install.ps1" -Project "$P" -For agents >/dev/null
+  expect_installed "$P/.agents/skills"
+  [ ! -e "$P/.claude" ] || fail "ps1: -For agents also wrote .claude"
+  echo "ok   -For agents"
+
   P="$WORK/ps-pipe"; mkdir -p "$P"; prepare_project "$P"
   (cd "$P" && GELO_ZIP_URL="http://127.0.0.1:$PORT/gelo.zip" $PS -Command "Get-Content -Raw '$ROOT/install.ps1' | Invoke-Expression" >/dev/null)
   expect_installed "$P/.claude/skills"; expect_untouched_neighbours "$P"
@@ -109,6 +138,7 @@ if command -v pwsh >/dev/null 2>&1; then
 
   ! $PS -File "$ROOT/install.ps1" -Project "$WORK/missing" >/dev/null 2>&1 || fail "ps1: missing folder accepted"
   ! $PS -File "$ROOT/install.ps1" -Global -Project "$WORK" >/dev/null 2>&1 || fail "ps1: -Global with -Project accepted"
+  ! $PS -File "$ROOT/install.ps1" -Project "$WORK" -For nope >/dev/null 2>&1 || fail "ps1: bad -For accepted"
   echo "ok   bad arguments rejected"
 else
   echo "== install.ps1 skipped (pwsh not found)"
