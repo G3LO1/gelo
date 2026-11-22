@@ -29,7 +29,8 @@ Photoshop has no Roblox exporter, so this skill ships one: `scripts/psd_to_spec.
 | `#skip` | ignore (guides, notes, mock backgrounds, screenshots of the game) |
 
 - Hidden layers are ignored. Names should be the instance names the code will use (`Buy Button #button` -> `Buy_Button`; better `BuyButton #button`).
-- Button states: separate layers/groups per state (`BuyButton`, `BuyButtonPressed #skip` as reference) or one image + style rules for hover/pressed tint.
+- Button states: separate layers/groups per state (`BuyButton`, `BuyButtonPressed #skip` as reference) or, better, white layers (base, edge, glow) + state style rules that tint and light them (`assets/examples/components.json`).
+- Glass or frame layers that stretch must be 9-sliced (`#slice=N`): a frame stretched without slices shows a dark band where only the middle got stretched.
 
 ## 3. Export and build
 ```

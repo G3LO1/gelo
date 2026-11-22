@@ -14,7 +14,8 @@ Roblox Studio does not open Figma files. The design is made in Figma, then eithe
 - Mark the unsafe areas on a hidden guide layer: top ~60 px (Roblox top bar at 1080p), bottom-left thumbstick and bottom-right jump zones on the phone frame.
 - Layer names = Roblox instance names in PascalCase (`BuyButton`, `CoinsLabel`): controllers find them by name.
 - Figma variables (colors, radii, spacing) named like the spec tokens (`Primary`, `Radius`); text styles named like spec fonts (`Heading`, `Body`).
-- Buttons as components with variants Default / Hover / Pressed / Disabled; they become `:Hover` / `:Pressed` style rules and code-driven disabled states.
+- Buttons and cards as components with variants Default / Focused / Pressed / Disabled, every glow, light and outline on its own white layer; they become state-tag style rules driven by `assets/UiStates.luau` (one state machine for mouse, touch and gamepad, see `assets/examples/components.json`).
+- Text sizes: Roblox `TextSize` is the line height, Figma's font size is the letter size, so the same number reads about a sixth smaller in Roblox. Compare a Studio screenshot with the frame side by side and adjust; letter spacing on titles is lost unless set again.
 
 ## 2. Figma -> Roblox mapping
 | Figma | Roblox |

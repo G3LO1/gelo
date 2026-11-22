@@ -1826,20 +1826,21 @@ For each screen write down before drawing anything: purpose, elements (with name
 
 ## 4. Build through the chosen route
 Work in a `ui/` folder in the project: `ui/ui-spec.json`, `ui/images/`, `ui/BuildUi.luau`, `ui/<Name>.rbxmx`. The spec format is in `references/ui-spec.md`.
-- **Studio directly**: write `ui-spec.json` yourself (tokens from the chosen style, `styles` for button states and shared looks, screens as designed).
+- **Studio directly**: write `ui-spec.json` yourself (tokens from the chosen style, `motion` for the shared animation numbers, `styles` for states and shared looks, screens as designed). For buttons and item cards start from `assets/examples/components.json`: layered white images (separate glow, glass/base, edge light), 9-slice frames, Default/Focused/Pressed/Disabled styled by state tags; regenerate its layer images with `python3 scripts/make_ui_images.py ui/images` or replace them with the style's own.
 - **Figma**: follow `references/figma.md` (Claude reads or builds the file through the Figma MCP server, or a community plugin converts it). Ask before creating or editing files in the user's Figma.
 - **Photoshop**: follow `references/photoshop.md`; run `scripts/psd_to_spec.py` on the PSD, then add tokens/styles to the generated spec.
 
 Then for every route:
-1. `python3 scripts/spec_to_luau.py ui/ui-spec.json -o ui/BuildUi.luau` (checks structure and token/font/image references). Treat every `warning:` as a bug to fix: they flag layouts that are valid Roblox but render wrong, above all zero-sized elements (constraints only shrink; `SizeConstraint RelativeYY` makes width = X.Scale x parent height, so X.Scale 0 means width 0).
+1. `python3 scripts/spec_to_luau.py ui/ui-spec.json -o ui/BuildUi.luau --images ui/images` (checks structure, token/font/image references, selector syntax such as `:Press` not `:Pressed`, `motion` ranges, and 9-slice SliceCenter against the PNGs). Treat every `warning:` as a bug to fix: they flag layouts that are valid Roblox but render wrong, above all zero-sized elements (constraints only shrink; `SizeConstraint RelativeYY` makes width = X.Scale x parent height, so X.Scale 0 means width 0).
 2. If Lune is available: `lune run scripts/validate_ui.luau ui/BuildUi.luau ui/<Name>.rbxmx` checks every property name, type and enum against Roblox's real API database and writes a model file. Fix and repeat until it prints OK. Without Lune, say that this check was skipped; Studio will report the same errors when the script runs.
 3. Look at it: `python3 scripts/preview_ui.py ui/ui-spec.json -o ui/preview.html --images ui/images` renders an approximate browser preview of every screen at 1920x1080, a phone (844x390) and a tablet, with the Roblox top bar and phone thumb zones drawn on top. Take screenshots (Playwright: `npx playwright screenshot --viewport-size "844, 390" "file:///.../preview.html?screen=Hud&w=844&h=390" hud-phone.png`, or open the file in a browser) and look at them: overlaps, invisible or tiny elements, text overflow, things under the thumb zones. Fonts and text fitting are approximate; Studio is the final check.
-4. Get it into Studio: with Roblox Studio MCP tools, `list_roblox_studios`, confirm the place, run `BuildUi.luau` with `execute_luau`, then `screen_capture` to look at it (desktop and a phone size in the Device Emulator if possible) and fix what looks wrong. Without MCP: the user runs `BuildUi.luau` in the Command Bar or drags in the `.rbxmx`.
+4. Wire the states: copy `assets/UiStates.luau` to shared code and call `UiStates.bind(screenGui, { reducedMotion = ... })` on the client; it turns mouse, touch and gamepad input into the state tags the style rules use, replaces the default gamepad selection box with the glow, and `:open(container)` pops components in one after another.
+5. Get it into Studio: with Roblox Studio MCP tools, `list_roblox_studios`, confirm the place, run `BuildUi.luau` with `execute_luau`, then `screen_capture` to look at it (desktop and a phone size in the Device Emulator if possible) and fix what looks wrong. Without MCP: the user runs `BuildUi.luau` in the Command Bar or drags in the `.rbxmx`.
 
 The build script never deletes: a ScreenGui with the same name is kept as `<Name>_Backup` (disabled).
 
 ## 5. Check
-Go through the checklist at the end of `references/studio.md`. Don't claim the UI looks right on phones unless a screenshot or emulator check actually happened; list what still needs a human eye.
+Go through the checklist at the end of `references/studio.md`. Put the design (or the preview) and the Studio screenshots side by side, screen by screen, and list every difference: text a size off (Roblox measures the line, design tools the letter), lost title spacing, dark bands on stretched frames (9-slice), layers in the wrong order. Check each component's states with mouse (focused, pressed), touch (pressed only) and gamepad (selection, A) in a playtest or the Device Emulator. Don't claim the UI looks right on phones unless a screenshot or emulator check actually happened; list what still needs a human eye.
 
 ## 6. Hand-off
 - Images to upload (Asset Manager > Bulk Import) and where their IDs go (`images` in the spec, then rebuild); no `rbxassetid://0` may ship. Item/shop icons rendered from 3D models: with a connected Blender MCP server Claude can render them with one camera/light/outline setup for all items (`../roblox-animation-vfx/references/blender.md` section 8); otherwise ViewportFrames in the UI or renders by the team.
@@ -1864,7 +1865,8 @@ Roblox Studio does not open Figma files. The design is made in Figma, then eithe
 - Mark the unsafe areas on a hidden guide layer: top ~60 px (Roblox top bar at 1080p), bottom-left thumbstick and bottom-right jump zones on the phone frame.
 - Layer names = Roblox instance names in PascalCase (`BuyButton`, `CoinsLabel`): controllers find them by name.
 - Figma variables (colors, radii, spacing) named like the spec tokens (`Primary`, `Radius`); text styles named like spec fonts (`Heading`, `Body`).
-- Buttons as components with variants Default / Hover / Pressed / Disabled; they become `:Hover` / `:Pressed` style rules and code-driven disabled states.
+- Buttons and cards as components with variants Default / Focused / Pressed / Disabled, every glow, light and outline on its own white layer; they become state-tag style rules driven by `assets/UiStates.luau` (one state machine for mouse, touch and gamepad, see `assets/examples/components.json`).
+- Text sizes: Roblox `TextSize` is the line height, Figma's font size is the letter size, so the same number reads about a sixth smaller in Roblox. Compare a Studio screenshot with the frame side by side and adjust; letter spacing on titles is lost unless set again.
 
 ## 2. Figma -> Roblox mapping
 | Figma | Roblox |
@@ -1942,7 +1944,8 @@ Photoshop has no Roblox exporter, so this skill ships one: `scripts/psd_to_spec.
 | `#skip` | ignore (guides, notes, mock backgrounds, screenshots of the game) |
 
 - Hidden layers are ignored. Names should be the instance names the code will use (`Buy Button #button` -> `Buy_Button`; better `BuyButton #button`).
-- Button states: separate layers/groups per state (`BuyButton`, `BuyButtonPressed #skip` as reference) or one image + style rules for hover/pressed tint.
+- Button states: separate layers/groups per state (`BuyButton`, `BuyButtonPressed #skip` as reference) or, better, white layers (base, edge, glow) + state style rules that tint and light them (`assets/examples/components.json`).
+- Glass or frame layers that stretch must be 9-sliced (`#slice=N`): a frame stretched without slices shows a dark band where only the middle got stretched.
 
 ## 3. Export and build
 ```
@@ -2014,7 +2017,8 @@ Rules for UI that works on phones, tablets, PC and console, plus how this skill 
 - `UIStroke`: `ApplyStrokeMode = Border` on frames/buttons, `Contextual` (default) on text for outlines; `LineJoinMode` Round for soft looks.
 - `UIGradient`: `Color` (ColorSequence), `Transparency` (NumberSequence), `Rotation` (90 = top to bottom).
 - Drop shadows: no native shadow. Use a duplicate dark frame offset a few px behind (hard comic shadow) or a soft shadow 9-slice image.
-- 9-slice: `ScaleType = Slice`, `SliceCenter = Rect(left, top, right, bottom)` in source pixels, `SliceScale` to resize the corners. Use for panels and buttons that change size.
+- 9-slice: `ScaleType = Slice`, `SliceCenter = Rect(left, top, right, bottom)` in source pixels, `SliceScale` to resize the corners. Use for panels, glass, frames and buttons that change size: the corners stay whole and only the middle stretches, so one image fits every size. A frame stretched without slices (or with a wrong SliceCenter) shows as a dark band down the side of every card; `spec_to_luau.py --images ui/images` checks SliceCenter against the PNG.
+- Layered components: build a card or button from separate layers (glow outside, glass/base, edge light, item glow, icon, text, gold line) inside a transparent `ImageButton`, each a white image tinted by `ImageColor3`, ZIndex in that order. Children always draw above their parent, so the glow must be a sibling layer behind the base, never a child of it. Light lives on its own layer so states can move it.
 - Images: PNG with transparency; keep each image <= 1024 px (memory on phones; uploads accept larger); sprite sheets via `ImageRectOffset`/`ImageRectSize`; pixel art with `ResampleMode = Pixelated`.
 - Upload: Studio Asset Manager (Bulk Import) or Creator Hub; new accounts have Asset Privacy on, so images are Restricted and the experience needs permission (automatic when an editor inserts them in Studio). Images pass moderation before players see them.
 - `CanvasGroup` for fading or tinting a whole panel at once (costs extra memory; don't use for everything). `ViewportFrame` for 3D item/pet previews.
@@ -2022,7 +2026,7 @@ Rules for UI that works on phones, tablets, PC and console, plus how this skill 
 ## 6. Styling system (StyleSheet)
 Released for live games in January 2026. The build script creates it from `tokens` and `styles`:
 - `StyleSheet` holds tokens as attributes and `StyleRule` children; `StyleLink` (child of a ScreenGui, `StyleSheet` property) applies it; `StyleDerive` inherits another sheet (e.g. a base theme + a seasonal theme).
-- Rule `Selector`: `TextButton`, `.Tag`, `#Name`, `:Hover`, `:Pressed`, `::UICorner`, `A > B`; `Priority` breaks ties; `SetProperty` / `SetProperties` set values, `"$Token"` references a token.
+- Rule `Selector`: `TextButton`, `.Tag`, `#Name`, `ImageLabel#Glow`, states `:Hover` / `:Press` / `:NonInteractable` / `:Idle` (the `Enum.GuiState` names; `:Pressed` does not exist), `::UICorner`, `A > B` (child), `A >> B` (descendant; a space is not a combinator), `A, B` (list); `Priority` breaks ties; `SetProperty` / `SetProperties` set values, `"$Token"` references a token; `SetDefaultPropertyTransition(TweenInfo)` makes the rule's properties tween instead of snapping (spec: `"transition"`).
 - Use it for themes (light/dark, seasonal events), button states, and keeping colors consistent. Designers can then edit tokens in Studio's Style Editor.
 
 ## 7. Text and fonts
@@ -2040,16 +2044,16 @@ Released for live games in January 2026. The build script creates it from `token
 - Settings: music/SFX volume, reduced motion/flashing, UI scale (`UIScale` on a root frame).
 
 ## 9. Motion
-- `TweenService` with short durations: buttons 0.08-0.12 s, panels 0.15-0.25 s, rewards up to 0.4 s.
-- Press feedback: `UIScale` 1 -> 0.92 -> 1; hover (PC) lighten via `:Hover` style rule.
-- Pop-in: scale 0.8 -> 1 with `Enum.EasingStyle.Back`, Out; fade with `GroupTransparency` on CanvasGroups.
-- Respect the reduced-motion setting: skip bounces and shakes.
+- One table of numbers for the whole UI (spec `motion`): focus grows to 1.04, press drops to 0.98, hover 0.12 s, press 0.08 s, windows open in 0.3 s with cards 0.05 s apart. Every component uses the same numbers, so the UI feels like one game; style rules reference them as `$MotionHoverScale` etc. and tween with `"transition"`.
+- States: Default, Focused (mouse over or gamepad selection), Pressed (mouse, finger or gamepad A held), Disabled. `assets/UiStates.luau` sets them as tags (`StateFocused`, `StatePressed`, `StateDisabled`) the same way for every input; touch never hovers. Picking something means more light (glow, brighter edge), not a new color.
+- Pop-in: `UiStates:open(container)` scales components 0.9 -> 1 with `Enum.EasingStyle.Back`, Out, one after another; fade with `GroupTransparency` on CanvasGroups.
+- Respect the reduced-motion setting (`UiStates.bind(gui, { reducedMotion = true })`): no breathing glow, no pop-in; states still change.
 
 ## 10. Checklist
 1. Everything interactive inside `CoreUISafeInsets`; nothing under thumbstick/jump.
 2. Scale-based layout + AnchorPoints + aspect constraints; tested at 16:9, 19.5:9, 4:3 in the emulator.
 3. Text readable at the smallest phone (>= 14 px), contrast OK, translations fit.
-4. Every button has hover/pressed feedback and works with gamepad selection.
+4. Every button has focused/pressed/disabled feedback that works with mouse, touch (no hover) and gamepad selection (the glow replaces the default selection box).
 5. Images uploaded, approved, permitted for the experience; no `rbxassetid://0` left.
 6. Names match what the controllers expect; no leftover `_Backup` ScreenGuis.
 7. One style used consistently (tokens), reward/hype moments stand out from routine UI.
@@ -2058,7 +2062,7 @@ Released for live games in January 2026. The build script creates it from `token
 
 # ui-spec format
 
-One JSON file describes the UI; every pipeline (Studio, Figma, Photoshop) ends in it. `scripts/spec_to_luau.py` turns it into a build script, `scripts/validate_ui.luau` checks it against Roblox's real class/property database. Full example: `assets/examples/style-tile-bubbly.json`.
+One JSON file describes the UI; every pipeline (Studio, Figma, Photoshop) ends in it. `scripts/spec_to_luau.py` turns it into a build script, `scripts/validate_ui.luau` checks it against Roblox's real class/property database. Full examples: `assets/examples/style-tile-bubbly.json` (a style tile) and `assets/examples/components.json` (layered `ItemCard` and `Button` in all four states, with `motion`, transitions, 9-slice and the layer images in `assets/examples/images/`).
 
 ## Top level
 ```json
@@ -2069,7 +2073,9 @@ One JSON file describes the UI; every pipeline (Studio, Figma, Photoshop) ends i
   "tokens": { "Primary": { "color": "#FFB21E" }, "Radius": { "udim": [0, 16] } },
   "fonts": { "Heading": { "family": "FredokaOne", "weight": "Regular" } },
   "images": { "coin": "rbxassetid://0" },
-  "styles": [ { "selector": "TextButton:Hover", "props": { "BackgroundColor3": { "token": "PrimaryHover" } } } ],
+  "motion": { "hoverScale": 1.04, "pressScale": 0.98, "hoverTime": 0.12 },
+  "styles": [ { "selector": "TextButton:Hover", "props": { "BackgroundColor3": { "token": "PrimaryHover" } },
+                "transition": { "time": { "token": "MotionHoverTime" }, "easing": "Quad", "direction": "Out" } } ],
   "screens": [ { "class": "ScreenGui", "name": "Hud", "props": {}, "children": [] } ]
 }
 ```
@@ -2102,12 +2108,28 @@ Plain numbers, booleans and strings are used as-is. Everything else is a one-key
 ## Tokens and styles
 - Tokens are the design system: colors, radii, gaps. Element props reference them with `{ "token": "Name" }`; the builder resolves them, so the UI looks right even without styles.
 - The builder also creates `ReplicatedStorage.UIStyles.<name>` (a StyleSheet holding the tokens as attributes) and a `StyleLink` in every ScreenGui. `styles` rules keep token references live (`"$Primary"`), so changing a token in the Style Editor restyles the whole UI.
-- Selectors (Roblox UI styling, released Jan 2026): `TextButton` (class), `.Danger` (tag), `#BuyButton` (name), `TextButton:Hover` / `:Pressed` (state), `TextButton::UICorner` (the button's UICorner child), `.Panel > TextButton` (direct child).
+- Selectors (Roblox UI styling, released Jan 2026): `TextButton` (class), `.Danger` (tag), `#BuyButton` (name), `ImageLabel#Glow` (class + name), `TextButton:Hover` / `:Press` / `:NonInteractable` (state, the `Enum.GuiState` names), `TextButton::UICorner` (the button's UICorner child), `.Panel > TextButton` (direct child), `.Panel >> TextLabel` (any descendant), `A, B` (list). `spec_to_luau.py` rejects unknown states (`:Pressed`, `:Selected`) and spaces used as combinators.
 - Style rules override properties set on elements, so put shared looks in rules and one-offs in props.
+- `transition` on a rule: its properties tween to the new values (`StyleRule:SetDefaultPropertyTransition`); `time` is seconds or a token, `easing` an `Enum.EasingStyle` name, `direction` In/Out/InOut.
+
+## Motion
+`motion` holds the shared animation numbers; each becomes a token `Motion<Key>` (`hoverScale` -> `$MotionHoverScale`) on the StyleSheet, usable in props, rules and transitions, and read by `assets/UiStates.luau` at runtime. Missing keys get the defaults; values outside the range are spec errors.
+
+| Key | Default | Range | Used for |
+| --- | --- | --- | --- |
+| `hoverScale` / `pressScale` | 1.04 / 0.98 | 1-1.15 / 0.85-1 | `UIScale.Scale` when focused / pressed |
+| `hoverTime` / `pressTime` | 0.12 / 0.08 | s | transitions into focused / pressed |
+| `openTime` / `stagger` | 0.3 / 0.05 | s | window pop-in, delay between components |
+| `glowIdle` / `glowFocused` / `glowPressed` | 1 / 0.35 / 0.15 | 0-1 | glow layer `ImageTransparency` per state |
+| `disabledTransparency` | 0.5 | 0-0.9 | text and icon when disabled |
+| `breathe` | 1.6 | 0-5 s | glow swell period while focused (0 = off) |
+
+## Components and states
+Interactive components (`assets/examples/components.json`): a transparent `ImageButton` tagged `Button` or `ItemCard` holding white layers (`Glow`, `Base`/`Glass`, `Edge`, `ItemGlow`, `Icon`, labels), each tinted with `ImageColor3`, 9-sliced where it stretches. `assets/UiStates.luau` (client) tags each component `StateFocused`, `StatePressed` or `StateDisabled` (attribute `Disabled = true`) from mouse, touch and gamepad input, and style rules like `.StateFocused > ImageLabel#Glow` or `.StatePressed > UIScale` give each state its look. A state gallery in the spec carries the tags statically, so the build, the preview and the game show the same states.
 
 ## Commands
 ```
-python3 scripts/spec_to_luau.py ui/ui-spec.json -o ui/BuildUi.luau     # structure + reference checks
+python3 scripts/spec_to_luau.py ui/ui-spec.json -o ui/BuildUi.luau --images ui/images  # structure, references, selectors, motion, 9-slice
 lune run scripts/validate_ui.luau ui/BuildUi.luau ui/FoodTruckUI.rbxmx  # property/type/enum checks + model file
 ```
 Run `BuildUi.luau` in Studio (Command Bar, or the Studio MCP `execute_luau` tool) to build into StarterGui; an existing ScreenGui with the same name is renamed `<Name>_Backup` and disabled. The `.rbxmx` can be dragged into Studio or synced by Rojo, but it contains no style rule values (Lune can't write them); elements still carry their resolved look.
@@ -2232,8 +2254,16 @@ Meme/brainrot, chaotic party games, troll obbies, short-trend games.
 
 Scripts and assets of this skill. Download them from https://github.com/G3LO1/gelo/tree/main/plugins/roblox-studio/skills/roblox-ui-designer (paths relative to that folder):
 
+- `assets/UiStates.luau`
+- `assets/examples/components.json`
+- `assets/examples/images/edge.png`
+- `assets/examples/images/gem.png`
+- `assets/examples/images/glow.png`
+- `assets/examples/images/panel.png`
+- `assets/examples/images/radial.png`
 - `assets/examples/style-tile-bubbly.json`
 - `assets/ui_builder.luau`
+- `scripts/make_ui_images.py`
 - `scripts/preview_ui.py`
 - `scripts/psd_to_spec.py`
 - `scripts/spec_to_luau.py`

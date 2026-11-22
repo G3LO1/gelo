@@ -45,7 +45,8 @@ Rules for UI that works on phones, tablets, PC and console, plus how this skill 
 - `UIStroke`: `ApplyStrokeMode = Border` on frames/buttons, `Contextual` (default) on text for outlines; `LineJoinMode` Round for soft looks.
 - `UIGradient`: `Color` (ColorSequence), `Transparency` (NumberSequence), `Rotation` (90 = top to bottom).
 - Drop shadows: no native shadow. Use a duplicate dark frame offset a few px behind (hard comic shadow) or a soft shadow 9-slice image.
-- 9-slice: `ScaleType = Slice`, `SliceCenter = Rect(left, top, right, bottom)` in source pixels, `SliceScale` to resize the corners. Use for panels and buttons that change size.
+- 9-slice: `ScaleType = Slice`, `SliceCenter = Rect(left, top, right, bottom)` in source pixels, `SliceScale` to resize the corners. Use for panels, glass, frames and buttons that change size: the corners stay whole and only the middle stretches, so one image fits every size. A frame stretched without slices (or with a wrong SliceCenter) shows as a dark band down the side of every card; `spec_to_luau.py --images ui/images` checks SliceCenter against the PNG.
+- Layered components: build a card or button from separate layers (glow outside, glass/base, edge light, item glow, icon, text, gold line) inside a transparent `ImageButton`, each a white image tinted by `ImageColor3`, ZIndex in that order. Children always draw above their parent, so the glow must be a sibling layer behind the base, never a child of it. Light lives on its own layer so states can move it.
 - Images: PNG with transparency; keep each image <= 1024 px (memory on phones; uploads accept larger); sprite sheets via `ImageRectOffset`/`ImageRectSize`; pixel art with `ResampleMode = Pixelated`.
 - Upload: Studio Asset Manager (Bulk Import) or Creator Hub; new accounts have Asset Privacy on, so images are Restricted and the experience needs permission (automatic when an editor inserts them in Studio). Images pass moderation before players see them.
 - `CanvasGroup` for fading or tinting a whole panel at once (costs extra memory; don't use for everything). `ViewportFrame` for 3D item/pet previews.
@@ -53,7 +54,7 @@ Rules for UI that works on phones, tablets, PC and console, plus how this skill 
 ## 6. Styling system (StyleSheet)
 Released for live games in January 2026. The build script creates it from `tokens` and `styles`:
 - `StyleSheet` holds tokens as attributes and `StyleRule` children; `StyleLink` (child of a ScreenGui, `StyleSheet` property) applies it; `StyleDerive` inherits another sheet (e.g. a base theme + a seasonal theme).
-- Rule `Selector`: `TextButton`, `.Tag`, `#Name`, `:Hover`, `:Pressed`, `::UICorner`, `A > B`; `Priority` breaks ties; `SetProperty` / `SetProperties` set values, `"$Token"` references a token.
+- Rule `Selector`: `TextButton`, `.Tag`, `#Name`, `ImageLabel#Glow`, states `:Hover` / `:Press` / `:NonInteractable` / `:Idle` (the `Enum.GuiState` names; `:Pressed` does not exist), `::UICorner`, `A > B` (child), `A >> B` (descendant; a space is not a combinator), `A, B` (list); `Priority` breaks ties; `SetProperty` / `SetProperties` set values, `"$Token"` references a token; `SetDefaultPropertyTransition(TweenInfo)` makes the rule's properties tween instead of snapping (spec: `"transition"`).
 - Use it for themes (light/dark, seasonal events), button states, and keeping colors consistent. Designers can then edit tokens in Studio's Style Editor.
 
 ## 7. Text and fonts
@@ -71,16 +72,16 @@ Released for live games in January 2026. The build script creates it from `token
 - Settings: music/SFX volume, reduced motion/flashing, UI scale (`UIScale` on a root frame).
 
 ## 9. Motion
-- `TweenService` with short durations: buttons 0.08-0.12 s, panels 0.15-0.25 s, rewards up to 0.4 s.
-- Press feedback: `UIScale` 1 -> 0.92 -> 1; hover (PC) lighten via `:Hover` style rule.
-- Pop-in: scale 0.8 -> 1 with `Enum.EasingStyle.Back`, Out; fade with `GroupTransparency` on CanvasGroups.
-- Respect the reduced-motion setting: skip bounces and shakes.
+- One table of numbers for the whole UI (spec `motion`): focus grows to 1.04, press drops to 0.98, hover 0.12 s, press 0.08 s, windows open in 0.3 s with cards 0.05 s apart. Every component uses the same numbers, so the UI feels like one game; style rules reference them as `$MotionHoverScale` etc. and tween with `"transition"`.
+- States: Default, Focused (mouse over or gamepad selection), Pressed (mouse, finger or gamepad A held), Disabled. `assets/UiStates.luau` sets them as tags (`StateFocused`, `StatePressed`, `StateDisabled`) the same way for every input; touch never hovers. Picking something means more light (glow, brighter edge), not a new color.
+- Pop-in: `UiStates:open(container)` scales components 0.9 -> 1 with `Enum.EasingStyle.Back`, Out, one after another; fade with `GroupTransparency` on CanvasGroups.
+- Respect the reduced-motion setting (`UiStates.bind(gui, { reducedMotion = true })`): no breathing glow, no pop-in; states still change.
 
 ## 10. Checklist
 1. Everything interactive inside `CoreUISafeInsets`; nothing under thumbstick/jump.
 2. Scale-based layout + AnchorPoints + aspect constraints; tested at 16:9, 19.5:9, 4:3 in the emulator.
 3. Text readable at the smallest phone (>= 14 px), contrast OK, translations fit.
-4. Every button has hover/pressed feedback and works with gamepad selection.
+4. Every button has focused/pressed/disabled feedback that works with mouse, touch (no hover) and gamepad selection (the glow replaces the default selection box).
 5. Images uploaded, approved, permitted for the experience; no `rbxassetid://0` left.
 6. Names match what the controllers expect; no leftover `_Backup` ScreenGuis.
 7. One style used consistently (tokens), reward/hype moments stand out from routine UI.

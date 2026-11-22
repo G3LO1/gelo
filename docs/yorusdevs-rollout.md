@@ -7,7 +7,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | # | Change | Skill | Status |
 | --- | --- | --- | --- |
 | 1 | Layered VFX: 4x4 flipbooks, per-layer color variants, sheet pack/check/preview | roblox-animation-vfx | done, Studio look pending |
-| 2 | UI: ItemCard + Button example in ui-spec.json (glow layer, shared motion, 9-slice, states) | roblox-ui-designer | todo |
+| 2 | UI: ItemCard + Button example in ui-spec.json (glow layer, shared motion, 9-slice, states) | roblox-ui-designer | done, Studio look pending |
 | 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | todo |
 | 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | todo |
 | 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | todo |
@@ -55,8 +55,55 @@ Still to do in Roblox Studio:
 3. Same with `--quality 0.3 --reduced-flashing`: the slash still reads without the glow layer.
 4. Older pads (HitSpark ... SpeedTrail) look as before.
 
-## 2-7
+## 2. UI components
 
-Not started. Dependencies: 2 needs Lune (UI validation) and a Studio screenshot pass on desktop and
-landscape phone; 3 and 4 run on bpy here; 5 needs only Python; 6 and 7 add docs plus local checks,
-with the actual captures and walkthroughs done in Studio.
+Sources: [layers, 2:39](https://www.youtube.com/watch?v=e3U3lJDftOQ&t=159s),
+[stretching frames, 3:14](https://www.youtube.com/watch?v=e3U3lJDftOQ&t=194s),
+[one table of motion numbers, 3:29](https://www.youtube.com/watch?v=e3U3lJDftOQ&t=209s),
+[dark strip and text size after import, 5:59](https://www.youtube.com/watch?v=e3U3lJDftOQ&t=359s).
+
+Landed:
+- `assets/examples/components.json`: state gallery with `ItemCard` and `Button`, each a transparent
+  ImageButton holding white layers (Glow behind, Base/Glass, Edge, ItemGlow, Icon, labels, gold line),
+  9-sliced where they stretch, in Default / Focused / Pressed / Disabled. `assets/examples/images/`
+  holds the original layer PNGs (`scripts/make_ui_images.py`; the glow is a ring with an empty middle).
+- ui-spec `motion`: one table (hoverScale 1.04, pressScale 0.98, hoverTime 0.12, pressTime 0.08,
+  openTime 0.3, stagger 0.05, glow transparencies, disabledTransparency, breathe), range-checked,
+  turned into `$Motion*` tokens. Style rules take `transition` (StyleRule:SetDefaultPropertyTransition).
+- `assets/UiStates.luau`: client runtime that tags components `StateFocused` / `StatePressed` /
+  `StateDisabled` from mouse, touch (never hovers) and gamepad (selection + A); `Disabled` attribute
+  turns off Interactable/Selectable; glow breathes while focused; `open()` pops components in one after
+  another; reduced motion; the glow replaces the default gamepad selection box.
+- `spec_to_luau.py`: rejects unknown state selectors (`:Pressed` -> use `:Press`) and spaces as
+  combinators (`>>`), checks `motion`, `transition`, 9-slice (no SliceCenter, inverted rect, past the
+  PNG size with `--images`).
+- `preview_ui.py`: local images tinted by ImageColor3, 9-slice, ImageTransparency, UIScale, `>`/`>>`
+  selector chains, motion tokens, data-name/class/tags on every element.
+- Fix: `TextButton:Pressed` is not a Roblox state (Enum.GuiState: Idle, Hover, Press, NonInteractable).
+  The undead-eats spec and its BuildUi.luau now use `:Press`; docs corrected in ui-spec.md, studio.md,
+  figma.md, photoshop.md.
+
+Verified (Lune 0.10.4, Chromium via Playwright):
+- `bash tests/roblox-ui-designer/run.sh`: 31 passed, 0 failed. New: components build + validation
+  against the API database (100 instances, style rules, transitions), no warnings with `--images`;
+  layer images reproducible; `states_test.luau` 27 checks; 8 broken-spec cases; `preview_check.js`
+  at 1920x1080 and 844x390 (8 components, >= 44 px, below the top bar, no overlaps, focused grows,
+  pressed shrinks, disabled dimmed, 9-slice drawn).
+- States tests fail when the touch hover reset, the disabled press reset or the gamepad selection
+  guard is removed.
+- Unchanged: undead-eats 51 passed, luau-codegen 49 passed, launch-kit 24, security audit 11,
+  animation-vfx 40 (+ blender 19 with bpy), `claude plugin validate` OK, LLM pack up to date.
+
+Still to do in Roblox Studio:
+1. Upload `assets/examples/images/*.png`, paste ids into `images`, rebuild with `BuildUi.luau`.
+2. Check that `StyleRule:SetDefaultPropertyTransition` exists in your Studio build (the builder warns
+   and the states snap if not) and that `ImageLabel#Glow` class+name selectors match.
+3. Device Emulator: desktop 1920x1080 and a landscape phone; compare with the browser preview side by
+   side (text about a sixth smaller is expected: Roblox measures the line height).
+4. Playtest with `UiStates.bind`: mouse hover/press, touch tap (no stuck focus), gamepad selection and A,
+   Disabled attribute, `open()` stagger, reduced motion.
+
+## 3-7
+
+Not started. Dependencies: 3 and 4 run on bpy here; 5 needs only Python; 6 and 7 add docs plus
+local checks, with the actual captures and walkthroughs done in Studio.

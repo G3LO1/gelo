@@ -61,6 +61,21 @@ local hooks = {
 			end
 		end
 	end,
+	setRuleTransition = function(_rule, time, easing, direction, selector)
+		if type(time) ~= "number" or time < 0 then
+			table.insert(problems, `style "{selector}" transition: time must be seconds, got {time}`)
+		end
+		if not pcall(function()
+			return (roblox.Enum.EasingStyle :: any)[easing]
+		end) then
+			table.insert(problems, `style "{selector}" transition: unknown EasingStyle {easing}`)
+		end
+		if not pcall(function()
+			return (roblox.Enum.EasingDirection :: any)[direction]
+		end) then
+			table.insert(problems, `style "{selector}" transition: unknown EasingDirection {direction}`)
+		end
+	end,
 }
 
 local env = {
