@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes the GitHub release with the ChatGPT / LLM pack, the all-in-one prompt and the skills zip.
+# Publishes the GitHub release with the ChatGPT / LLM pack, the all-in-one prompt, the skills zip and the icon.
 # Start it either way:
 #   - push a tag like v0.10.0, or
 #   - Actions -> Release -> Run workflow with the tag (it is created on the chosen branch's commit).

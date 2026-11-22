@@ -120,7 +120,7 @@ CI (`.github/workflows/ci.yml`) runs all of the above plus `claude plugin valida
 
 To release: bump `version` in both manifests, add notes in `.github/releases/vX.Y.Z.md`, then push the tag
 `vX.Y.Z` (or run the Release workflow from the Actions tab with that tag). `.github/workflows/release.yml` publishes the GitHub release with the ChatGPT / LLM pack, the all-in-one
-prompt and the skills zip (`python3 scripts/package_release.py vX.Y.Z out` builds the same files locally).
+prompt, the skills zip and the icon (`python3 scripts/package_release.py vX.Y.Z out` builds the same files locally).
 
 ## License
 

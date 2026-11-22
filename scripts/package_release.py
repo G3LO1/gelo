@@ -7,6 +7,7 @@ Writes to out/:
     gelo-chatgpt-pack-<tag>.zip   ChatGPT / Gemini / Claude.ai pack: instructions + knowledge files + START-HERE.md
     gelo-full-<tag>.md            everything in one file, for any LLM's system prompt
     gelo-skills-<tag>.zip         the skill folders, for .claude/skills or .agents/skills
+    gelo-icon.png                 the plugin icon (e.g. the Custom GPT profile picture)
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "llm" / "dist"
 SKILLS = ROOT / "plugins" / "roblox-studio" / "skills"
 PLUGIN = ROOT / "plugins" / "roblox-studio" / ".claude-plugin" / "plugin.json"
+ICON = PLUGIN.parent / "icon.png"
 
 START_HERE = """# gelo {tag}: pack for ChatGPT, Gemini, Claude.ai and any LLM
 
@@ -31,7 +33,8 @@ Call it with `/gelo <task>` or `@gelo <task>`; `/gelo` alone shows the menu.
 3. Knowledge: upload every file from 2-knowledge/
 4. Capabilities: Web Search and Code Interpreter on
 5. Conversation starters: /gelo, /gelo idea , /gelo audit, /gelo launch
-6. Save. In any other ChatGPT chat (web), type @ and pick gelo.
+6. Profile picture: upload gelo-icon.png
+7. Save. In any other ChatGPT chat (web), type @ and pick gelo.
 
 ## Gemini (Gem)
 Gems -> New Gem: instructions from 1-instructions/gelo-instructions.md, knowledge files from 2-knowledge/.
@@ -82,6 +85,7 @@ def main() -> int:
         add(zf, DIST / "gelo-instructions.md", f"{top}/1-instructions/gelo-instructions.md")
         for k in knowledge:
             add(zf, k, f"{top}/2-knowledge/{k.name}")
+        add(zf, ICON, f"{top}/gelo-icon.png")
         add(zf, ROOT / "LICENSE", f"{top}/LICENSE")
 
     full = out / f"gelo-full-{tag}.md"
@@ -94,7 +98,10 @@ def main() -> int:
                 add(zf, p, f"skills/{p.relative_to(SKILLS).as_posix()}")
         add(zf, ROOT / "LICENSE", "skills/LICENSE")
 
-    for p in (pack, full, skills):
+    icon = out / "gelo-icon.png"
+    icon.write_bytes(ICON.read_bytes())
+
+    for p in (pack, full, skills, icon):
         print(f"{p.name}  {p.stat().st_size:,} bytes")
     return 0
 

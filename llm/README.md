@@ -29,6 +29,8 @@ Commands, in any of them:
 4. Knowledge: upload the 8 files from `dist/knowledge/`.
 5. Capabilities: turn on Web Search and Code Interpreter (it runs the Python checkers when you upload the script and your files).
 6. Conversation starters: `/gelo`, `/gelo idea `, `/gelo audit`, `/gelo launch`.
+   Profile picture: [`plugins/roblox-studio/.claude-plugin/icon.png`](../plugins/roblox-studio/.claude-plugin/icon.png)
+   (also `gelo-icon.png` in each release).
 7. Save. Open it directly, or in any other ChatGPT chat type `@` and pick **gelo** to pull it into that conversation
    (OpenAI's GPT mentions; on the web, the mobile apps may not offer it).
 
