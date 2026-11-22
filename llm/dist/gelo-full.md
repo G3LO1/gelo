@@ -96,8 +96,9 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
 - Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Layered flipbooks (slashes, fire bursts, magic): white layers on one 4x4 sheet, colored per variant in game (`Vfx.play("Slash", tip, { variant = "Ember" })`). Pack, check and preview sheets with `python3 scripts/flipbook.py pack|check|preview` (4 px clear margins, power-of-two, frame lit up on the sheet); recipe in `references/vfx.md` section 8.
 - Check every preset against Roblox's API database and get a model to look at:
-  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
+  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad (one per preset and per color variant); particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
 
 ## 4. Check
@@ -266,7 +267,7 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 - Collision: set CollisionFidelity per role in Studio (Box/Hull for props), invisible simple colliders for walkways.
 
 ## 8. VFX and UI renders
-- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it; set FlipbookLayout and FlipbookMode on the emitter.
+- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it, one render per layer if the effect is layered; pack and check them with `scripts/flipbook.py` (margins, sheet size, preview) and wire them as a layered preset (`vfx.md` section 8).
 - Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images.
 
 ## 9. blender_check.py
@@ -286,6 +287,7 @@ Checked against create.roblox.com/docs/effects (particle emitters, beams, trails
 5. Budgets and accessibility
 6. Networking
 7. Textures
+8. Layered flipbooks
 
 ## 1. Feedback map
 Every verb in the mechanic matrix gets feedback on three channels, sized by importance: **visual** (VFX, UI pop, camera), **audio** (SFX), **motion** (animation, hit-stop, shake). Big moments (level up, rare drop, purchase, boss kill) get all three and stand out; frequent moments (footsteps, coin pickup, every hit) stay small and cheap so they don't become noise.
@@ -302,6 +304,7 @@ Every verb in the mechanic matrix gets feedback on three channels, sized by impo
 | Rarity / item highlight | RarityGlow (loop) | low rate |
 | Ambience | Fireflies (loop) | very low rate |
 | Speed / dash | SpeedTrail (loop) | trail |
+| Sword / melee swing | Slash (layered 4x4 flipbook, variants Frost / Ember) | medium, < 0.5 s |
 
 ## 2. ParticleEmitter essentials
 - **Rate** is particles per second for continuous emitters; for one-shots keep `Enabled = false` and call `emitter:Emit(count)`. One emitter can create up to 400 particles/s (100/s on mobile).
@@ -345,6 +348,17 @@ Match the world (see the map builder's style presets) and the UI style:
 - 64-256 px is enough for most particles; reuse a few textures across many effects; flipbooks up to 1024 px sheets only for hero effects.
 - White textures + `Color` let one texture serve every color; keep alpha soft at the edges to avoid hard squares.
 
+## 8. Layered flipbooks
+One drawing, every element: draw the effect in **white**, split into layers (glow, body, hot core; a rim if the style needs one), animate it as frames on one sheet, and let the game color each layer. `Vfx.Presets.Slash` is the worked example on its own sheet (`assets/textures/slash_4x4.png`, 16 frames: grows in, holds, tears apart along the flow).
+- **Frames**: 16 on a 4x4 grid (`Grid4x4`) for most effects; 4 (2x2) for tiny ones, 64 (8x8) only for hero effects on a 1024 px sheet. The shape tapers to a point at both ends in every frame, or the ends look cut off when a frame stops. Torn edges follow the motion, never square steps.
+- **Margins**: nothing within 4 px of a cell edge. Paint that touches the edge shows as a box around the effect in game. No grey smoke or haze filling the cell either ("fog machine"): it reads as squares.
+- **Pack and check**: `python3 scripts/flipbook.py pack <frames-dir | anim.gif> -o sheet.png --fit --white` (same scale for every frame, white mask from colored frames), `flipbook.py check sheet.png --strict` (square, power of two, <= 1024 px, margins, empty frames, haze, white), `flipbook.py preview sheet.png -o preview.html --tint "#96d7ff" --tint "#ffb43c"` (the frame playing per color variant next to the sheet with that frame lit up; `?frame=7` opens on one frame).
+- **Preset**: one emitter per layer, all on the same sheet: `layer = "Body"`, `flipbook = { layout = "Grid4x4", mode = "OneShot" }` (OneShot plays the 16 frames once over the particle lifetime; Loop/PingPong/Random use `framerate`), the same fixed `rotation` and zero speed so the layers stay stacked, `zOffset` glow < body < core, and `minQuality` on big soft layers (the glow is dropped at low quality to save fill-rate).
+- **Variants**: `variants = { Frost = { Glow = {...}, Body = {...}, Core = {...} }, Ember = {...} }`, played with `Vfx.play("Slash", target, { variant = "Ember" })`; `layerColors` overrides single layers; `color` still tints everything. `Vfx.variants(name)` lists them; the showcase builds one pad per variant (`Slash_Ember`, `Slash_Frost`).
+- **Accessibility**: reduced flashing turns `Random` frame jumps into `Loop`; keep bright single-frame flashes as separate `flash = true` layers so the setting can drop them.
+- **Red**: keep red to glow, flame and smoke. Red drops on a slash read as blood, which the maturity questionnaire and moderation care about.
+- **Upload**: the sheet goes up like any texture (owner account or group), id in `Vfx.Textures.SlashSheet`; until then the sparkle fallback shows the frames of the wrong texture, so judge the look only after upload.
+
 ## Files not included here
 
 Scripts and assets of this skill. Download them from https://github.com/G3LO1/gelo/tree/main/plugins/roblox-studio/skills/roblox-animation-vfx (paths relative to that folder):
@@ -353,11 +367,13 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 - `assets/Vfx.luau`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
+- `assets/textures/slash_4x4.png`
 - `assets/textures/smoke.png`
 - `assets/textures/spark.png`
 - `assets/textures/star.png`
 - `scripts/anim_manifest.py`
 - `scripts/blender_check.py`
+- `scripts/flipbook.py`
 - `scripts/make_textures.py`
 - `scripts/vfx_showcase.luau`
 

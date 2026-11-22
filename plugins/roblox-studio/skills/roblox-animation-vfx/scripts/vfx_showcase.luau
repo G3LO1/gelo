@@ -1,6 +1,7 @@
 -- Builds every Vfx preset into a showcase model you can drag into Studio to look at the
--- effects (particles render in Edit mode): one pad per preset, one-shot bursts turned into
--- a slow loop so they keep playing. Every property is checked against Roblox's API database
+-- effects (particles render in Edit mode): one pad per preset and one more per color variant
+-- (Slash, Slash_Ember, Slash_Frost...), one-shot bursts turned into a slow loop so they keep
+-- playing. Flipbook layers keep their FlipbookLayout/Mode, so a 4x4 sheet plays its frames. Every property is checked against Roblox's API database
 -- on the way (Lune's @lune/roblox), so a typo in a preset fails here, not in the game.
 --
 -- Usage: lune run vfx_showcase.luau <Vfx.luau> [out.rbxmx] [--quality 0..1] [--reduced-flashing]
@@ -53,11 +54,21 @@ end
 local Vfx = loadVfx(vfxPath)
 local model = roblox.Instance.new("Model")
 model.Name = "VfxShowcase"
-local names = {}
+local presets = {}
 for name in Vfx.Presets do
-	table.insert(names, name)
+	table.insert(presets, name)
 end
-table.sort(names)
+table.sort(presets)
+local names, builds = {}, {}
+for _, name in presets do
+	table.insert(names, name)
+	builds[name] = { preset = name }
+	for _, variant in (Vfx.variants and Vfx.variants(name) or {}) do
+		local pad = `{name}_{variant}`
+		table.insert(names, pad)
+		builds[pad] = { preset = name, variant = variant }
+	end
+end
 
 local problems = {}
 for index, name in names do
@@ -69,7 +80,8 @@ for index, name in names do
 		pad.Position = roblox.Vector3.new((index - 1) * 12, 0.5, 0)
 		pad.Color = roblox.Color3.fromRGB(45, 48, 56)
 		pad.Parent = model
-		local attachment = Vfx.build(name, { quality = quality, reducedFlashing = reduced })
+		local build = builds[name]
+		local attachment = Vfx.build(build.preset, { quality = quality, reducedFlashing = reduced, variant = build.variant })
 		attachment.Position = roblox.Vector3.new(0, 3, 0)
 		attachment.Parent = pad
 		for _, child in attachment:GetChildren() do
@@ -103,4 +115,4 @@ if outPath then
 	fs.writeFile(outPath, roblox.serializeModel({ model }, true))
 	print(`wrote {outPath}`)
 end
-print(`OK: {#names} presets build with valid properties`)
+print(`OK: {#presets} presets ({#names} pads with variants) build with valid properties`)

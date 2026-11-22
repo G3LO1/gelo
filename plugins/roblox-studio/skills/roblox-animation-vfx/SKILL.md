@@ -35,8 +35,9 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
 - Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Layered flipbooks (slashes, fire bursts, magic): white layers on one 4x4 sheet, colored per variant in game (`Vfx.play("Slash", tip, { variant = "Ember" })`). Pack, check and preview sheets with `python3 scripts/flipbook.py pack|check|preview` (4 px clear margins, power-of-two, frame lit up on the sheet); recipe in `references/vfx.md` section 8.
 - Check every preset against Roblox's API database and get a model to look at:
-  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
+  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad (one per preset and per color variant); particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
 
 ## 4. Check

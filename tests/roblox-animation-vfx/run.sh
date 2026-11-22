@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Tests for the roblox-animation-vfx skill: Vfx presets against Roblox's API database, the
-# showcase model, AnimationSet behaviour, the manifest validator/generator and the textures.
+# showcase model, AnimationSet behaviour, the manifest validator/generator, flipbook sheets
+# (flipbook.py pack/check/preview) and the textures.
 # Needs: python3 + pillow, lune. Run from the repo root: bash tests/roblox-animation-vfx/run.sh
 set -u
 SKILL=plugins/roblox-studio/skills/roblox-animation-vfx
@@ -45,15 +46,58 @@ lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau --quality 0.3 -
 sed 's/emitter.LightEmission = spec.lightEmission or 0/emitter.LightEmmission = spec.lightEmission or 0/' $SKILL/assets/Vfx.luau > $TMP/BrokenVfx.luau
 lune run $SKILL/scripts/vfx_showcase.luau $TMP/BrokenVfx.luau | grep -q "LightEmmission is not a valid member" && ok "a property typo is caught" || bad "property typo not caught"
 
+lune run $SKILL/scripts/vfx_showcase.luau $SKILL/assets/Vfx.luau $TMP/Variants.rbxmx | grep -q "^OK: .* (.* pads with variants)" \
+	&& grep -q '<string name="Name">Slash_Ember</string>' $TMP/Variants.rbxmx && grep -q '<string name="Name">Slash_Frost</string>' $TMP/Variants.rbxmx \
+	&& ok "showcase has a pad per color variant" || bad "showcase variant pads"
+
+echo "flipbook sheets (flipbook.py)"
+FB="python3 $SKILL/scripts/flipbook.py"
+python3 $HERE/make_flipbooks.py $SKILL/assets/textures/slash_4x4.png $TMP/fb > /dev/null || bad "could not generate flipbook fixtures"
+fb() { $FB "$@" > $TMP/fb.txt 2>&1; echo $? >> $TMP/fb.txt; }
+has() { grep -qE "$1" $TMP/fb.txt; }
+code() { [ "$(tail -n1 $TMP/fb.txt)" = "$1" ]; }
+fb check $SKILL/assets/textures/slash_4x4.png --strict
+code 0 && has "^0 error\(s\), 0 warning\(s\)" && ok "committed slash_4x4.png: clean 4x4 sheet (--strict)" || { bad "committed sheet:"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/frames -o $TMP/fb/round.png
+python3 -c "import sys; from PIL import Image, ImageChops; a, b = Image.open(sys.argv[1]), Image.open(sys.argv[2]); assert a.size == b.size and ImageChops.difference(a, b).getbbox() is None" $TMP/fb/round.png $SKILL/assets/textures/slash_4x4.png \
+	&& code 0 && ok "pack: 16 frames -> the same sheet (reading order)" || { bad "pack round trip"; cat $TMP/fb.txt; }
+fb check $TMP/fb/edge.png
+code 1 && has "ERROR frame 6 \(row 2, col 2\): paint 0 px from the right edge" && ok "check: paint on the cell edge is an error" || { bad "edge"; cat $TMP/fb.txt; }
+fb check $TMP/fb/near.png --strict
+code 1 && has "WARN  frame 2 .*: paint 2 px from the top edge \(keep 4 px" && ok "check: paint inside the margin warns (--strict exits 1)" || { bad "near"; cat $TMP/fb.txt; }
+fb check $TMP/fb/empty.png
+code 1 && has "ERROR frame 16 .*: empty" && ok "check: empty frame" || { bad "empty"; cat $TMP/fb.txt; }
+fb check $TMP/fb/haze.png
+code 0 && has "WARN  frame 3 .*faint haze" && ! has "frame (1|2|4) .*haze" && ok "check: grey haze around the shape warns, only on that frame" || { bad "haze"; cat $TMP/fb.txt; }
+fb check $TMP/fb/tinted.png
+has "WARN  tinted.png: colored pixels in frame\(s\) 1, 2, 3, 4, 5, 6 \.\.\." && ok "check: colored sheet warns (draw in white)" || { bad "tinted"; cat $TMP/fb.txt; }
+fb check $TMP/fb/oblong.png; code 1 && has "must be square" && ok "check: non-square sheet" || { bad "oblong"; cat $TMP/fb.txt; }
+fb check $TMP/fb/npot.png; code 1 && has "power-of-two" && ok "check: non power-of-two sheet" || { bad "npot"; cat $TMP/fb.txt; }
+fb check $TMP/fb/huge.png; code 1 && has "over 1024 px" && ok "check: sheet over 1024 px" || { bad "huge"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/big -o $TMP/fb/big.png
+code 1 && has "ERROR frame .*paint 0 px" && ok "pack without --fit reports frames that touch the edge" || { bad "pack big"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/big -o $TMP/fb/fit.png --fit
+code 0 && has "fit: content .* scaled" && has "^0 error\(s\), 0 warning\(s\)" && ok "pack --fit scales all frames alike into the margin" || { bad "pack --fit"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/colored.gif -o $TMP/fb/white.png --white
+code 0 && has "^0 error\(s\), 0 warning\(s\)" && python3 -c "import sys; from PIL import Image; im = Image.open(sys.argv[1]); assert im.size == (512, 512) and im.getpixel((64, 64))[:3] == (255, 255, 255) and im.getpixel((64, 64))[3] > 100" $TMP/fb/white.png \
+	&& ok "pack --white: animated GIF -> white mask sheet" || { bad "pack --white"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/many -o $TMP/fb/many.png; code 1 && has "20 frames do not fit a 4x4 grid" && ok "pack: too many frames for the grid" || { bad "many"; cat $TMP/fb.txt; }
+fb pack $TMP/fb/many -o $TMP/fb/many8.png --grid 8 --cell 64
+code 1 && has "20 frames for 64 cells" && has "ERROR frames 21-64: empty" && [ "$(grep -c "^ERROR.*empty" $TMP/fb.txt)" = 1 ] \
+	&& ok "pack: fewer frames leave empty cells, reported once as an error" || { bad "many grid 8"; cat $TMP/fb.txt; }
+fb preview $SKILL/assets/textures/slash_4x4.png -o $TMP/fb/preview.html --tint "#96d7ff" --tint "#ffb43c"
+code 0 && grep -q "FlipbookLayout Grid4x4" $TMP/fb/preview.html && grep -q "data:image/png;base64" $TMP/fb/preview.html && grep -q "#ffb43c on dark" $TMP/fb/preview.html \
+	&& ok "preview: HTML with the sheet, frame highlight and one player per tint" || { bad "preview"; cat $TMP/fb.txt; }
+
 echo "textures"
 python3 $SKILL/scripts/make_textures.py $TMP/textures > /dev/null
-python3 - "$TMP/textures" "$SKILL/assets/textures" <<'PY' && ok "generator output matches the committed textures, 128x128 RGBA" || bad "textures"
+python3 - "$TMP/textures" "$SKILL/assets/textures" <<'PY' && ok "generator output matches the committed textures, 128x128 RGBA (+ 512x512 slash_4x4 sheet)" || bad "textures"
 import sys
 from PIL import Image, ImageChops
 new, committed = sys.argv[1], sys.argv[2]
-for name in ["glow", "star", "spark", "smoke", "ring"]:
+for name, size in [("glow", 128), ("star", 128), ("spark", 128), ("smoke", 128), ("ring", 128), ("slash_4x4", 512)]:
     a, b = Image.open(f"{new}/{name}.png"), Image.open(f"{committed}/{name}.png")
-    assert a.size == (128, 128) and a.mode == "RGBA", name
+    assert a.size == (size, size) and a.mode == "RGBA", name
     # small tolerance: blur/resampling differ slightly between Pillow versions
     worst = max(hi for _, hi in ImageChops.difference(a, b).getextrema())
     assert worst <= 16, f"{name} differs from the committed file (max channel diff {worst})"

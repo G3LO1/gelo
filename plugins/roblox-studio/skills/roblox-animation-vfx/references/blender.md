@@ -70,7 +70,7 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 - Collision: set CollisionFidelity per role in Studio (Box/Hull for props), invisible simple colliders for walkways.
 
 ## 8. VFX and UI renders
-- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it; set FlipbookLayout and FlipbookMode on the emitter.
+- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it, one render per layer if the effect is layered; pack and check them with `scripts/flipbook.py` (margins, sheet size, preview) and wire them as a layered preset (`vfx.md` section 8).
 - Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images.
 
 ## 9. blender_check.py
