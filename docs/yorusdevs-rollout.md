@@ -10,7 +10,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | 2 | UI: ItemCard + Button example in ui-spec.json (glow layer, shared motion, 9-slice, states) | roblox-ui-designer | done, Studio look pending |
 | 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | done, Studio import pending |
 | 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | done, Studio import pending |
-| 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | todo |
+| 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | done, listening + upload pending |
 | 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | todo |
 | 7 | Maps: one complete slice before duplicating modules, player-view walkthrough, fair comparisons | roblox-map-builder | todo |
 
@@ -193,7 +193,49 @@ Still to do in Roblox Studio:
 3. Playtest on R15 and R6 avatars (tall, short, blocky): feet on the floor while walking at the
    game's WalkSpeed, katana in the hand, Hit lands on the swing; compare with the Blender view.
 
-## 5-7
+## 5. Sound effects
 
-Not started. Dependencies: 5 needs only Python (and the moment table / markers from 4); 6 and 7 add
-docs plus local checks, with captures and walkthroughs done in Studio.
+Sources: [prompts, style line, batch with price first, 2:33](https://www.youtube.com/watch?v=i-3U2GPSVVk&t=153s),
+[silence, late hits, empty takes, loudness, 4:17](https://www.youtube.com/watch?v=i-3U2GPSVVk&t=257s),
+[upload, moderation, random take and pitch, 5:02](https://www.youtube.com/watch?v=i-3U2GPSVVk&t=302s).
+
+Landed:
+- `scripts/sfx_manifest.py` (standard library only): `sounds.json` = the SFX column of the moment table
+  (name, prompt + shared style line, marker "Animation:Marker" or event, vfx, maxLength, takes, volume,
+  pitch range, minInterval/repeatVolume, spatial, variants with file / status / id).
+  `plan`: full prompts, takes, seconds, price; generates nothing. `check`: per take empty, silence before
+  the sound (> 30 ms), late hit on a marker (silence + build-up > 50 ms), long build-up on events, length
+  of the sound itself, clipping, loudness vs target, sample rate; per sound marker exists in
+  animations.json, vfx exists in Vfx.luau, ids for uploaded/approved, no approved take, waiting for
+  moderation. `trim`: cut at the onset (5 ms pre-roll), drop trailing silence, match loudness with the
+  peak under -1 dBFS, fade edges. `luau`: SfxIds module with approved ids only.
+- `assets/Sfx.luau`: random approved take, random pitch in range, quieter repeats inside minInterval,
+  3D from the part or 2D from SoundService, warns once for sounds with no approved take; `bind()` plays
+  each marker sound and its Vfx preset on the same AnimationSet marker at the same part.
+- `assets/examples/sounds.json`: SwordHit on Chop:Hit with Slash, Footstep on Walk:Footstep with Dust,
+  Pickup (event), UiHover (UI, 2D); takes in every status.
+- Docs: `references/sfx.md`, SKILL.md (moment table SFX columns, plan/build/check), README.
+
+Verified (Python 3.13, Lune 0.10.4):
+- `run.sh`: 18 new SFX checks on generated test takes (`make_sounds.py`): lag 450 ms, late hit 3xx ms
+  (build-up), build-up on an event, too long, empty, clipping + loudness, moderation/approval state,
+  clean approved takes pass; trim fixes lag/clipping/loudness and still reports build-up and length;
+  plan output with price; bad marker / vfx / missing id / bad pitch / unknown key / unknown status.
+- `sfx_test.luau`: 15 passed (real Sound instances): approved ids only, random take, pitch range,
+  volume, quieter repeats, 2D vs 3D, no-take warning; real AnimationSet firing Chop:Hit plays SwordHit and
+  Slash at the weapon on the same marker, Walk:Footstep plays Footstep and Dust.
+- Mutations caught: build-up ignored, trim keeping the silence, trim not matching loudness, pending ids
+  shipped. Found while testing: two "no problems" assertions in my own test could never fail
+  (pattern order); fixed and re-verified with the mutations.
+- All suites: animation-vfx 74, ui-designer 31, launch-kit 24, security 11, undead-eats 51,
+  luau-codegen 49; plugin validate OK; LLM pack up to date.
+
+Still to do (needs a person and Studio):
+1. Generate real takes (key from the environment, `plan` price approved), `check`, `trim`, listen and
+   mark `picked`; upload with the owner account, wait for moderation, mark `approved`, run `luau`.
+2. Playtest Chop and Walk with `Sfx.bind`: sound, Slash/Dust and pose land together; repeats sound varied.
+
+## 6-7
+
+Not started. Dependencies: 6 builds on the launch kit's store preview (Python) plus a Studio scene
+script (Lune-validated); 7 adds map-builder docs and a slice checklist, with walkthroughs in Studio.

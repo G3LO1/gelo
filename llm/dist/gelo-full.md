@@ -79,15 +79,17 @@ From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type)
 - Owner account (user or group): it must upload the animations and textures.
 
 ## 2. Plan
-Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play).
-1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX, camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small.
+Read `references/animation.md`, `references/vfx.md` and `references/sfx.md` (and `references/blender.md` when Blender is in play).
+1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX (name, the marker or event it plays on, max length, takes, status of each take and its id), camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small. The SFX columns are `sounds.json` (`references/sfx.md`, example `assets/examples/sounds.json`).
 2. **Animation manifest**: write `animations.json` (format in `scripts/anim_manifest.py`; ids 0 until uploaded). Priorities, looping and markers follow the table in the reference. Use an Animation Graph for locomotion blends and jump/fall/land chains when the team has someone to build it; plain tracks otherwise.
 3. **VFX list**: map moments to `Vfx.luau` presets; add or tune presets for the style (colors, sizes, textures, counts) in its `Vfx.Presets` table.
+4. **SFX list**: `sounds.json` with a prompt + the game's style line per sound, `sfx_manifest.py plan` for the takes and the price before anything is generated.
 
 ## 3. Build
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- Sounds: generate the takes from the plan (API key from the environment, price shown first), `python3 scripts/sfx_manifest.py check sounds.json --animations animations.json --vfx src/shared/Vfx.luau` (empty takes, silence before the sound, hits that land after the marker, too long, clipping, loudness), `trim` to cut the silence and match loudness, a person listens and picks, upload, wait for moderation, `luau -o src/shared/SfxIds.luau`; in game `Sfx.configure(SfxIds, { vfx = Vfx })` + `Sfx.bind(set, part)` plays sound and effect on the same marker (`assets/Sfx.luau`).
 - Motion moved over from another skeleton (video mocap, AI motion, store packs) or made for both R15 and R6: add `accept` blocks (and `"rigs": ["R15", "R6"]`, `idR6`) to `animations.json` and run `scripts/anim_accept.py` in Blender on every clip until it passes: feet on the floor, no sliding against the game's speed, root in place, the prop stays in the hand and out of the body on every frame, loops close, markers present, R6 matches R15 (`references/animation.md` section 9; example `assets/examples/animations.json`). Load with `AnimationSet.new(animator, Animations.specsFor(humanoid))`.
 - Sets of props (weapons, tools, generated models): `scripts/model_batch.py` with a manifest (`assets/examples/models.json`) stands them up, scales them to studs, sets pivots and grip points, keeps them under the triangle budget, closes holes, exports FBX and renders icons from one camera; `--dry-run` first, re-runs redo only what changed (`references/blender.md` section 10). In Studio `ModelSpecs.apply(part)` adds the pivot and grip Attachments.
 - With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
@@ -107,6 +109,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 - Every animation id in the manifest is owned by (or granted to) the experience; tested in a published place or Team Test, not only in Studio.
 - Priorities: attacks override walking, hit reactions override attacks, death overrides everything; no unintended loops.
 - Damage, projectiles, footsteps and effects fire from markers, and the server still validates hits.
+- Every sound on a marker passes `sfx_manifest.py check` (lands within 50 ms of the marker), only approved (moderated) ids are in `SfxIds.luau`, and someone listened to each take and to the moment in a playtest.
 - Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
@@ -303,6 +306,55 @@ For sets of props (weapons, tools, furniture, image-to-3D output): one manifest,
 - Axes: Blender +Z up and -Y front become Roblox +Y up and the part's front (-Z, LookVector) with the FBX settings above; check this once on one item in Studio (the `Grip` Attachment should sit on the handle) before importing a whole set.
 - Still by hand: fitting armor or anything worn on the body (fit one side, mirror the other), deciding the style and checking each icon and in-game look.
 
+## File: references/sfx.md
+
+# Sound effects reference
+
+The SFX column of the moment table as data (`sounds.json`), checked locally before anything is uploaded. The `Sound` properties used by `Sfx.luau` are checked against Roblox's API database in the tests; upload formats, size limits and moderation rules change, so confirm them in the Creator Hub (create.roblox.com/docs/audio) before a big upload.
+
+## Contents
+1. Moment table -> sounds.json
+2. Making the takes
+3. Checking and cleaning
+4. Upload, moderation, ids
+5. In the game: Sfx.luau and the marker sync
+6. What stays human
+
+## 1. Moment table -> sounds.json
+Every moment row that has a sound gets one entry (`scripts/sfx_manifest.py` documents the format; example `assets/examples/sounds.json`):
+- `name` (Luau identifier, what code calls), `prompt` (what it is), `maxLength` (a swing is under a second, a footstep under half), `takes` (how many to generate, 2-3; more variants for frequent sounds).
+- **When it plays**: `marker` = `"Animation:Marker"` from `animations.json` (hits, footsteps, releases: the sound lands with the pose) or `event` for code-triggered moments (pickup, purchase, UI focus).
+- `vfx`: the Vfx preset that plays on the same marker; `volume`, `pitch` range for variation, `minInterval` + `repeatVolume` for sounds that can repeat fast, `spatial: false` for UI and 2D sounds.
+- `variants`: one per take with `file`, `status` and, once uploaded, `id`. Status: `generated` -> `picked` (a person listened and chose it) -> `uploaded` (has an id, in moderation, plays nothing yet) -> `approved` (goes into the game); `rejected` stays for the record.
+
+## 2. Making the takes
+- Every prompt is two parts: what it is ("two steel swords clashing hard, a bright ringing clang") plus one **style line** shared by the whole game (`style`: "anime, loud, punchy, no music, no voice"), and short. `sfx_manifest.py plan sounds.json` prints the full prompts, the number of takes, the seconds of audio and, with `pricePerSecond`, the price, and generates nothing: show it, get a yes, then run the generator.
+- Generator APIs (sound-effect models on hosted model platforms) need a key: the user stores it as an environment variable once; code reads it from the environment and never prints it. Never paste keys into the chat. Show the price before every batch; 2 takes each is the usual start.
+- Try a model by hand on a few prompts first; switching models is one line of code, picking the style is not.
+
+## 3. Checking and cleaning
+`python3 scripts/sfx_manifest.py check sounds.json --animations animations.json --vfx Vfx.luau` measures every take (WAV, PCM) and the manifest:
+- **empty**: silent all through (hover and pickup takes come back empty more often than you'd think);
+- **silence before the sound**: more than `maxLead` (30 ms) is lag in game;
+- **late hit**: for marker sounds, silence + build-up to the loudest point must fit in `syncTolerance` (50 ms, about 1.5 frames), or the hit lands after the pose; event sounds warn above `maxAttack`;
+- **too long** (the sound itself, not its trailing silence), **clipping**, **loudness** more than 3 dB off `targetLoudness`, sample rate;
+- the marker exists on that animation, the vfx preset exists, uploaded/approved takes have ids, sounds with no approved take play nothing.
+
+`sfx_manifest.py trim sounds.json --out cleaned/` (or `--in-place`) cuts each take where it gets loud (5 ms pre-roll), drops trailing silence, matches loudness to the target with the peak kept under -1 dBFS, and fades the edges. It fixes lag and loudness; a slow build-up or a sound that is too long needs another take.
+
+## 4. Upload, moderation, ids
+- Upload the picked takes with the account or group that owns the experience (Creator Hub, Asset Manager bulk import, or the Open Cloud assets API with a key from the environment). Put each id in its variant and set `uploaded`.
+- New audio goes through moderation; until it passes it plays nothing in game. Check each one, then set `approved`. `check` lists sounds with takes still waiting.
+- `sfx_manifest.py luau sounds.json -o src/shared/SfxIds.luau` writes only approved ids, with volume, pitch, repeat settings, marker, event, vfx and spatial.
+
+## 5. In the game: Sfx.luau and the marker sync
+- `Sfx.configure(require(SfxIds), { vfx = Vfx })`, then `Sfx.bind(animationSet, weaponOrRoot)`: every sound with a `marker` plays on that AnimationSet marker together with its Vfx preset, at the same part, on the same frame. Code-triggered sounds: `Sfx.play(name, part)`.
+- Each play picks a random approved take and a pitch in the range; a repeat inside `minInterval` plays at `repeatVolume`, so a hundred hits or a horde don't sound like a machine gun.
+- Sounds play on the client, like effects: the server fires one remote per moment, clients play animation, effect and sound.
+
+## 6. What stays human
+The checker measures; it can't hear. An explosion that sounds like a balloon losing air passes every number. A person listens to every take (`picked`), and to the moment in a playtest with the animation and the effect.
+
 ## File: references/vfx.md
 
 # VFX reference
@@ -395,9 +447,11 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 
 - `assets/AnimCheck.luau`
 - `assets/AnimationSet.luau`
+- `assets/Sfx.luau`
 - `assets/Vfx.luau`
 - `assets/examples/animations.json`
 - `assets/examples/models.json`
+- `assets/examples/sounds.json`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
 - `assets/textures/slash_4x4.png`
@@ -410,6 +464,7 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 - `scripts/flipbook.py`
 - `scripts/make_textures.py`
 - `scripts/model_batch.py`
+- `scripts/sfx_manifest.py`
 - `scripts/vfx_showcase.luau`
 
 

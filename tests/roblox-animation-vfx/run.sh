@@ -2,7 +2,8 @@
 # Tests for the roblox-animation-vfx skill: Vfx presets against Roblox's API database, the
 # showcase model, AnimationSet behaviour, the manifest validator/generator, flipbook sheets
 # (flipbook.py pack/check/preview), the textures, and with bpy blender_check.py and the
-# model_batch.py pipeline (+ its ModelSpecs.luau under Lune) and anim_accept.py.
+# model_batch.py pipeline (+ its ModelSpecs.luau under Lune) and anim_accept.py; sound effects
+# (sfx_manifest.py on generated takes, Sfx.luau).
 # Needs: python3 + pillow, lune. Run from the repo root: bash tests/roblox-animation-vfx/run.sh
 set -u
 SKILL=plugins/roblox-studio/skills/roblox-animation-vfx
@@ -110,6 +111,51 @@ code 1 && has "20 frames for 64 cells" && has "ERROR frames 21-64: empty" && [ "
 fb preview $SKILL/assets/textures/slash_4x4.png -o $TMP/fb/preview.html --tint "#96d7ff" --tint "#ffb43c"
 code 0 && grep -q "FlipbookLayout Grid4x4" $TMP/fb/preview.html && grep -q "data:image/png;base64" $TMP/fb/preview.html && grep -q "#ffb43c on dark" $TMP/fb/preview.html \
 	&& ok "preview: HTML with the sheet, frame highlight and one player per tint" || { bad "preview"; cat $TMP/fb.txt; }
+
+echo "sound effects (sfx_manifest.py on generated test takes, Sfx.luau)"
+SX="python3 $SKILL/scripts/sfx_manifest.py"
+cp $SKILL/assets/examples/sounds.json $TMP/sounds.json
+python3 $HERE/make_sounds.py $TMP > /dev/null || bad "could not generate test takes"
+sx() { $SX "$@" > $TMP/sx.txt 2>&1; echo $? >> $TMP/sx.txt; }
+said() { grep -qE "$1" $TMP/sx.txt; }
+sx check $TMP/sounds.json --animations $SKILL/assets/examples/animations.json --vfx $SKILL/assets/Vfx.luau
+[ "$(tail -n1 $TMP/sx.txt)" = 1 ] && ok "check exits 1 on bad takes" || bad "check exit code"
+said "ERROR SwordHit\[2\] sfx/SwordHit_2.wav: 450 ms of silence before the sound" && ok "silence before the sound (lag)" || { bad "lead silence"; cat $TMP/sx.txt; }
+said "ERROR SwordHit\[3\] .*hits 3[0-9]{2} ms after the Chop:Hit marker .*pick a take that hits at once" && ok "late hit on a marker (build-up)" || { bad "late hit"; cat $TMP/sx.txt; }
+said "WARN  Pickup\[1\] .*builds up for 4[0-9]{2} ms" && ok "long build-up on an event sound" || bad "build-up"
+said "ERROR Pickup\[1\] .*the sound lasts 1\.[0-9]+ s, max 1 s" && ok "longer than maxLength" || bad "too long"
+said "ERROR UiHover\[1\] .*empty: silent all through" && ok "empty take" || bad "empty"
+said "WARN  Footstep\[3\] .*clipped samples" && said "WARN  Footstep\[3\] .*loudness -8\.[0-9] dBFS, target -18" && ok "clipping and loudness off target" || bad "clipping/loudness"
+said "INFO  Footstep: 1 take\(s\) waiting for moderation" && said "WARN  UiHover: no approved take: plays nothing" && ok "moderation and approval state per sound" || bad "status"
+! said "(ERROR|WARN) +(SwordHit|Footstep)\[1\]" && ok "approved clean takes pass" || { bad "clean takes flagged"; cat $TMP/sx.txt; }
+sx trim $TMP/sounds.json --out $TMP/clean
+said "trim  sfx/SwordHit_2.wav: cut 44[0-9] ms before" && said "skip  sfx/UiHover_1.wav: silent" && ok "trim cuts leading silence, skips silent takes" || { bad "trim"; cat $TMP/sx.txt; }
+sx check $TMP/sounds.json --root $TMP/clean --animations $SKILL/assets/examples/animations.json --vfx $SKILL/assets/Vfx.luau
+! said "(ERROR|WARN) +SwordHit\[2\]" && ! said "(ERROR|WARN) +Footstep\[3\]" && ok "after trim: lag, clipping and loudness fixed" || { bad "trim did not fix"; cat $TMP/sx.txt; }
+said "SwordHit\[3\] .*hits 3[0-9]{2} ms after" && said "Pickup\[1\] .*the sound lasts" && ok "after trim: build-up and length still reported (trim cuts silence, not sound)" || bad "trim hid real problems"
+sx plan $TMP/sounds.json
+said "SwordHit x3 \(0\.8 s\): two steel swords clashing hard, a bright ringing clang, anime, loud, .*under 0\.8 seconds" && said "10 take\(s\), 6 s of audio, about .0\.01 at .0\.0018/s\. Nothing was generated" && ok "plan: prompts with the style line, takes, price, nothing generated" || { bad "plan"; cat $TMP/sx.txt; }
+python3 - "$TMP" <<'PYJ'
+import json, sys
+tmp = sys.argv[1]
+base = json.load(open(f"{tmp}/sounds.json"))
+def case(name, mutate):
+    data = json.loads(json.dumps(base)); mutate(data); json.dump(data, open(f"{tmp}/{name}.json", "w"))
+case("badmarker", lambda d: d["sounds"][0].__setitem__("marker", "Chop:Clang"))
+case("badvfx", lambda d: d["sounds"][0].__setitem__("vfx", "Sparkles"))
+case("noid", lambda d: d["sounds"][0]["variants"][0].pop("id"))
+case("badpitch", lambda d: d["sounds"][0].__setitem__("pitch", [1.2, 0.8]))
+case("badkey", lambda d: d["sounds"][0].__setitem__("loop", True))
+case("badstatus", lambda d: d["sounds"][0]["variants"][0].__setitem__("status", "done"))
+PYJ
+sx check $TMP/badmarker.json --animations $SKILL/assets/examples/animations.json; said "marker Chop:Clang: 'Chop' has no 'Clang' marker" && ok "marker must exist in animations.json" || bad "bad marker"
+sx check $TMP/badvfx.json --vfx $SKILL/assets/Vfx.luau; said "vfx 'Sparkles' is not a preset" && ok "vfx must be a Vfx.luau preset" || bad "bad vfx"
+sx check $TMP/noid.json; said "status approved needs the uploaded 'id'" && ok "approved take needs an id" || bad "approved without id"
+for c in badpitch badkey badstatus; do sx check $TMP/$c.json; [ "$(tail -n1 $TMP/sx.txt)" = 2 ] && said "manifest error" || bad "$c not rejected"; done && ok "bad pitch range, unknown key, unknown status are manifest errors (exit 2)"
+$SX luau $TMP/sounds.json -o $TMP/SfxIds.luau > /dev/null
+lune run $HERE/sfx_test $TMP/SfxIds.luau > $TMP/sfxrt.txt; code=$?
+sed 's/^/  /' $TMP/sfxrt.txt | grep -E "FAIL|passed"
+[ $code -eq 0 ] && ok "Sfx.luau: approved takes, random take and pitch, quieter repeats, marker sync with AnimationSet + Vfx" || { bad "Sfx.luau"; cat $TMP/sfxrt.txt; }
 
 echo "textures"
 python3 $SKILL/scripts/make_textures.py $TMP/textures > /dev/null
