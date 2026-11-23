@@ -112,6 +112,7 @@ Read `references/animation.md`, `references/vfx.md` and `references/sfx.md` (and
 - Every sound on a marker passes `sfx_manifest.py check` (lands within 50 ms of the marker), only approved (moderated) ids are in `SfxIds.luau`, and someone listened to each take and to the moment in a playtest.
 - Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
+- Before/after an effect, animation or sound change: play the same `roblox-launch-kit` scene (`ShotDirector.luau`, shots marked `test`) and compare the captures 1:1.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.
 
@@ -865,12 +866,13 @@ Write and check, in this order:
 - **Icon brief**: one subject, the game's main color, readable at 150 px and 64 px, no small text; plus 2 alternatives for later tests.
 - **Thumbnail briefs** (3-5 for personalization): each sells a different reason to play (core action, social moment, progression/reward, event/update); real gameplay framed with free camera; nothing important in the bottom 15%; 1920x1080, under 3 MB.
 - **Video** (optional): 15-30 s of real gameplay, rules in references section 3.
+- **Shots**: capture the material in the game with a repeatable scene (`assets/ShotDirector.luau` playing a `scenes/*.json` checked by `scripts/scene_spec.py`; references section 10): the same camera, actors and events every take, a silent rehearsal behind a black screen so nothing loads late, shots marked for tests, trailers and thumbnails. Keep each thumbnail's in-game shot in `shots/` under the same name.
 
-Then run the checker on the actual files (folder layout: `icon.png`, `thumbnails/*`, `title.txt`, `description.txt`):
+Then run the checker on the actual files (folder layout: `icon.png`, `thumbnails/*`, `shots/*`, `title.txt`, `description.txt`):
 ```
 python3 scripts/check_store_assets.py <store-dir> --preview store-preview.html
 ```
-Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, offer to mock thumbnails from real screenshots, but final images must show real gameplay.
+Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, each in-game shot next to its thumbnail, every thumbnail at the tile sizes players see, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, offer to mock thumbnails from real screenshots, but final images must show real gameplay.
 
 ## 4. Launch plan
 Write `LAUNCH_KIT.md` in the project (ask before overwriting):
@@ -938,6 +940,7 @@ Platform facts for publishing, discovery, pricing, ads and live-ops. Checked aga
 7. Ads Manager
 8. Events, update announcements, notifications
 9. Earning programs
+10. Repeatable scenes: test captures, trailers, thumbnail shots
 
 ## 1. Who can play
 Accounts are split by age (self-declared until age-checked):
@@ -1032,11 +1035,23 @@ Other surfaces: Search (semantic, natural-language queries in supported language
 - Creator Rewards (since 24 July 2025): Daily Engagement Rewards and Audience Expansion Rewards (see the production plan checklist); sessions over 10 minutes matter.
 - Developer Exchange (DevEx) for cashing out; 18+ DevEx rate for Robux earned from 18+ purchases (production/monetization/18-plus-devex-rate) (verify current rates before quoting numbers).
 
+## 10. Repeatable scenes: test captures, trailers, thumbnail shots
+Free footage comes from the game itself, played by a script rather than a person, so every take is the same and can be redone after any change.
+- **Scene files** (`assets/examples/scenes/SwordClash.json`, format in `scripts/scene_spec.py`): camera keys (position, lookAt, fov, ease), actors (templates cloned from e.g. `ReplicatedStorage/SceneAssets`, position, facing), events (animation, vfx, sfx, move, visible, custom kinds), shots (name and use: test, trailer, thumbnail), readiness (preload, stream around the camera, rehearse). Times in seconds or bars: measure the song's tempo, make bar 0 the drop and put every scene on a bar, so a shorter scene keeps the rest on the beat.
+- `python3 scripts/scene_spec.py check scenes/*.json --animations ... --sounds ... --vfx ...` (times inside the scene, names exist in the manifests, shots present, readiness on), `timeline` (the shot list with bars and seconds, for the edit), `luau -o src/client/Scenes.luau`.
+- **ShotDirector.luau** plays a scene from a LocalScript in a playtest: clones visible only on that screen, so actors hit exactly what the script says; preload and streaming first; then the whole scene once behind a black screen with sounds off (the rehearsal), so models, textures and effects are drawn once before the real take (the first take otherwise has people floating in empty rooms that loaded late); then the take, calling `onShot` on every shot; then a reset of camera, clones and screen, even after an error. Camera and events are pure functions of time: the same scene gives the same frames, so test captures before and after a change compare 1:1.
+- **Captures**: with the Studio MCP, call `screen_capture` in `onShot` (tests, thumbnail shots); for video, record the game window (e.g. OBS at max graphics): crop Studio's blue focus outline, and line up the sound (it often lags about 0.1 s: find one flash and its sound and shift them together). Cut takes on the song's bars.
+- **Store video**: real gameplay only, no voice-over, no lyrics, no ad slogans; 3 uploads a month, rejections count. A trailer for social media can have more; the store cut can't.
+- **Thumbnails from shots**: keep each in-game shot in `store/shots/` with the same name as the thumbnail made from it. AI or manual edits may change light, effects, expression and framing, and fix things like R15 elbows, but the thumbnail has to show the experience. `check_store_assets.py` compares each pair (similarity of the composition, shape changes from stretched art, Studio's blue edge, 16:9) and the preview shows shot and thumbnail side by side and every thumbnail at 384x216, 256x144 and 160x90 with the metadata overlay. Generation keys stay in the environment or the OS credential store, never in the chat or the project.
+
 ## Files not included here
 
 Scripts and assets of this skill. Download them from https://github.com/G3LO1/gelo/tree/main/plugins/roblox-studio/skills/roblox-launch-kit (paths relative to that folder):
 
+- `assets/ShotDirector.luau`
+- `assets/examples/scenes/SwordClash.json`
 - `scripts/check_store_assets.py`
+- `scripts/scene_spec.py`
 
 
 ---

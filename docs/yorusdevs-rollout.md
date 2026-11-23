@@ -11,7 +11,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | done, Studio import pending |
 | 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | done, Studio import pending |
 | 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | done, listening + upload pending |
-| 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | todo |
+| 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | done, Studio take pending |
 | 7 | Maps: one complete slice before duplicating modules, player-view walkthrough, fair comparisons | roblox-map-builder | todo |
 
 ## 1. Layered VFX
@@ -235,7 +235,55 @@ Still to do (needs a person and Studio):
    mark `picked`; upload with the owner account, wait for moderation, mark `approved`, run `luau`.
 2. Playtest Chop and Walk with `Sfx.bind`: sound, Slash/Dust and pose land together; repeats sound varied.
 
-## 6-7
+## 6. Repeatable scenes, captures, shot vs thumbnail
 
-Not started. Dependencies: 6 builds on the launch kit's store preview (Python) plus a Studio scene
-script (Lune-validated); 7 adds map-builder docs and a slice checklist, with walkthroughs in Studio.
+Sources: [beat grid and shot list, 0:54](https://www.youtube.com/watch?v=1v87Baic6Dc&t=54s),
+[scene as a script, 1:44](https://www.youtube.com/watch?v=1v87Baic6Dc&t=104s),
+[late loading and the rehearsal, 2:43](https://www.youtube.com/watch?v=1v87Baic6Dc&t=163s),
+[recording traps, store video rules, 3:44](https://www.youtube.com/watch?v=1v87Baic6Dc&t=224s),
+[thumbnail from an in-game shot, 3:13](https://www.youtube.com/watch?v=u5ig8f1Nzyg&t=193s).
+
+Landed:
+- `roblox-launch-kit/scripts/scene_spec.py`: scene JSON (camera keys with ease and fov, actors from
+  templates, events animation / vfx / sfx / move / visible / custom, shots with use test / trailer /
+  thumbnail, readiness preload / streamAround / timeout / rehearse), times in seconds or bars at a BPM.
+  `check` (times inside the scene, names against animations.json, sounds.json, Vfx.luau, shots present,
+  readiness on), `timeline` (shot list with bar and second), `luau` (Scenes module).
+- `roblox-launch-kit/assets/ShotDirector.luau`: clones the actors, preloads, streams around every camera
+  key, rehearses the whole scene behind a black screen with sounds off, plays the take with `onShot` on
+  every shot, resets camera / clones / screen even after an error; camera (`cameraAt`) and events (`due`)
+  are pure functions of time, so runs give the same frames.
+- `assets/examples/scenes/SwordClash.json`: 4 bars at 130 BPM, Hero and Rival, Walk, Footstep, move,
+  Chop, Slash + SwordHit on bar 2.5, Dust, shots Opening / Clash / Wide.
+- `check_store_assets.py`: `shots/` paired with thumbnails by name or number; warns when a thumbnail no
+  longer resembles its in-game shot, was stretched to another shape, when a shot has Studio's blue focus
+  outline or isn't 16:9; preview shows shot and thumbnail side by side in their own shapes and every
+  thumbnail at 384x216, 256x144 and 160x90 with the metadata overlay.
+- Docs: `references/launch.md` section 10, launch-kit SKILL.md, animation-vfx check (before/after with
+  the same scene), README.
+
+Verified (Python 3.13 + Pillow, Lune 0.10.4, Chromium):
+- `bash tests/roblox-launch-kit/run.sh`: 39 passed (24 before). New: shot pairs on generated store
+  folders (good pairs recognised, unlike / stretched / blue edge / 4:3 / unpaired reported, no false
+  alarms), preview sections; example scene valid against the other manifests, timeline on the beat grid,
+  6 broken scenes; `director_test.luau` 22 passed (camera path and ease, due() bounds, ready, preload +
+  streaming, silent rehearsal behind the black screen, events within a frame, 3 shots in the take only,
+  move, reset, identical frames on a second run, missing template, no rehearsal, error mid-scene).
+- Mutations caught: rehearsal not silent, camera type not restored, due() bounds, similarity ignored.
+- Preview screenshot at 1280 px and 390 px: shapes shown as they are, no page errors, no overflow.
+- Found while testing: Lune 0.10's CFrame.lookAt flips the look direction's Z (Roblox doesn't); the test
+  checks the frame the director sets, the direction is for the Studio pass.
+- All suites: launch-kit 39, animation-vfx 74, ui-designer 31, security 11, undead-eats 51,
+  luau-codegen 49; plugin validate OK; LLM pack up to date.
+
+Still to do in Roblox Studio:
+1. Put Hero/Rival templates in `ReplicatedStorage/SceneAssets`, generate `Scenes.luau`, run
+   `ShotDirector.run(Scenes.SwordClash, ...)` from a LocalScript in a playtest with the Studio MCP
+   `screen_capture` in `onShot`: the camera looks at the actors (checks the real lookAt direction),
+   nothing pops in on the take, the Clash shot lands on the slash.
+2. Save the Clash capture to `store/shots/`, make the thumbnail from it, run `check_store_assets.py`.
+
+## 7
+
+Not started: map-builder slice acceptance and fair comparisons (docs plus a local check), walkthrough
+in Studio.

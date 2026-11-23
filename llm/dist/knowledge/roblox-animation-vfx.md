@@ -55,6 +55,7 @@ Read `references/animation.md`, `references/vfx.md` and `references/sfx.md` (and
 - Every sound on a marker passes `sfx_manifest.py check` (lands within 50 ms of the marker), only approved (moderated) ids are in `SfxIds.luau`, and someone listened to each take and to the moment in a playtest.
 - Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
+- Before/after an effect, animation or sound change: play the same `roblox-launch-kit` scene (`ShotDirector.luau`, shots marked `test`) and compare the captures 1:1.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.
 
