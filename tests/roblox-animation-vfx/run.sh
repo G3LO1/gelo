@@ -2,7 +2,7 @@
 # Tests for the roblox-animation-vfx skill: Vfx presets against Roblox's API database, the
 # showcase model, AnimationSet behaviour, the manifest validator/generator, flipbook sheets
 # (flipbook.py pack/check/preview), the textures, and with bpy blender_check.py and the
-# model_batch.py pipeline (+ its ModelSpecs.luau under Lune).
+# model_batch.py pipeline (+ its ModelSpecs.luau under Lune) and anim_accept.py.
 # Needs: python3 + pillow, lune. Run from the repo root: bash tests/roblox-animation-vfx/run.sh
 set -u
 SKILL=plugins/roblox-studio/skills/roblox-animation-vfx
@@ -37,7 +37,28 @@ expect "OldPunch: made for R6" "rig mismatch"
 expect "Throw: set 'looped' explicitly" "looped missing"
 expect "Blend: animation graph without 'parameters'" "graph without parameters"
 
+echo "acceptance fields (rigs, idR6, accept) and the R15 + R6 example"
+EX=$SKILL/assets/examples/animations.json
+python3 $SKILL/scripts/anim_manifest.py $EX --allow-todo -o $TMP/ExampleAnimations.luau > $TMP/ex.txt
+[ $? -eq 0 ] && grep -q "0 error(s), 0 warning(s), 4 todo(s)" $TMP/ex.txt && grep -q "Animations.SpecsR6 = {" $TMP/ExampleAnimations.luau && grep -q "function Animations.specsFor" $TMP/ExampleAnimations.luau \
+	&& ok "example manifest: R15 + R6 specs, 4 todo ids (R15 and R6), specsFor()" || { bad "example manifest:"; cat $TMP/ex.txt; }
+python3 $SKILL/scripts/anim_manifest.py $HERE/bad_accept.json > $TMP/bad.txt; [ $? -eq 1 ] && ok "bad accept manifest exits 1" || bad "bad accept exit code"
+expect "manifest: accept.slideTolerance must be a number >= 0" "negative tolerance"
+expect "manifest: accept.grounded is not a known setting" "per-animation key at manifest level"
+expect "Walk: no R6 asset id yet \(idR6" "missing idR6 when the game ships R6"
+expect "Walk: locomotion without 'accept'" "locomotion not covered by acceptance"
+expect "Chop: idR6 is the R15 id" "R6 reuses the R15 upload"
+expect "Chop: accept.wobble is not a known setting" "unknown accept key"
+expect "Chop: accept.grounded must be true or false" "accept type"
+expect "Chop: accept.grips needs accept.prop" "grips without a prop"
+echo '{"rig": "R6", "rigs": ["R15", "R6"], "owner": "x", "animations": []}' > $TMP/rigs.json
+python3 $SKILL/scripts/anim_manifest.py $TMP/rigs.json > $TMP/bad.txt
+expect "rigs starts with R15 but rig is R6" "rig and rigs disagree"
+
 echo "Vfx and AnimationSet (Lune, real API database)"
+lune run $HERE/animcheck_test $TMP/ExampleAnimations.luau > $TMP/animcheck.txt; code=$?
+sed 's/^/  /' $TMP/animcheck.txt | grep -E "FAIL|passed"
+[ $code -eq 0 ] && ok "AnimCheck.luau: published clips vs the manifest (markers, loop, priority, R6)" || { bad "AnimCheck.luau"; cat $TMP/animcheck.txt; }
 lune run $HERE/vfx_test $TMP/Animations.luau > $TMP/vfx.txt; code=$?
 sed 's/^/  /' $TMP/vfx.txt | grep -E "ok|FAIL|passed|    "
 [ $code -eq 0 ] && ok "vfx_test.luau (with the generated Animations module)" || bad "vfx_test.luau"
@@ -114,6 +135,10 @@ if [ -n "${BPY_PYTHON:-}" ] || python3 -c "import bpy" 2>/dev/null; then
 	"${BPY_PYTHON:-python3}" $HERE/model_batch_test.py $SKILL/scripts/model_batch.py $SKILL/assets/examples/models.json "$TMP" > $TMP/batch.txt 2>&1; code=$?
 	grep -E "^  (ok  |FAIL) [^ ]|passed" $TMP/batch.txt
 	[ $code -eq 0 ] && ok "model_batch_test.py" || { bad "model_batch_test.py"; tail -20 $TMP/batch.txt; }
+	echo "anim_accept.py (R15 + R6 scene: ground contact Walk, Chop with a katana, broken variants)"
+	"${BPY_PYTHON:-python3}" $HERE/anim_accept_test.py $SKILL/scripts/anim_accept.py $SKILL/assets/examples/animations.json "$TMP/accept" > $TMP/accept.txt 2>&1; code=$?
+	grep -E "^  (ok  |FAIL) [^ ]|passed" $TMP/accept.txt
+	[ $code -eq 0 ] && ok "anim_accept_test.py" || { bad "anim_accept_test.py"; tail -20 $TMP/accept.txt; }
 	lune run $HERE/model_specs_test "$TMP/models/build/models/ModelSpecs.luau" > $TMP/specs.txt; code=$?
 	sed 's/^/  /' $TMP/specs.txt | grep -E "FAIL|passed"
 	[ $code -eq 0 ] && ok "ModelSpecs.luau applies pivots and grip Attachments (Lune, real API database)" || { bad "ModelSpecs.luau"; cat $TMP/specs.txt; }

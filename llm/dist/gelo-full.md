@@ -88,6 +88,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- Motion moved over from another skeleton (video mocap, AI motion, store packs) or made for both R15 and R6: add `accept` blocks (and `"rigs": ["R15", "R6"]`, `idR6`) to `animations.json` and run `scripts/anim_accept.py` in Blender on every clip until it passes: feet on the floor, no sliding against the game's speed, root in place, the prop stays in the hand and out of the body on every frame, loops close, markers present, R6 matches R15 (`references/animation.md` section 9; example `assets/examples/animations.json`). Load with `AnimationSet.new(animator, Animations.specsFor(humanoid))`.
 - Sets of props (weapons, tools, generated models): `scripts/model_batch.py` with a manifest (`assets/examples/models.json`) stands them up, scales them to studs, sets pivots and grip points, keeps them under the triangle budget, closes holes, exports FBX and renders icons from one camera; `--dry-run` first, re-runs redo only what changed (`references/blender.md` section 10). In Studio `ModelSpecs.apply(part)` adds the pivot and grip Attachments.
 - With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
 - After uploading: paste the ids into `animations.json` and run
@@ -106,6 +107,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 - Every animation id in the manifest is owned by (or granted to) the experience; tested in a published place or Team Test, not only in Studio.
 - Priorities: attacks override walking, hit reactions override attacks, death overrides everything; no unintended loops.
 - Damage, projectiles, footsteps and effects fire from markers, and the server still validates hits.
+- Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.
@@ -131,6 +133,7 @@ Checked against create.roblox.com/docs/animation (editor, events, curve editor, 
 6. Playing animations in code
 7. Permissions and publishing
 8. Common failures
+9. Retarget acceptance (mocap, AI clips, store animations)
 
 ## 1. Rig decision
 - **Players' own R15 avatars** (most games): animations must work on any body shape and scale; test on a tall, a short and a blocky avatar.
@@ -193,6 +196,19 @@ Add named markers on the events track at the exact frame something must happen (
 - Feet slide: run animation speed doesn't match WalkSpeed; adjust playback speed from velocity.
 - R6 animation on R15 avatar (or the reverse): nothing plays.
 - Memory grows each respawn: tracks and marker connections never cleaned up.
+
+## 9. Retarget acceptance (mocap, AI clips, store animations)
+Motion from another skeleton (FreeMoCap or other video capture, AI motion models, Unreal/store packs with 70+ bones, Animation Capture) never fits a 15-part R15 body or a 6-part R6 body by itself. What goes wrong, and what to do when moving it over:
+- **Proportions**: R15 arms are short and the torso is a brick. Copying angles makes hands miss the prop and feet float or sink. Scale the motion by leg length, stand the feet on the floor where the source says they touch it, and put the hands on the prop first (IK), then bend the arms to reach.
+- **R6** has no elbows or knees: aim each arm from shoulder to hand and each leg from hip to foot. Roblox's own generated clips are R15 only; ship R6 versions only when the game allows R6 avatars, as separate uploads (`idR6`).
+- **Props** go through a short body (a long blade through the torso), fly out of the hand or sink into the fingers. Check every frame, not a few poses.
+- **Loops** pop when the last pose isn't the first; **root** travel makes avatars drift (Roblox plays avatar animations in place); **markers** don't always survive the FBX import.
+
+The repeatable check, the same for every clip:
+1. In `animations.json` give each clip an `accept` block: `grounded` + `speed` (the WalkSpeed the game moves the character at; 0 for idles) for clips that keep contact with the ground, `prop` + `grips` (hand bone -> grip point, e.g. the `Grip` from `model_batch.py`) for clips with a prop, `rootMotion` for non-avatar rigs, tolerances at the top level. List `"rigs": ["R15", "R6"]` when both ship. Example: `assets/examples/animations.json` (Walk = ground contact, Chop = katana).
+2. In Blender, keep the clips as actions named like the manifest (`Walk`, and `Walk_R6` on the R6 rig; Fake User on, or Blender drops unused actions when saving), the character's parts bone-parented or skinned, the prop with a grip Empty. Run `blender -b scene.blend --python scripts/anim_accept.py -- animations.json` (or through the Blender MCP code tool). It reports, per clip and rig: feet floating or sinking and the frames, planted feet sliding against `speed`, root travel, the prop leaving the hand (frames, distance), the prop going through each body part (frames per part), loop pops (bone, degrees), markers with their times, and R15 vs R6 differences in length and marker frames. Fix and run again until it passes.
+3. Look at the reference, the rig and Studio from the same camera side by side (or the rig over the source video); the numbers don't catch style.
+4. After importing and publishing, run `AnimCheck.runAll(Animations)` in Studio (`assets/AnimCheck.luau`): it loads each published clip and reports missing markers, wrong saved looping or priority, and ids that don't load (ownership).
 
 ## File: references/blender.md
 
@@ -258,7 +274,7 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 1. **Rig**: for player avatars use a standard R15 rig. Hierarchy: Root > HumanoidRootNode > LowerTorso > (UpperTorso > Head, LeftUpperArm > LeftLowerArm > LeftHand, RightUpperArm > RightLowerArm > RightHand), LeftUpperLeg > LeftLowerLeg > LeftFoot, RightUpperLeg > RightLowerLeg > RightFoot. (The body spec names the root bone HumanoidRootNode; the animation export guides use HumanoidRootPart; blender_check.py accepts both.) Skeleton scale 1, meshes with zero transforms and scale 1 before skinning. Custom characters: import as Custom and use Adaptive Animation (HumanoidRigDescription) to map them to R15 so any R15 animation plays on them.
 2. **Animate** at 30 FPS (at least 30; other rates make Studio warn about key alignment), with the same character the animation is for. Avatar animations play in place: the root doesn't travel (walk cycles animate on the spot; code moves the character).
 3. **Name markers** you'll need (Hit, Release, Footstep) and list them in `animations.json`. Don't count on Blender timeline markers arriving as Roblox animation events: after import, check the Animation Editor's events track and add any that are missing.
-4. **Check and export**: `blender_check.py` (mode animation), then FBX with Bake Animation on, one animation per file.
+4. **Check and export**: `blender_check.py` (mode animation) and, for motion moved over from another skeleton, `anim_accept.py` with the manifest (feet on the floor, sliding, root, grip, prop through the body, loops, markers, R15 vs R6; `animation.md` section 9), then FBX with Bake Animation on, one animation per file.
 5. **Import in Studio**: Avatar tab > Character (R15) or your custom rig, open the Animation Editor (Avatar > Clip Editor), select the rig, `...` > Import > From FBX Animation (From File in newer builds), check the timeline, add events, set priority and looping, Publish to Roblox with the owner account/group. Emotes must be converted to a CurveAnimation (Curve Editor) before publishing.
 6. Paste the id into `animations.json`, run `anim_manifest.py`, play it through AnimationSet.
 
@@ -377,8 +393,10 @@ One drawing, every element: draw the effect in **white**, split into layers (glo
 
 Scripts and assets of this skill. Download them from https://github.com/G3LO1/gelo/tree/main/plugins/roblox-studio/skills/roblox-animation-vfx (paths relative to that folder):
 
+- `assets/AnimCheck.luau`
 - `assets/AnimationSet.luau`
 - `assets/Vfx.luau`
+- `assets/examples/animations.json`
 - `assets/examples/models.json`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
@@ -386,6 +404,7 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 - `assets/textures/smoke.png`
 - `assets/textures/spark.png`
 - `assets/textures/star.png`
+- `scripts/anim_accept.py`
 - `scripts/anim_manifest.py`
 - `scripts/blender_check.py`
 - `scripts/flipbook.py`

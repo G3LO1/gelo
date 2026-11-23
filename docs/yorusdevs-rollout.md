@@ -9,7 +9,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | 1 | Layered VFX: 4x4 flipbooks, per-layer color variants, sheet pack/check/preview | roblox-animation-vfx | done, Studio look pending |
 | 2 | UI: ItemCard + Button example in ui-spec.json (glow layer, shared motion, 9-slice, states) | roblox-ui-designer | done, Studio look pending |
 | 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | done, Studio import pending |
-| 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | todo |
+| 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | done, Studio import pending |
 | 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | todo |
 | 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | todo |
 | 7 | Maps: one complete slice before duplicating modules, player-view walkthrough, fair comparisons | roblox-map-builder | todo |
@@ -147,7 +147,53 @@ Still to do in Roblox Studio:
 2. Hold it with a RigidConstraint from `RightGripAttachment` to `Grip` on an R15 character.
 3. Look at the icons in the item cards (point 2) at phone size.
 
-## 4-7
+## 4. Retarget acceptance
 
-Not started. Dependencies: 4 runs on bpy here (and reuses blender_check / model_batch helpers);
-5 needs only Python; 6 and 7 add docs plus local checks, with captures and walkthroughs done in Studio.
+Sources: [R15 / R6 conversion and feet on the floor, 2:30](https://www.youtube.com/watch?v=pfxclxnZYxs&t=150s),
+[hands on the sword, blade through the body every frame, 2:00](https://www.youtube.com/watch?v=X8L-mP92zcA&t=120s),
+[same camera, fingers in the handle, prop flying out, 7:24](https://www.youtube.com/watch?v=4uufrxxUajs&t=444s).
+
+Landed:
+- `scripts/anim_accept.py` (Blender, same `animations.json`): per clip and rig, every frame: grounded
+  clips keep a foot on the floor (float/sink with frames), planted feet move at `accept.speed`
+  (sliding), root in place, hand on the prop's grip Empty (frames, distance), prop vs every body part
+  except the holding hand/forearm (BVH, frames per part), loop closes (bone, degrees / studs), manifest
+  markers on the action (frame, seconds). With `"rigs": ["R15", "R6"]` the `<Name>_R6` action on the
+  R6 rig (Right Arm / Right Leg instead of hand / foot, prop `<prop>_R6`) gets the same checks plus an
+  R15 vs R6 comparison of length and marker frames. CLI on a .blend, `--only`, `--json`, exit 1 on FAIL.
+- `anim_manifest.py`: `rigs`, `idR6` (todo/error, must differ from the R15 id), `accept` validation
+  (known keys, types, grips need a prop), a warning for locomotion without acceptance; generates
+  `SpecsR6`, `Rigs` and `specsFor(humanoid)`.
+- `assets/AnimCheck.luau` (Studio, after publishing): loads each clip with AnimationClipProvider and
+  reports missing markers, saved Loop/Priority that differ from the manifest, ids that don't load;
+  Specs and SpecsR6.
+- `assets/examples/animations.json`: R15 + R6, Walk (ground contact, speed 3, Footstep) and Chop
+  (Katana with its Grip, Hit).
+- Docs: `references/animation.md` section 9, `references/blender.md` animation step 4, SKILL.md
+  build + check, README; CI Blender job runs the acceptance test.
+
+Verified (bpy 5.3.0, Lune 0.10.4):
+- `anim_accept_test.py`: 27 passed. Scene built in Blender: R15 and R6 rigs with box parts on the bones,
+  Walk solved with two-bone IK (planted foot back at 3 studs/s, swing foot lifted), R6 Walk from hip
+  swings, Chop with a katana. Clean scene: 20 PASS, 0 FAIL/WARN. Ten broken variants each reported:
+  float (0.30 studs, frames 1-25), sink, slide, root 2.00 studs, loop pop, katana off the hand frames
+  8-12, blade through legs/torso (parts + frames), missing Hit, R6 length and marker drift, R6 rig
+  missing. CLI on a saved .blend: exit 0 with JSON report; broken file with `--only Walk`: exit 1.
+- `animcheck_test.luau`: 11 passed on real KeyframeSequence/Keyframe/KeyframeMarker instances.
+- Manifest tests: example (R15 + R6, 4 todos), 9 new error/warning cases (`bad_accept.json`).
+- Mutations caught: slide only one-sided, holding hand not ignored, sinking foot counted as planted.
+- Found while testing: Blender drops actions without users on save; the report now says to use Fake User.
+- All suites: animation-vfx 56, ui-designer 31, launch-kit 24, security 11, undead-eats 51,
+  luau-codegen 49; plugin validate OK; LLM pack up to date.
+
+Still to do in Roblox Studio:
+1. Import one accepted clip per rig (Animation Editor > Import From FBX), add any markers the import
+   dropped, publish, paste ids (`id`, `idR6`), regenerate `Animations.luau`.
+2. Run `AnimCheck.runAll(require(...Animations))` in the Command Bar: no problems.
+3. Playtest on R15 and R6 avatars (tall, short, blocky): feet on the floor while walking at the
+   game's WalkSpeed, katana in the hand, Hit lands on the swing; compare with the Blender view.
+
+## 5-7
+
+Not started. Dependencies: 5 needs only Python (and the moment table / markers from 4); 6 and 7 add
+docs plus local checks, with captures and walkthroughs done in Studio.

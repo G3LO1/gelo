@@ -27,6 +27,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- Motion moved over from another skeleton (video mocap, AI motion, store packs) or made for both R15 and R6: add `accept` blocks (and `"rigs": ["R15", "R6"]`, `idR6`) to `animations.json` and run `scripts/anim_accept.py` in Blender on every clip until it passes: feet on the floor, no sliding against the game's speed, root in place, the prop stays in the hand and out of the body on every frame, loops close, markers present, R6 matches R15 (`references/animation.md` section 9; example `assets/examples/animations.json`). Load with `AnimationSet.new(animator, Animations.specsFor(humanoid))`.
 - Sets of props (weapons, tools, generated models): `scripts/model_batch.py` with a manifest (`assets/examples/models.json`) stands them up, scales them to studs, sets pivots and grip points, keeps them under the triangle budget, closes holes, exports FBX and renders icons from one camera; `--dry-run` first, re-runs redo only what changed (`references/blender.md` section 10). In Studio `ModelSpecs.apply(part)` adds the pivot and grip Attachments.
 - With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
 - After uploading: paste the ids into `animations.json` and run
@@ -45,6 +46,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 - Every animation id in the manifest is owned by (or granted to) the experience; tested in a published place or Team Test, not only in Studio.
 - Priorities: attacks override walking, hit reactions override attacks, death overrides everything; no unintended loops.
 - Damage, projectiles, footsteps and effects fire from markers, and the server still validates hits.
+- Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.

@@ -107,3 +107,5 @@ jobs:
         run: |
           python tests/roblox-animation-vfx/model_batch_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/model_batch.py plugins/roblox-studio/skills/roblox-animation-vfx/assets/examples/models.json "$RUNNER_TEMP/blender"
           lune run tests/roblox-animation-vfx/model_specs_test "$RUNNER_TEMP/blender/models/build/models/ModelSpecs.luau"
+      - name: anim_accept.py on the R15 + R6 example (feet, root, grip, clipping, loops, markers)
+        run: python tests/roblox-animation-vfx/anim_accept_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/anim_accept.py plugins/roblox-studio/skills/roblox-animation-vfx/assets/examples/animations.json "$RUNNER_TEMP/accept"

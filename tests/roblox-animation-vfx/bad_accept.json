@@ -1,0 +1,11 @@
+{
+  "rig": "R15",
+  "rigs": ["R15", "R6"],
+  "owner": "group 1234567",
+  "accept": { "slideTolerance": -1, "grounded": true },
+  "animations": [
+    { "name": "Walk", "id": 31, "priority": "Movement", "looped": true },
+    { "name": "Chop", "id": 32, "idR6": 32, "priority": "Action", "looped": false, "markers": ["Hit"],
+      "accept": { "grips": { "RightHand": "Grip" }, "wobble": 1, "grounded": "yes" } }
+  ]
+}
