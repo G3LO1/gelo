@@ -31,6 +31,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- Sets of props (weapons, tools, generated models): `scripts/model_batch.py` with a manifest (`assets/examples/models.json`) stands them up, scales them to studs, sets pivots and grip points, keeps them under the triangle budget, closes holes, exports FBX and renders icons from one camera; `--dry-run` first, re-runs redo only what changed (`references/blender.md` section 10). In Studio `ModelSpecs.apply(part)` adds the pivot and grip Attachments.
 - With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
 - After uploading: paste the ids into `animations.json` and run
   `python3 scripts/anim_manifest.py animations.json -o src/shared/Animations.luau` (errors on missing ids unless `--allow-todo`; warns about wrong priorities, loops, missing hit markers, rig mismatches, duplicates).
@@ -152,6 +153,7 @@ How the skills in this plugin use Blender when the user has a Blender MCP server
 7. Model pipeline
 8. VFX and UI renders
 9. blender_check.py
+10. Batch model preparation (model_batch.py)
 
 ## 1. Detect, ask, offer
 **Detect**: Blender MCP tools are connected when the tool list (including deferred tools: ToolSearch with the query `blender`) has tools from a Blender server, e.g. `execute_blender_code`, `get_scene_info`, `get_object_info`, `get_viewport_screenshot` (names differ between servers; anything under an `mcp__blender...` prefix counts). If connected, say so in one line and use it where section 3 says it helps.
@@ -208,13 +210,25 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 - Modular kits for maps: pieces on the map's grid (4/8/16 studs), pivots at a consistent corner, shared materials/trim sheets, one mesh reused many times instead of many unique meshes (draw calls, memory).
 - Import kit pieces one by one (the Importer doesn't de-duplicate meshes), then assemble in Studio.
 - Collision: set CollisionFidelity per role in Studio (Box/Hull for props), invisible simple colliders for walkways.
+- Many props of one kind (a weapon set, a furniture line, generated models): don't fix them one by one, run them through `scripts/model_batch.py` (section 10).
 
 ## 8. VFX and UI renders
 - Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it, one render per layer if the effect is layered; pack and check them with `scripts/flipbook.py` (margins, sheet size, preview) and wire them as a layered preset (`vfx.md` section 8).
-- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images.
+- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images. `model_batch.py` renders them from one fixed orthographic camera for a whole set.
 
 ## 9. blender_check.py
 `scripts/blender_check.py` reads the open scene and prints errors/warnings (units, FPS, triangles, watertight, transforms, materials, UVs, R15 bone names and parents, leaf bones, root travel). Through MCP: send the whole file to the code tool (set `MODE` and optionally `EXPORT_PATH` at the top; it exports only when there are no errors). From a terminal: `blender -b file.blend --python blender_check.py -- --mode animation --export out.fbx`. It never modifies or saves the .blend.
+
+## 10. Batch model preparation (model_batch.py)
+For sets of props (weapons, tools, furniture, image-to-3D output): one manifest, one script, every model fixed the same way. Models from image-to-3D services or asset packs are never ready: they come out at one size (a dagger as long as a hammer), lying down or facing the wrong way, with holes you can see through, extra parts nobody asked for, far too many triangles, and no idea where the hand goes.
+
+- **Sources**: one object per picture or file. For image-to-3D, give each part its own reference on a plain background (sword alone, scabbard alone, pedestal alone) with effects removed (smoke, sparkles, auras turn into solid lumps) and labels cut out; ask for a face limit near the budget (about 1,500 for a small blade, 3,500 for a big one, 6,000 for armor pieces); dry-run paid jobs first and never paste API keys into the chat (log the CLI in through the browser).
+- **Manifest** (`assets/examples/models.json`): per model `source`, `up` and `front` (which source axis points up and which to the front: a blade's sharp edge, the side players see), `studs` (longest side, or `{"z": h}`; a katana is ~4, a spear ~6.5), `pivot` (`bottom` for things that stand, a point name such as `Grip` for held items), `points` (named points as bounding-box fractions: `Grip`, `BladeStart`, `Top`), `keep` (object-name patterns; extras are dropped), `fillHoles`, `maxTriangles` (decimated down to it).
+- **Run**: `blender -b --python scripts/model_batch.py -- models.json --dry-run` prints the plan (source size -> studs, scale factor, triangles before -> after, dropped parts, closed holes, blender_check warnings) and writes nothing; without `--dry-run` it writes `<out>/<name>.fbx` (blender_check settings), `<out>/icons/<name>.png` (fixed camera, transparent), `models.json` and `ModelSpecs.luau`. `--only A,B` and `--force` narrow or redo. Through a Blender MCP code tool: set `MANIFEST` (and `DRY_RUN`) at the top and send the file.
+- **Resume**: `model_batch_state.json` keys every model by its source bytes and its settings. A second run skips what didn't change, redoes what did and retries what failed; the state is written after every model, so a crash or a stopped run continues where it stopped. Change a setting, run it again: only that model is redone.
+- **In Studio**: import the FBX files (3D Importer, or Open Cloud for hundreds), then `ModelSpecs.apply(meshPart)` sets `PivotOffset` and adds the `Grip` / `BladeStart` Attachments (the importer doesn't carry points on static meshes) and warns when a part came in at another scale. Hold items with a `RigidConstraint` from the hand's `RightGripAttachment` to the item's `Grip` Attachment; hit only with the part above `BladeStart`.
+- Axes: Blender +Z up and -Y front become Roblox +Y up and the part's front (-Z, LookVector) with the FBX settings above; check this once on one item in Studio (the `Grip` Attachment should sit on the handle) before importing a whole set.
+- Still by hand: fitting armor or anything worn on the body (fit one side, mirror the other), deciding the style and checking each icon and in-game look.
 
 ## File: references/vfx.md
 
@@ -308,6 +322,7 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 
 - `assets/AnimationSet.luau`
 - `assets/Vfx.luau`
+- `assets/examples/models.json`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
 - `assets/textures/slash_4x4.png`
@@ -318,4 +333,5 @@ Scripts and assets of this skill. Download them from https://github.com/G3LO1/ge
 - `scripts/blender_check.py`
 - `scripts/flipbook.py`
 - `scripts/make_textures.py`
+- `scripts/model_batch.py`
 - `scripts/vfx_showcase.luau`

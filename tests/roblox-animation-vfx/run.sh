@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for the roblox-animation-vfx skill: Vfx presets against Roblox's API database, the
 # showcase model, AnimationSet behaviour, the manifest validator/generator, flipbook sheets
-# (flipbook.py pack/check/preview) and the textures.
+# (flipbook.py pack/check/preview), the textures, and with bpy blender_check.py and the
+# model_batch.py pipeline (+ its ModelSpecs.luau under Lune).
 # Needs: python3 + pillow, lune. Run from the repo root: bash tests/roblox-animation-vfx/run.sh
 set -u
 SKILL=plugins/roblox-studio/skills/roblox-animation-vfx
@@ -109,6 +110,13 @@ if [ -n "${BPY_PYTHON:-}" ] || python3 -c "import bpy" 2>/dev/null; then
 	"${BPY_PYTHON:-python3}" $HERE/blender_test.py $SKILL/scripts/blender_check.py "$TMP" > $TMP/blender.txt 2>&1; code=$?
 	grep -E "^  (ok|FAIL)|passed" $TMP/blender.txt
 	[ $code -eq 0 ] && ok "blender_test.py" || bad "blender_test.py"
+	echo "model_batch.py (example manifest on generated sources: dry run, FBX, icons, resume)"
+	"${BPY_PYTHON:-python3}" $HERE/model_batch_test.py $SKILL/scripts/model_batch.py $SKILL/assets/examples/models.json "$TMP" > $TMP/batch.txt 2>&1; code=$?
+	grep -E "^  (ok  |FAIL) [^ ]|passed" $TMP/batch.txt
+	[ $code -eq 0 ] && ok "model_batch_test.py" || { bad "model_batch_test.py"; tail -20 $TMP/batch.txt; }
+	lune run $HERE/model_specs_test "$TMP/models/build/models/ModelSpecs.luau" > $TMP/specs.txt; code=$?
+	sed 's/^/  /' $TMP/specs.txt | grep -E "FAIL|passed"
+	[ $code -eq 0 ] && ok "ModelSpecs.luau applies pivots and grip Attachments (Lune, real API database)" || { bad "ModelSpecs.luau"; cat $TMP/specs.txt; }
 else
 	echo "  skipped: no Python with bpy (pip install bpy needs the Python version Blender ships for)"
 fi

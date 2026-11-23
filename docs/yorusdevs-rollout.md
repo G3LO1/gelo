@@ -8,7 +8,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | --- | --- | --- | --- |
 | 1 | Layered VFX: 4x4 flipbooks, per-layer color variants, sheet pack/check/preview | roblox-animation-vfx | done, Studio look pending |
 | 2 | UI: ItemCard + Button example in ui-spec.json (glow layer, shared motion, 9-slice, states) | roblox-ui-designer | done, Studio look pending |
-| 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | todo |
+| 3 | 3D models: batch prep around blender_check.py (manifest, dry run, FBX, icon, resume) | roblox-animation-vfx | done, Studio import pending |
 | 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | todo |
 | 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | todo |
 | 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | todo |
@@ -103,7 +103,51 @@ Still to do in Roblox Studio:
 4. Playtest with `UiStates.bind`: mouse hover/press, touch tap (no stuck focus), gamepad selection and A,
    Disabled attribute, `open()` stagger, reduced motion.
 
-## 3-7
+## 3. Batch model preparation
 
-Not started. Dependencies: 3 and 4 run on bpy here; 5 needs only Python; 6 and 7 add docs plus
-local checks, with the actual captures and walkthroughs done in Studio.
+Sources: [references per part, no effects, 1:04](https://www.youtube.com/watch?v=FA_d0M3-Onw&t=64s),
+[face limits and dry run, 2:40](https://www.youtube.com/watch?v=FA_d0M3-Onw&t=160s),
+[what comes out wrong, 3:43](https://www.youtube.com/watch?v=FA_d0M3-Onw&t=223s),
+[one Blender script for every model, 4:13](https://www.youtube.com/watch?v=FA_d0M3-Onw&t=253s).
+
+Landed:
+- `scripts/model_batch.py` (runs in Blender: `blender -b --python`, `python` with bpy, or a Blender
+  MCP code tool): per model import (fbx/obj/glb/gltf/blend), drop extra objects (`keep`), bake
+  transforms and join, turn so `up` -> +Z and `front` -> -Y, scale to `studs`, `fillHoles`, decimate to
+  `maxTriangles`, named `points` (bounding-box fractions), `pivot` (bottom/center/top/point),
+  blender_check.py (model mode; errors fail the model), FBX with blender_check's export settings, icon
+  from one fixed orthographic camera (Cycles CPU, transparent).
+- `--dry-run` does all of it in memory and prints the plan; writes nothing.
+- `model_batch_state.json`: key = source bytes + settings + VERSION; unchanged models are skipped,
+  changed ones redone, failed ones retried; saved after every model (resume). `--only`, `--force`.
+- Outputs `models.json` and `ModelSpecs.luau` (Size, PivotOffset, Attachments in Roblox axes relative
+  to the MeshPart center; `apply(part)` sets the pivot, creates/moves Attachments, warns on scale).
+- `assets/examples/models.json`: Katana (lying, wrong facing, extra scabbard, grip pivot), Spear (too
+  dense, decimated), Pedestal (open top, FBX source, bottom pivot).
+- Docs: `references/blender.md` section 10 (sources, manifest, run, resume, Studio side, axes, what
+  stays manual), SKILL.md, map builder (kits), README; CI blender job runs the batch test + Lune.
+
+Verified (bpy 5.3.0, Lune 0.10.4):
+- `model_batch_test.py`: 32 passed. Generated sources wrong the way image-to-3D output is; dry run
+  writes nothing; exported FBX re-imported and measured (Katana 4 studs upright, edge toward -Y,
+  grip pivot; Spear 6.5 studs, 19194 -> 1454 triangles; Pedestal 1.5 studs, bottom pivot,
+  watertight); icons 256 px transparent and upright; second run skips all; changed setting / changed
+  source redo only that model; missing source fails only that model and is retried; 6 manifest
+  errors; command line from a fresh interpreter (exit 0 / 2).
+- `model_specs_test.luau`: 8 passed on real MeshParts (pivot, reused/created Attachments, scale warning).
+- Mutations caught: front mapped to +Y, never skipping, dry run writing.
+- Found and fixed while testing: with bpy from PyPI, `bmesh`/`mathutils` import only after `bpy`.
+- All suites: animation-vfx 43, ui-designer 31, launch-kit 24, security 11, undead-eats 51,
+  luau-codegen 49; plugin validate OK; LLM pack up to date.
+
+Still to do in Roblox Studio:
+1. Import one FBX from `build/models` (3D Importer, Insert Using Scene Position) and run
+   `ModelSpecs.apply(meshPart)`: the part should be the listed size and the `Grip` Attachment should
+   sit on the handle; this confirms the Blender -> Roblox axis mapping (`to_roblox`: -x, z, y).
+2. Hold it with a RigidConstraint from `RightGripAttachment` to `Grip` on an R15 character.
+3. Look at the icons in the item cards (point 2) at phone size.
+
+## 4-7
+
+Not started. Dependencies: 4 runs on bpy here (and reuses blender_check / model_batch helpers);
+5 needs only Python; 6 and 7 add docs plus local checks, with captures and walkthroughs done in Studio.

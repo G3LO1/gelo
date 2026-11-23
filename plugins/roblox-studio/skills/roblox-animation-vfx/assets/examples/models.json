@@ -1,0 +1,37 @@
+{
+  "out": "build/models",
+  "defaults": { "maxTriangles": 4000, "up": "+Z", "front": "-Y", "pivot": "bottom", "fillHoles": false },
+  "icon": { "size": 256, "azimuth": 35, "elevation": 20, "fill": 0.85, "samples": 16 },
+  "models": [
+    {
+      "name": "Katana",
+      "source": "raw/Katana.obj",
+      "up": "+X",
+      "front": "+Y",
+      "studs": 4,
+      "keep": ["Blade*", "Handle*", "Guard*"],
+      "points": { "Grip": [0.5, 0.5, 0.1], "BladeStart": [0.5, 0.5, 0.26] },
+      "pivot": "Grip",
+      "maxTriangles": 3500
+    },
+    {
+      "name": "Spear",
+      "source": "raw/Spear.obj",
+      "up": "-Y",
+      "front": "+Z",
+      "studs": 6.5,
+      "points": { "Grip": [0.5, 0.5, 0.35], "TipStart": [0.5, 0.5, 0.88] },
+      "pivot": "Grip",
+      "maxTriangles": 1500
+    },
+    {
+      "name": "Pedestal",
+      "source": "raw/Pedestal.fbx",
+      "studs": { "z": 1.5 },
+      "fillHoles": true,
+      "points": { "Top": [0.5, 0.5, 1.0] },
+      "pivot": "bottom",
+      "maxTriangles": 2000
+    }
+  ]
+}
