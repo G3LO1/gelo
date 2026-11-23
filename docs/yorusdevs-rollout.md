@@ -12,7 +12,7 @@ status, what landed, how it was verified, what still needs Roblox Studio.
 | 4 | Animation: retarget acceptance checks (feet, root, grip, prop clipping, loops, markers, R15/R6) | roblox-animation-vfx | done, Studio import pending |
 | 5 | Audio: SFX manifest + local validator (empty, leading silence, late onset), sync example | roblox-animation-vfx | done, listening + upload pending |
 | 6 | Captures and thumbnails: repeatable test scene, shot list, in-game shot vs thumbnail preview | roblox-launch-kit | done, Studio take pending |
-| 7 | Maps: one complete slice before duplicating modules, player-view walkthrough, fair comparisons | roblox-map-builder | todo |
+| 7 | Maps: one complete slice before duplicating modules, player-view walkthrough, fair comparisons | roblox-map-builder | done, Studio walkthrough pending |
 
 ## 1. Layered VFX
 
@@ -283,7 +283,55 @@ Still to do in Roblox Studio:
    nothing pops in on the take, the Clash shot lands on the slash.
 2. Save the Clash capture to `store/shots/`, make the thumbnail from it, run `check_store_assets.py`.
 
-## 7
+## 7. Slice acceptance and fair comparisons
 
-Not started: map-builder slice acceptance and fair comparisons (docs plus a local check), walkthrough
-in Studio.
+Sources: [kit, whole buildings inside and out, two passes, one hero wall, 4:41](https://www.youtube.com/watch?v=lnAsAGTUVdI&t=281s),
+[mistakes to find, different concept art per variant, 3:37](https://www.youtube.com/watch?v=tbiq8r69Xm4&t=217s).
+
+Landed:
+- `roblox-map-builder/scripts/slice_check.luau` (Studio via execute_luau, or Lune on .rbxl/.rbxm):
+  checks one tagged slice (Kit + Module, Doorway, Interior, Route with Order, Viewpoint with View,
+  Landmark): doors fit the avatar; route has floor, no blocking part (body probes above a climbable
+  step), no step over MaxStep, goes in through a doorway; interior clear height and on the route; the
+  four viewpoints exist at eye height; kit pieces on the grid, 90-degree turns, one size per module,
+  no piece through another (> 10% of the smaller's volume; corner joints pass). `--scene` writes a
+  4-viewpoint walkthrough in the scene format of point 6, for ShotDirector.
+- `roblox-map-builder/scripts/compare_variants.py`: variants must share the reference (sha256), the
+  walkthrough scene (sha256), every shot, and a 1-5 score on every criterion; warns on shot sizes and
+  failed slices; HTML grid with the reference per view and the score table.
+- `assets/examples/compare.json` (pass 1 draft vs pass 2 final of one slice).
+- SKILL.md: workflow with the two kit passes (draft slice, then one hero piece sets the style),
+  slice acceptance before duplicating, fair comparisons, new common failures. CI runs the map-builder
+  tests; README.
+
+Verified (Lune 0.10.4, Python 3.13 + Pillow):
+- `bash tests/roblox-map-builder/run.sh`: 16 passed. `slice_test.luau` 20 passed: a house slice built
+  in Lune passes (16 kit pieces, 4 modules, corner joints fine) and 12 broken slices are each reported
+  (low door, crate on the route, no floor, 4-stud step, missing viewpoint, wrong eye height, off-grid
+  piece, two sizes of one module, overlapping floors, 45-degree wall, low ceiling, route around the
+  door). CLI on .rbxl (exit 0, scene written) and .rbxm (exit 1); the scene passes `scene_spec.py
+  check`. Comparisons: example has no errors; other reference, other camera, missing shot, missing /
+  unknown / out-of-range scores, failed slice, shot sizes each reported; exit codes.
+- Mutations caught: door height ignored, steps ignored, overlap threshold too loose, reference not
+  compared.
+- Found while testing: Lune doesn't derive Part.Position from CFrame (the script reads
+  CFrame.Position, the same in Studio); the slice's own 1-stud floor edge was first reported as a
+  blocker, fixed by starting the body probes above MaxStep.
+
+Still to do in Roblox Studio:
+1. Tag a real slice, run `slice_check.luau` with execute_luau, fix until it passes.
+2. Play the written walkthrough with ShotDirector and capture the four views; playtest the route.
+3. For pass 2 or a second builder, capture with the same scene file and run `compare_variants.py`.
+
+## Summary
+
+All seven changes landed on `claude/tender-ride-62sn7l` with tests that run in CI. What is left needs
+Roblox Studio, a person's ears or eyes, or the owner account:
+- uploads with the owner account and moderation (textures, flipbook sheet, UI layer images, sounds,
+  animations), then ids into `Vfx.Textures`, `images`, `sounds.json`, `animations.json`;
+- Studio passes listed under each section (looks, playtests, device emulator, the lookAt direction
+  that Lune can't check, real import axes for model_batch);
+- choosing takes by ear and judging style, which the checks measure but can't decide.
+Final suite results: map-builder 16, launch-kit 39, animation-vfx 74 (with bpy), ui-designer 31,
+security-perf-audit 11, undead-eats 51, luau-codegen 49, installers OK, plugin and marketplace validate OK,
+LLM pack up to date. The plugin version was not bumped: do it with the release notes when releasing.

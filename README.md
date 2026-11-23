@@ -62,7 +62,7 @@ The skills work best with the Roblox Studio MCP tools connected, so Claude can b
 | Skill | What it does |
 | --- | --- |
 | [`gelo`](plugins/roblox-studio/skills/gelo/SKILL.md) | The `/gelo` / `@gelo` entry point: shows the menu, routes a task to the right skill by alias or meaning, and chains the skills in pipeline order (idea -> plan -> UI -> code -> animation -> map -> audit -> launch) with a hand-off after each step. |
-| [`roblox-map-builder`](plugins/roblox-studio/skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. |
+| [`roblox-map-builder`](plugins/roblox-studio/skills/roblox-map-builder/SKILL.md) | Builds aesthetic, correct and performant maps (terrain, buildings, lighting, props, procedural generation, validation) in any style. Kits in two passes (draft, then one hero piece sets the final style), one complete slice accepted at avatar scale before modules are duplicated (`slice_check.luau`: doors, route, steps, interior, eye-height viewpoints, grid, module sizes, overlaps, plus a walkthrough scene), and fair variant comparisons from one reference, one camera and one set of criteria (`compare_variants.py`). |
 | [`roblox-game-idea-validator`](plugins/roblox-studio/skills/roblox-game-idea-validator/SKILL.md) | Judges a Roblox game idea before you build it: scores hook, core loop, retention, social value, market, mobile fit, monetization, scope and policy risk, then gives a GO / PIVOT / KILL verdict with fixes and a cheap test plan. |
 | [`roblox-game-production-plan`](plugins/roblox-studio/skills/roblox-game-production-plan/SKILL.md) | Turns a (validated) idea into a full production plan: every system, 3D model, animation, UI screen, sound, VFX, monetization, analytics and publishing task, with owners, sizes, priorities, a capacity check and milestones. Uses current Roblox specs (mesh/texture limits, asset permissions, DataStore limits, Creator Rewards, maturity questionnaire). |
 | [`roblox-luau-codegen`](plugins/roblox-studio/skills/roblox-luau-codegen/SKILL.md) | Writes the game's Luau code from the plan (Rojo project or straight into Studio): a tested template with session-locked player data, idempotent purchases and validated, rate-limited remotes, plus the game's own systems built from ready patterns, checked with StyLua/Selene. |
@@ -110,6 +110,7 @@ The other skills' scripts have tests too:
 ```
 bash tests/roblox-security-perf-audit/run.sh   # every scanner rule vs fixtures, no false positives on the template/example, place audit
 bash tests/roblox-launch-kit/run.sh            # store asset checker (+ shot vs thumbnail), scene specs, ShotDirector (lune)
+bash tests/roblox-map-builder/run.sh           # slice acceptance on built test slices (lune), walkthrough scene, variant comparisons
 bash tests/roblox-animation-vfx/run.sh         # Vfx presets vs Roblox's API database, AnimationSet, manifest validator, textures, SFX
                                                # + blender_check.py, model_batch.py and anim_accept.py on real Blender when bpy is installed (BPY_PYTHON=...)
 bash tests/install/run.sh                      # install.sh / install.ps1 (pwsh): folder, --global, --for, piped-in download
