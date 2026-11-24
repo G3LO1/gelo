@@ -1,6 +1,6 @@
 ---
 name: "roblox-animation-vfx"
-description: "Plan, make and wire Roblox character animations and visual effects: rig choice (R15/R6/custom), the animation list from the game's mechanics, priorities and looping, Animation Editor, Animation Capture, the Animation Graph Editor (blend trees, state machines, SetParameter), markers for hit timing, IKControl, permissions; plus game-feel VFX (hits, pickups, level ups, purchases, heals, dust, explosions, rarity glows, ambience, trails) with ParticleEmitters, beams, trails, highlights and lights, matched to the art style and kept within phone budgets, with quality and reduced-flashing settings. Uses a Blender MCP server when one is connected (or offers to connect it) for rigs, animation blocking, flipbooks and Roblox-ready FBX exports checked by a script. Ships a validated animation manifest -> Luau module generator, an AnimationSet runtime, a Vfx preset library, generated particle textures and a Studio showcase model. Use whenever someone needs animations, an animation list, attack/emote/idle animations, Animation Graph or IK help, effects, particles, VFX, juice or game feel for a Roblox game, mentions Blender animations or exporting rigs/FBX to Roblox, or says 'zrób animacje', 'efekty cząsteczkowe', 'dodaj efekty', 'animacja ataku', 'animacja w blenderze'."
+description: "Plan, make and wire Roblox character animations and visual effects: rig choice (R15/R6/custom), the animation list from the game's mechanics, priorities and looping, Animation Editor, Animation Capture, the Animation Graph Editor (blend trees, state machines, SetParameter), markers for hit timing, IKControl, permissions; plus game-feel VFX (hits, pickups, level ups, purchases, heals, dust, explosions, rarity glows, ambience, trails) with ParticleEmitters, beams, trails, highlights and lights, matched to the art style and kept within phone budgets, with quality and reduced-flashing settings. Uses a Blender MCP server when one is connected (or offers to connect it) for rigs, animation blocking, flipbooks and Roblox-ready FBX exports checked by a script. Ships a validated animation manifest -> Luau module generator, an AnimationSet runtime, a Vfx preset library, generated particle textures, a flipbook baking pipeline (black/white renders -> packed sheets) for hero effects and a Studio showcase model. Use whenever someone needs animations, an animation list, attack/emote/idle animations, Animation Graph or IK help, effects, particles, VFX, juice or game feel for a Roblox game, mentions Blender animations or exporting rigs/FBX to Roblox, or says 'zrób animacje', 'efekty cząsteczkowe', 'dodaj efekty', 'animacja ataku', 'animacja w blenderze'."
 ---
 
 # Roblox Animation & VFX
@@ -18,7 +18,7 @@ From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type)
 - Owner account (user or group): it must upload the animations and textures.
 
 ## 2. Plan
-Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play).
+Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play, `references/flipbooks.md` when a hero effect is baked to a flipbook).
 1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX, camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small.
 2. **Animation manifest**: write `animations.json` (format in `scripts/anim_manifest.py`; ids 0 until uploaded). Priorities, looping and markers follow the table in the reference. Use an Animation Graph for locomotion blends and jump/fall/land chains when the team has someone to build it; plain tracks otherwise.
 3. **VFX list**: map moments to `Vfx.luau` presets; add or tune presets for the style (colors, sizes, textures, counts) in its `Vfx.Presets` table.
@@ -35,6 +35,7 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
 - Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Hero effects that emitters can't reach (stylized explosion, aura, slash): bake a flipbook. Brief from a reference (`vfx.md` section 9), render every frame on black and on white (`flipbooks.md` has the Blender script), then `python3 scripts/pack_flipbook.py --black flip/black --white flip/white -o flipbooks --name Blast --frames 16 --skip-first 1`; upload the sheets, paste the ids into `Vfx.Textures` and add a preset with a `flipbook` field (`FlipbookBlast` is the template; `delay` chains sheets for effects longer than 16 frames). The packer warns when the two renders don't differ only by the background.
 - Check every preset against Roblox's API database and get a model to look at:
   `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
@@ -44,11 +45,12 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 - Priorities: attacks override walking, hit reactions override attacks, death overrides everything; no unintended loops.
 - Damage, projectiles, footsteps and effects fire from markers, and the server still validates hits.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
+- Flipbooks: the packer's matte check is clean, sheets are at most 1024 px, the effect looks right from behind and above, its size was compared with a reference object in Studio, and baked flash frames are handled for reduced flashing.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.
 
 ## 5. Report
-Moment table, the manifest status (done / todo ids), files added (Animations.luau, AnimationSet.luau, Vfx.luau, textures), what was verified (manifest check, showcase validation, playtest, screenshots) and the manual steps (animating, uploading animations and textures with the owner account, permissions, pasting ids).
+Moment table, the manifest status (done / todo ids), files added (Animations.luau, AnimationSet.luau, Vfx.luau, textures, flipbook sheets), what was verified (manifest check, showcase validation, playtest, screenshots) and the manual steps (animating, uploading animations and textures with the owner account, permissions, pasting ids).
 
 ## Hand-off
 `roblox-luau-codegen` to wire remotes and controllers that trigger animations and effects (UI controller pattern, `Net.fire`); `roblox-ui-designer` for UI feedback (pops, toasts, reward screens); `roblox-map-builder` for ambient effects and lighting that the VFX must read against.

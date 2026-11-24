@@ -10,6 +10,8 @@ Checked against create.roblox.com/docs/effects (particle emitters, beams, trails
 5. Budgets and accessibility
 6. Networking
 7. Textures
+8. Stylized hero effects (toon recipe)
+9. Briefing an effect from a reference
 
 ## 1. Feedback map
 Every verb in the mechanic matrix gets feedback on three channels, sized by importance: **visual** (VFX, UI pop, camera), **audio** (SFX), **motion** (animation, hit-stop, shake). Big moments (level up, rare drop, purchase, boss kill) get all three and stand out; frequent moments (footsteps, coin pickup, every hit) stay small and cheap so they don't become noise.
@@ -37,7 +39,7 @@ Every verb in the mechanic matrix gets feedback on three channels, sized by impo
 
 ## 3. Beams, trails, highlights, lights
 - **Beam**: texture stretched between two attachments (lasers, tethers, lightning, god rays); Segments + CurveSize for arcs; TextureSpeed for flow; FaceCamera for billboard beams.
-- **Trail**: ribbon behind two attachments on a moving part (swords, dashes, projectiles); Lifetime short (0.1-0.4 s), WidthScale tapering to 0, MinLength to skip micro-segments.
+- **Trail**: ribbon behind two attachments on a moving part (swords, dashes, projectiles); Lifetime short (0.1-0.4 s), WidthScale tapering to 0, MinLength to skip micro-segments. For a sword swing put the two attachments on the blade tip and on the guard: the ribbon then always spans the blade, with no gap between slash and sword.
 - **Highlight**: outline/fill on a model (selection, interactables, x-ray objectives). Only 255 Highlights display at once on a client (extra ones are silently ignored, and disabled ones still take a slot), so reuse one and reparent it, and delete highlights you no longer need.
 - **Lights**: PointLight/SpotLight/SurfaceLight in attachments for flashes and muzzle fire; short tween to 0; `Shadows = false` on effect lights. Neon parts don't emit light by themselves.
 - **Camera**: a few studs of shake for impacts (scale by distance, respect a "reduce camera shake" setting), FOV punch for dashes.
@@ -47,7 +49,7 @@ Match the world (see the map builder's style presets) and the UI style:
 - **Cartoon / simulator**: bright saturated colors, chunky stars and circles, bouncy scale (size curve overshoot), LightEmission 0.5-1, short lifetimes.
 - **Low-poly**: flat-colored square or triangle particles, few of them, no soft glows; Rotation random, no motion blur.
 - **Realistic**: flipbook smoke/fire/sparks, Squash for sparks, darker smoke with LightEmission 0, dust colored from the ground material, physically plausible gravity.
-- **Anime / fighting**: speed lines, impact frames (one big flash frame), ring shockwaves, hit-stop of 0.05-0.1 s, trails on every swing.
+- **Anime / fighting**: speed lines, impact frames (one big flash frame), ring shockwaves, hit-stop of 0.05-0.1 s, trails on every swing; for hero effects use the toon recipe in section 8.
 - **Horror**: almost no particles: dust motes, breath fog, flicker on one light (keep the reduced-flashing option), sound carries the feedback.
 - **Sci-fi / neon**: additive glows, beams and rings in the accent colors (cyan, magenta, violet), sparks with Squash, LightInfluence 0.
 - **Cozy / pastel**: soft circles, hearts, leaves, slow upward drift, low saturation and no flashes.
@@ -68,3 +70,25 @@ Match the world (see the map builder's style presets) and the UI style:
 - `scripts/make_textures.py` generates original white-on-transparent textures (glow, star, spark, smoke, ring); `assets/textures/` holds a 128 px set. Upload them (Asset Manager bulk import) with the account or group that owns the experience and paste the ids into `Vfx.Textures`.
 - 64-256 px is enough for most particles; reuse a few textures across many effects; flipbooks up to 1024 px sheets only for hero effects.
 - White textures + `Color` let one texture serve every color; keep alpha soft at the edges to avoid hard squares.
+- Hero effects that emitters can't reach (stylized fire, explosions, slashes, auras) are baked to flipbook sheets: `references/flipbooks.md` and `scripts/pack_flipbook.py`.
+
+## 8. Stylized hero effects (toon recipe)
+For the few effects a game is remembered for, in an anime, cartoon or fighting style. They are built in a 3D tool and baked to a flipbook (`flipbooks.md`), or approximated with layered emitters. The recipe:
+- **Flat color, three tones, lit from one side** like a cartoon: no soft gradients. For fire/explosions: near-white and yellow in the middle, red and orange outside, cooling to almost black at the end. Every particle uses the same flat material.
+- **The silhouette breaks up**: lumpy outline with holes eating into it so it falls apart like clouds. Not spiky, not noise static, not hair-thin lines (the failure modes of generated edges).
+- **Light cuts, it doesn't fade**: full brightness from the very first frame, then it stops. A fading flash feels soft; a cut feels like a hit. With `Vfx` use a very short `light.time` (0.05-0.1 s) or a particle that stays at Transparency 0 until its last keypoint.
+- **Everything keeps moving**: pieces switch to a new shape every few frames (they flash, they don't bounce). A held pose reads as a sticker.
+- **Think in 3D, ship in 2D**: build real lobes, domes and flying petals and let the camera flatten them. A flat picture that fakes a ball still reads as flat from another angle.
+- **Sub-effects sell the volume**: shock rings, dust, wind lines and sparks around the main shape. A wave, a vortex or a blast with none of these looks like a card.
+- **No flat starts or ends**: put a front shape (an arrowhead shield) before a wave, a white-hot core behind it and a glowing source at the hands or blade, so the effect never begins with a visible flat edge. From behind a flat card is a thin line: add depth layers.
+- **Sword slashes** ride the blade: trace the tip and the guard through the swing and lay the slash between those two paths on every frame.
+- **Timing**: 16 frames at 20-30 fps for bursts; loops blend the last frames into the first; one-shots skip the warm-up frame; auras redraw their edge every frame so they crackle.
+- Check each effect on phone size and in dark and bright places, and keep the reduced-flashing variant (section 5).
+
+## 9. Briefing an effect from a reference
+A reference video is a guide to the look and the technique, not something to copy frame for frame.
+1. **Collect 1-3 references** (a public tutorial, a game clip, your own sketch) for one effect each.
+2. **Make them readable for the model**: a model that can't watch video can read frames. Extract a contact sheet every 0.1 s (`ffmpeg -i ref.mp4 -vf "fps=10,scale=320:-1,tile=6x5" sheet_%02d.png`, 30 frames per image) or give a transcript, and ask for notes on every step: shapes, colors and tones, brightness over time, what appears, moves and disappears.
+3. **Write the brief** from those notes: target quality ("reach this level, don't copy it"), style recipe (section 8), size in studs, duration, one-shot or loop, where it plays (hands, ground, projectile), colors, and what it must not hide.
+4. **Iterate**: render, look at the strip, fix one thing per message with frame numbers ("the slash doesn't touch the blade in frames 12-14"). Simple effects take 1-2 rounds; a complicated edge can take nine.
+5. **Check from every angle** (front, behind, above), at phone size and at low quality, then wire it (`Vfx` preset) and playtest.

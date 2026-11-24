@@ -24,6 +24,8 @@ Vfx.Textures = {
 	Spark = "rbxassetid://0", -- TODO: upload spark.png
 	Smoke = "rbxassetid://0", -- TODO: upload smoke.png
 	Ring = "rbxassetid://0", -- TODO: upload ring.png
+	-- Baked flipbook sheets (scripts/pack_flipbook.py): one entry per sheet, see references/flipbooks.md.
+	FlipbookBlast = "rbxassetid://0", -- TODO: upload the packed sheet
 }
 local DEFAULT_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 
@@ -58,6 +60,12 @@ type Emitter = {
 	zOffset: number?,
 	lockedToPart: boolean?,
 	flash: boolean?, -- bright flash: removed with reduced flashing
+	lightInfluence: number?, -- default: 0 for glowing particles, 1 otherwise; 0 keeps baked, flat-lit frames unshaded
+	-- Baked frames on a sheet from scripts/pack_flipbook.py (applied once the texture id is uploaded):
+	-- layout "Grid2x2" | "Grid4x4" | "Grid8x8", mode "Loop" | "OneShot" | "PingPong" | "Random",
+	-- fps 20-30. Lifetime should be frames / fps (16 frames at 24 fps = 0.67 s).
+	flipbook: { layout: string, mode: string, fps: number, startRandom: boolean? }?,
+	delay: number?, -- one-shots: seconds before this emitter bursts (chains sheets longer than one grid)
 }
 
 type Preset = {
@@ -280,6 +288,25 @@ Vfx.Presets = {
 		},
 		light = { color = Color3.fromRGB(255, 170, 80), brightness = 6, range = 20, time = 0.4 },
 	},
+	-- Baked hero effect: one 4x4 sheet (16 frames at 24 fps) from scripts/pack_flipbook.py. Until the
+	-- sheet is uploaded the emitter shows the engine sparkle. Effects longer than 16 frames use one
+	-- emitter per sheet, each with a `delay` of (frames per sheet / fps) times its position.
+	FlipbookBlast = {
+		kind = "oneshot",
+		duration = 1,
+		emitters = {
+			{
+				texture = "FlipbookBlast",
+				burst = 1,
+				lifetime = { 0.67, 0.67 },
+				speed = { 0, 0 },
+				size = { { 0, 9 }, { 1, 9 } },
+				transparency = { { 0, 0 }, { 0.9, 0 }, { 1, 1 } },
+				lightInfluence = 0,
+				flipbook = { layout = "Grid4x4", mode = "OneShot", fps = 24 },
+			},
+		},
+	},
 	RarityGlow = {
 		kind = "loop",
 		emitters = {
@@ -418,7 +445,7 @@ function Vfx.build(name: string, options: Options?): (Attachment, Preset)
 		end
 		emitter.Color = colorSequence(colors)
 		emitter.LightEmission = spec.lightEmission or 0
-		emitter.LightInfluence = if (spec.lightEmission or 0) > 0 then 0 else 1
+		emitter.LightInfluence = spec.lightInfluence or (if (spec.lightEmission or 0) > 0 then 0 else 1)
 		emitter.Drag = spec.drag or 0
 		emitter.Acceleration = (spec.acceleration or Vector3.zero) * scale
 		local spread = spec.spread or 0
@@ -436,8 +463,16 @@ function Vfx.build(name: string, options: Options?): (Attachment, Preset)
 		if spec.squash then
 			emitter.Squash = sequence(spec.squash)
 		end
+		if spec.flipbook and emitter.Texture ~= DEFAULT_TEXTURE then
+			-- without an uploaded sheet the default texture would be sliced into a grid
+			emitter.FlipbookLayout = (Enum.ParticleFlipbookLayout :: any)[spec.flipbook.layout]
+			emitter.FlipbookMode = (Enum.ParticleFlipbookMode :: any)[spec.flipbook.mode]
+			emitter.FlipbookFramerate = NumberRange.new(spec.flipbook.fps)
+			emitter.FlipbookStartRandom = spec.flipbook.startRandom == true
+		end
 		emitter.ZOffset = spec.zOffset or 0
 		emitter.LockedToPart = spec.lockedToPart == true
+		emitter:SetAttribute("Delay", if preset.kind == "oneshot" then spec.delay or 0 else 0)
 		emitter:SetAttribute("Burst", if spec.burst then math.min(Vfx.scaled(spec.burst, quality), Vfx.MaxBurst) else 0)
 		emitter.Parent = attachment
 	end
@@ -522,7 +557,14 @@ function Vfx.play(name: string, target: Instance | Vector3, options: Options?): 
 	for _, child in attachment:GetChildren() do
 		if child:IsA("ParticleEmitter") then
 			local burst = child:GetAttribute("Burst") :: number
-			if burst > 0 then
+			local delay = child:GetAttribute("Delay") :: number
+			if burst > 0 and delay > 0 then
+				task.delay(delay, function()
+					if child.Parent then
+						child:Emit(burst)
+					end
+				end)
+			elseif burst > 0 then
 				child:Emit(burst)
 			end
 		elseif child:IsA("PointLight") then

@@ -123,6 +123,65 @@ Vfx.Textures.Spark = "rbxassetid://123"
 check(emitters(Vfx.build("HitSpark"))[1].Texture == "rbxassetid://123", "uploaded texture ids are used")
 check(Vfx.scaled(10, 0) == 0 and Vfx.scaled(10, 1) == 10 and Vfx.scaled(1, 0.1) == 1, "Vfx.scaled keeps visible effects visible")
 
+print("Flipbooks")
+local waiting = emitters(Vfx.build("FlipbookBlast"))[1]
+check(waiting.FlipbookLayout == roblox.Enum.ParticleFlipbookLayout.None, "flipbook settings wait for an uploaded sheet (no sliced default texture)")
+local textureKeys = {}
+for key in Vfx.Textures do
+	table.insert(textureKeys, key)
+end
+for _, key in textureKeys do
+	Vfx.Textures[key] = "rbxassetid://99"
+end
+local flipbooksValid = true
+for _, name in names do
+	local ok, err = pcall(Vfx.build, name, { quality = 1 })
+	if not ok then
+		flipbooksValid = false
+		print(`    {name}: {err}`)
+	end
+end
+check(flipbooksValid, "every preset still builds once all textures are uploaded (flipbook properties exist in the API)")
+local blast = emitters(Vfx.build("FlipbookBlast"))[1]
+check(
+	blast.FlipbookLayout == roblox.Enum.ParticleFlipbookLayout.Grid4x4
+		and blast.FlipbookMode == roblox.Enum.ParticleFlipbookMode.OneShot
+		and blast.FlipbookFramerate.Min == 24
+		and blast.LightInfluence == 0,
+	"flipbook layout, mode, framerate and lightInfluence are applied"
+)
+Vfx.Presets.TestChain = {
+	kind = "oneshot",
+	duration = 3,
+	emitters = {
+		{
+			texture = "FlipbookBlast",
+			burst = 1,
+			lifetime = { 0.67, 0.67 },
+			speed = { 0, 0 },
+			size = { { 0, 1 }, { 1, 1 } },
+			transparency = { { 0, 0 }, { 1, 1 } },
+			delay = 0.67,
+			flipbook = { layout = "Grid4x4", mode = "OneShot", fps = 24 },
+		},
+	},
+}
+check(emitters(Vfx.build("TestChain"))[1]:GetAttribute("Delay") == 0.67, "one-shot delay is stored for Vfx.play")
+Vfx.Presets.TestChain = nil
+local fits = true
+for _, name in names do
+	local preset = Vfx.Presets[name]
+	if preset.kind == "oneshot" then
+		for _, spec in preset.emitters do
+			if (spec.delay or 0) + spec.lifetime[2] > (preset.duration or 2) then
+				fits = false
+				print(`    {name}: delay {spec.delay or 0} + lifetime {spec.lifetime[2]} outlasts duration {preset.duration or 2}`)
+			end
+		end
+	end
+end
+check(fits, "every one-shot emitter finishes before the effect is cleaned up")
+
 print("AnimationSet")
 local AnimationSet = load(`{ASSETS}/AnimationSet.luau`)
 
