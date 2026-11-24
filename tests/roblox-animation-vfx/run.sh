@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Tests for the roblox-animation-vfx skill: Vfx presets against Roblox's API database, the
-# showcase model, AnimationSet behaviour, the manifest validator/generator and the textures.
+# showcase model, AnimationSet behaviour, the manifest validator/generator, the textures and
+# the flipbook packer.
 # Needs: python3 + pillow, lune. Run from the repo root: bash tests/roblox-animation-vfx/run.sh
 set -u
 SKILL=plugins/roblox-studio/skills/roblox-animation-vfx
@@ -59,6 +60,12 @@ for name in ["glow", "star", "spark", "smoke", "ring"]:
     assert worst <= 16, f"{name} differs from the committed file (max channel diff {worst})"
     assert a.getchannel("A").getextrema()[1] > 200, f"{name} is empty"
 PY
+
+echo "pack_flipbook.py (black/white matte, sheets, options)"
+mkdir -p $TMP/flipbook
+python3 $HERE/flipbook_test.py $SKILL/scripts/pack_flipbook.py $TMP/flipbook > $TMP/flipbook.txt; code=$?
+grep -E "^  (ok|FAIL)|passed" $TMP/flipbook.txt
+[ $code -eq 0 ] && ok "flipbook_test.py" || bad "flipbook_test.py"
 
 echo "blender_check.py (real Blender via the bpy module; set BPY_PYTHON to a Python with bpy installed)"
 if [ -n "${BPY_PYTHON:-}" ] || python3 -c "import bpy" 2>/dev/null; then
