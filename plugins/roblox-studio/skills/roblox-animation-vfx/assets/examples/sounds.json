@@ -1,0 +1,57 @@
+{
+  "style": "anime, loud, aggressive, punchy, exaggerated, no music, no voice",
+  "takes": 2,
+  "targetLoudness": -18,
+  "pricePerSecond": 0.0018,
+  "defaults": { "maxLead": 0.03, "syncTolerance": 0.05, "maxAttack": 0.25, "volume": 0.6, "pitch": [0.95, 1.05], "minInterval": 0.05, "repeatVolume": 0.5 },
+  "sounds": [
+    {
+      "name": "SwordHit",
+      "prompt": "two steel swords clashing hard, a bright ringing clang",
+      "marker": "Chop:Hit",
+      "vfx": "Slash",
+      "maxLength": 0.8,
+      "volume": 0.8,
+      "minInterval": 0.08,
+      "takes": 3,
+      "variants": [
+        { "file": "sfx/SwordHit_1.wav", "status": "approved", "id": "rbxassetid://1110001" },
+        { "file": "sfx/SwordHit_2.wav", "status": "picked" },
+        { "file": "sfx/SwordHit_3.wav", "status": "generated" }
+      ]
+    },
+    {
+      "name": "Footstep",
+      "prompt": "a single boot step on stone",
+      "marker": "Walk:Footstep",
+      "vfx": "Dust",
+      "maxLength": 0.4,
+      "volume": 0.4,
+      "pitch": [0.9, 1.1],
+      "minInterval": 0.1,
+      "takes": 3,
+      "variants": [
+        { "file": "sfx/Footstep_1.wav", "status": "approved", "id": "rbxassetid://2220001" },
+        { "file": "sfx/Footstep_2.wav", "status": "uploaded", "id": "rbxassetid://2220002" },
+        { "file": "sfx/Footstep_3.wav", "status": "generated" }
+      ]
+    },
+    {
+      "name": "Pickup",
+      "prompt": "a bright magical coin pickup chime",
+      "event": "Pickup",
+      "vfx": "Pickup",
+      "maxLength": 1.0,
+      "variants": [{ "file": "sfx/Pickup_1.wav", "status": "generated" }]
+    },
+    {
+      "name": "UiHover",
+      "prompt": "a soft short UI tick",
+      "event": "ButtonFocused",
+      "maxLength": 0.2,
+      "volume": 0.3,
+      "spatial": false,
+      "variants": [{ "file": "sfx/UiHover_1.wav", "status": "generated" }]
+    }
+  ]
+}

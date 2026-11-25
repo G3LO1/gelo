@@ -4,7 +4,7 @@ import os
 import random
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance
 
 out = sys.argv[1]
 random.seed(7)
@@ -32,6 +32,16 @@ d.rectangle([200, 180, 312, 400], fill=(255, 255, 255))
 icon.save(os.path.join(good, "icon.png"))
 scene(1920, 1080, (120, 190, 255), (70, 160, 70), (230, 60, 60)).save(os.path.join(good, "thumbnails", "1-truck.jpg"), quality=90)
 scene(1920, 1080, (30, 20, 60), (60, 40, 30), (80, 230, 120)).convert("RGB").transpose(Image.FLIP_LEFT_RIGHT).save(os.path.join(good, "thumbnails", "2-night.jpg"), quality=90)
+# the raw in-game captures the thumbnails were made from: same scene, flatter and darker
+os.makedirs(os.path.join(good, "shots"), exist_ok=True)
+
+
+def raw_shot(image):
+    return ImageEnhance.Brightness(ImageEnhance.Contrast(image).enhance(0.7)).enhance(0.8)
+
+
+raw_shot(scene(1920, 1080, (120, 190, 255), (70, 160, 70), (230, 60, 60))).save(os.path.join(good, "shots", "1-truck.png"))
+raw_shot(scene(1920, 1080, (30, 20, 60), (60, 40, 30), (80, 230, 120)).transpose(Image.FLIP_LEFT_RIGHT)).save(os.path.join(good, "shots", "2-night.png"))
 open(os.path.join(good, "title.txt"), "w").write("Undead Eats\n")
 open(os.path.join(good, "description.txt"), "w").write(
     "Undead Eats is a co-op food truck survival game: cook burgers by day, defend your truck from zombies by night. "
@@ -50,6 +60,20 @@ scene(1920, 1080, (240, 220, 160), (150, 100, 40), (90, 40, 20), busy_bottom=Tru
 scene(1920, 1080, (120, 190, 255), (70, 160, 70), (230, 60, 60)).save(os.path.join(bad, "thumbnails", "4-same.jpg"), quality=90)
 scene(1920, 1080, (120, 190, 255), (70, 160, 70), (231, 61, 61)).save(os.path.join(bad, "thumbnails", "5-same-again.jpg"), quality=85)
 open(os.path.join(bad, "thumbnails", "6-clip.webp"), "wb").write(b"RIFF")
+os.makedirs(os.path.join(bad, "shots"), exist_ok=True)
+# 2: the square thumbnail was made from a 16:9 shot (stretched art)
+scene(1920, 1080, (20, 20, 30), (200, 200, 40), (40, 90, 230)).transpose(Image.FLIP_TOP_BOTTOM).save(os.path.join(bad, "shots", "2-square.png"))
+# 3: the busy thumbnail no longer looks like the game it came from
+other = Image.new("RGB", (1920, 1080), (20, 30, 40))
+od = ImageDraw.Draw(other)
+for i in range(8):
+    od.rectangle([i * 240, 0, i * 240 + 100, 1080], fill=(220, 220, 230))
+other.save(os.path.join(bad, "shots", "3-busy.png"))
+# 4: a 4:3 capture with Studio's blue focus outline down the left edge
+shot = scene(1440, 1080, (120, 190, 255), (70, 160, 70), (230, 60, 60))
+ImageDraw.Draw(shot).rectangle([0, 0, 7, 1080], fill=(0, 120, 255))
+shot.save(os.path.join(bad, "shots", "4-same.png"))
+scene(1920, 1080, (50, 50, 50), (90, 90, 90), (200, 200, 200)).save(os.path.join(bad, "shots", "9-orphan.png"))
 open(os.path.join(bad, "title.txt"), "w").write("\U0001F525\U0001F525\U0001F525 FREE ROBUX OBBY OBBY OBBY \U0001F525\n")
 open(os.path.join(bad, "description.txt"), "w").write(
     "The best game ever!!! " + "Lots of fun. " * 80 + "\nControls: WASD to move, press E to interact. #obby #fun #robux"

@@ -1,0 +1,26 @@
+{
+  "rig": "R15",
+  "rigs": ["R15", "R6"],
+  "owner": "group 1234567",
+  "accept": { "floorTolerance": 0.1, "slideTolerance": 1.5, "rootTravel": 0.05, "gripGap": 0.15, "loopTolerance": 3 },
+  "animations": [
+    {
+      "name": "Walk",
+      "id": 0,
+      "idR6": 0,
+      "priority": "Movement",
+      "looped": true,
+      "markers": ["Footstep"],
+      "accept": { "grounded": true, "speed": 3 }
+    },
+    {
+      "name": "Chop",
+      "id": 0,
+      "idR6": 0,
+      "priority": "Action",
+      "looped": false,
+      "markers": ["Hit"],
+      "accept": { "prop": "Katana", "grips": { "RightHand": "Grip" } }
+    }
+  ]
+}

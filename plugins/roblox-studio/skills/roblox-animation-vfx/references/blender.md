@@ -12,6 +12,7 @@ How the skills in this plugin use Blender when the user has a Blender MCP server
 7. Model pipeline
 8. VFX and UI renders
 9. blender_check.py
+10. Batch model preparation (model_batch.py)
 
 ## 1. Detect, ask, offer
 **Detect**: Blender MCP tools are connected when the tool list (including deferred tools: ToolSearch with the query `blender`) has tools from a Blender server, e.g. `execute_blender_code`, `get_scene_info`, `get_object_info`, `get_viewport_screenshot` (names differ between servers; anything under an `mcp__blender...` prefix counts). If connected, say so in one line and use it where section 3 says it helps.
@@ -59,7 +60,7 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 1. **Rig**: for player avatars use a standard R15 rig. Hierarchy: Root > HumanoidRootNode > LowerTorso > (UpperTorso > Head, LeftUpperArm > LeftLowerArm > LeftHand, RightUpperArm > RightLowerArm > RightHand), LeftUpperLeg > LeftLowerLeg > LeftFoot, RightUpperLeg > RightLowerLeg > RightFoot. (The body spec names the root bone HumanoidRootNode; the animation export guides use HumanoidRootPart; blender_check.py accepts both.) Skeleton scale 1, meshes with zero transforms and scale 1 before skinning. Custom characters: import as Custom and use Adaptive Animation (HumanoidRigDescription) to map them to R15 so any R15 animation plays on them.
 2. **Animate** at 30 FPS (at least 30; other rates make Studio warn about key alignment), with the same character the animation is for. Avatar animations play in place: the root doesn't travel (walk cycles animate on the spot; code moves the character).
 3. **Name markers** you'll need (Hit, Release, Footstep) and list them in `animations.json`. Don't count on Blender timeline markers arriving as Roblox animation events: after import, check the Animation Editor's events track and add any that are missing.
-4. **Check and export**: `blender_check.py` (mode animation), then FBX with Bake Animation on, one animation per file.
+4. **Check and export**: `blender_check.py` (mode animation) and, for motion moved over from another skeleton, `anim_accept.py` with the manifest (feet on the floor, sliding, root, grip, prop through the body, loops, markers, R15 vs R6; `animation.md` section 9), then FBX with Bake Animation on, one animation per file.
 5. **Import in Studio**: Avatar tab > Character (R15) or your custom rig, open the Animation Editor (Avatar > Clip Editor), select the rig, `...` > Import > From FBX Animation (From File in newer builds), check the timeline, add events, set priority and looping, Publish to Roblox with the owner account/group. Emotes must be converted to a CurveAnimation (Curve Editor) before publishing.
 6. Paste the id into `animations.json`, run `anim_manifest.py`, play it through AnimationSet.
 
@@ -68,10 +69,22 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 - Modular kits for maps: pieces on the map's grid (4/8/16 studs), pivots at a consistent corner, shared materials/trim sheets, one mesh reused many times instead of many unique meshes (draw calls, memory).
 - Import kit pieces one by one (the Importer doesn't de-duplicate meshes), then assemble in Studio.
 - Collision: set CollisionFidelity per role in Studio (Box/Hull for props), invisible simple colliders for walkways.
+- Many props of one kind (a weapon set, a furniture line, generated models): don't fix them one by one, run them through `scripts/model_batch.py` (section 10).
 
 ## 8. VFX and UI renders
-- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it; set FlipbookLayout and FlipbookMode on the emitter.
-- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images.
+- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it, one render per layer if the effect is layered; pack and check them with `scripts/flipbook.py` (margins, sheet size, preview) and wire them as a layered preset (`vfx.md` section 8).
+- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images. `model_batch.py` renders them from one fixed orthographic camera for a whole set.
 
 ## 9. blender_check.py
 `scripts/blender_check.py` reads the open scene and prints errors/warnings (units, FPS, triangles, watertight, transforms, materials, UVs, R15 bone names and parents, leaf bones, root travel). Through MCP: send the whole file to the code tool (set `MODE` and optionally `EXPORT_PATH` at the top; it exports only when there are no errors). From a terminal: `blender -b file.blend --python blender_check.py -- --mode animation --export out.fbx`. It never modifies or saves the .blend.
+
+## 10. Batch model preparation (model_batch.py)
+For sets of props (weapons, tools, furniture, image-to-3D output): one manifest, one script, every model fixed the same way. Models from image-to-3D services or asset packs are never ready: they come out at one size (a dagger as long as a hammer), lying down or facing the wrong way, with holes you can see through, extra parts nobody asked for, far too many triangles, and no idea where the hand goes.
+
+- **Sources**: one object per picture or file. For image-to-3D, give each part its own reference on a plain background (sword alone, scabbard alone, pedestal alone) with effects removed (smoke, sparkles, auras turn into solid lumps) and labels cut out; ask for a face limit near the budget (about 1,500 for a small blade, 3,500 for a big one, 6,000 for armor pieces); dry-run paid jobs first and never paste API keys into the chat (log the CLI in through the browser).
+- **Manifest** (`assets/examples/models.json`): per model `source`, `up` and `front` (which source axis points up and which to the front: a blade's sharp edge, the side players see), `studs` (longest side, or `{"z": h}`; a katana is ~4, a spear ~6.5), `pivot` (`bottom` for things that stand, a point name such as `Grip` for held items), `points` (named points as bounding-box fractions: `Grip`, `BladeStart`, `Top`), `keep` (object-name patterns; extras are dropped), `fillHoles`, `maxTriangles` (decimated down to it).
+- **Run**: `blender -b --python scripts/model_batch.py -- models.json --dry-run` prints the plan (source size -> studs, scale factor, triangles before -> after, dropped parts, closed holes, blender_check warnings) and writes nothing; without `--dry-run` it writes `<out>/<name>.fbx` (blender_check settings), `<out>/icons/<name>.png` (fixed camera, transparent), `models.json` and `ModelSpecs.luau`. `--only A,B` and `--force` narrow or redo. Through a Blender MCP code tool: set `MANIFEST` (and `DRY_RUN`) at the top and send the file.
+- **Resume**: `model_batch_state.json` keys every model by its source bytes and its settings. A second run skips what didn't change, redoes what did and retries what failed; the state is written after every model, so a crash or a stopped run continues where it stopped. Change a setting, run it again: only that model is redone.
+- **In Studio**: import the FBX files (3D Importer, or Open Cloud for hundreds), then `ModelSpecs.apply(meshPart)` sets `PivotOffset` and adds the `Grip` / `BladeStart` Attachments (the importer doesn't carry points on static meshes) and warns when a part came in at another scale. Hold items with a `RigidConstraint` from the hand's `RightGripAttachment` to the item's `Grip` Attachment; hit only with the part above `BladeStart`.
+- Axes: Blender +Z up and -Y front become Roblox +Y up and the part's front (-Z, LookVector) with the FBX settings above; check this once on one item in Studio (the `Grip` Attachment should sit on the handle) before importing a whole set.
+- Still by hand: fitting armor or anything worn on the body (fit one side, mirror the other), deciding the style and checking each icon and in-game look.

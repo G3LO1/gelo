@@ -123,6 +123,105 @@ Vfx.Textures.Spark = "rbxassetid://123"
 check(emitters(Vfx.build("HitSpark"))[1].Texture == "rbxassetid://123", "uploaded texture ids are used")
 check(Vfx.scaled(10, 0) == 0 and Vfx.scaled(10, 1) == 10 and Vfx.scaled(1, 0.1) == 1, "Vfx.scaled keeps visible effects visible")
 
+print("Layered flipbooks")
+local Layout, Mode = roblox.Enum.ParticleFlipbookLayout, roblox.Enum.ParticleFlipbookMode
+local function byLayer(attachment, preset)
+	local layers = {}
+	for index, spec in Vfx.Presets[preset].emitters do
+		local e = attachment:FindFirstChild(`{preset}{index}`)
+		if e and spec.layer then
+			layers[spec.layer] = e
+		end
+	end
+	return layers
+end
+local function first(e)
+	return e.Color.Keypoints[1].Value
+end
+local function same(a, b)
+	return math.abs(a.R - b.R) < 1e-3 and math.abs(a.G - b.G) < 1e-3 and math.abs(a.B - b.B) < 1e-3
+end
+
+local oldPresetsUntouched = true
+for _, name in names do
+	local preset = Vfx.Presets[name]
+	if preset.variants then
+		continue
+	end
+	for index, spec in preset.emitters do
+		local e = Vfx.build(name):FindFirstChild(`{name}{index}`)
+		local expected = (spec.color or { roblox.Color3.new(1, 1, 1) })[1]
+		if spec.flipbook or e.FlipbookLayout ~= Layout.None or not same(first(e), expected) then
+			oldPresetsUntouched = false
+			print(`    {name}/{e.Name}: layout {e.FlipbookLayout}, color {first(e)}`)
+		end
+	end
+end
+check(oldPresetsUntouched, "presets without layers keep no flipbook and their own colors")
+
+local slash = Vfx.build("Slash")
+local layers = byLayer(slash, "Slash")
+local sheetOnly, aligned = true, true
+for _, e in emitters(slash) do
+	if e.FlipbookLayout ~= Layout.Grid4x4 or e.FlipbookMode ~= Mode.OneShot or e.Texture ~= emitters(slash)[1].Texture then
+		sheetOnly = false
+	end
+	if e.Rotation.Min ~= 0 or e.Rotation.Max ~= 0 or e.Speed.Max ~= 0 then
+		aligned = false
+	end
+end
+check(layers.Glow and layers.Body and layers.Core and #emitters(slash) == 3, "Slash stacks three layers (Glow, Body, Core)")
+check(sheetOnly, "every layer plays the same 4x4 sheet once (Grid4x4, OneShot)")
+check(aligned, "layers share rotation and position, so they stay stacked")
+check(layers.Core.ZOffset > layers.Body.ZOffset and layers.Body.ZOffset > layers.Glow.ZOffset, "draw order glow < body < core")
+Vfx.Textures.SlashSheet = "rbxassetid://456"
+check(emitters(Vfx.build("Slash"))[1].Texture == "rbxassetid://456", "the uploaded sheet id is used")
+
+local variants = Vfx.variants("Slash")
+check(#variants == 2 and variants[1] == "Ember" and variants[2] == "Frost" and #Vfx.variants("HitSpark") == 0, "Vfx.variants lists the color variants")
+local ember, frost = byLayer(Vfx.build("Slash", { variant = "Ember" }), "Slash"), byLayer(Vfx.build("Slash", { variant = "Frost" }), "Slash")
+local perLayer = true
+for layer, colors in Vfx.Presets.Slash.variants.Ember do
+	perLayer = perLayer and same(first(ember[layer]), colors[1])
+end
+for layer, colors in Vfx.Presets.Slash.variants.Frost do
+	perLayer = perLayer and same(first(frost[layer]), colors[1])
+end
+check(perLayer, "a variant colors each layer on its own")
+check(not same(first(ember.Body), first(frost.Body)) and not same(first(ember.Glow), first(ember.Core)), "variants differ, layers within a variant differ")
+local custom = byLayer(Vfx.build("Slash", { variant = "Ember", layerColors = { Core = { roblox.Color3.new(0, 1, 0) } } }), "Slash")
+check(same(first(custom.Core), roblox.Color3.new(0, 1, 0)) and same(first(custom.Body), first(ember.Body)), "layerColors overrides one layer and keeps the variant for the rest")
+local tintAll = Vfx.build("Slash", { color = Vfx.Rarity.Rare })
+local allTinted = true
+for _, e in emitters(tintAll) do
+	allTinted = allTinted and same(first(e), Vfx.Rarity.Rare)
+end
+check(allTinted, "the color option still tints every layer")
+check(not pcall(Vfx.build, "Slash", { variant = "Poison" }), "an unknown variant is an error")
+
+local low = byLayer(Vfx.build("Slash", { quality = 0.3 }), "Slash")
+check(low.Glow == nil and low.Body and low.Core, "low quality drops the big glow layer (fill-rate), keeps the slash")
+local calm = byLayer(Vfx.build("Slash", { reducedFlashing = true, variant = "Frost" }), "Slash")
+check(calm.Glow and calm.Body and calm.Core, "reduced flashing keeps every slash layer (nothing in it flashes)")
+Vfx.Presets.TestSparkle = {
+	kind = "loop",
+	emitters = {
+		{
+			texture = "SlashSheet",
+			flipbook = { layout = "Grid2x2", mode = "Random", framerate = 12, startRandom = true },
+			rate = 4,
+			lifetime = { 1, 1 },
+			speed = { 0, 0 },
+			size = { { 0, 1 }, { 1, 1 } },
+			transparency = { { 0, 0 }, { 1, 1 } },
+		},
+	},
+}
+local sparkle = emitters(Vfx.build("TestSparkle"))[1]
+check(sparkle.FlipbookLayout == Layout.Grid2x2 and sparkle.FlipbookMode == Mode.Random and sparkle.FlipbookFramerate.Min == 12 and sparkle.FlipbookStartRandom, "flipbook options map to FlipbookLayout/Mode/Framerate/StartRandom")
+check(emitters(Vfx.build("TestSparkle", { reducedFlashing = true }))[1].FlipbookMode == Mode.Loop, "reduced flashing turns Random frame jumps into Loop")
+Vfx.Presets.TestSparkle = nil
+
 print("AnimationSet")
 local AnimationSet = load(`{ASSETS}/AnimationSet.luau`)
 

@@ -35,12 +35,13 @@ Write and check, in this order:
 - **Icon brief**: one subject, the game's main color, readable at 150 px and 64 px, no small text; plus 2 alternatives for later tests.
 - **Thumbnail briefs** (3-5 for personalization): each sells a different reason to play (core action, social moment, progression/reward, event/update); real gameplay framed with free camera; nothing important in the bottom 15%; 1920x1080, under 3 MB.
 - **Video** (optional): 15-30 s of real gameplay, rules in references section 3.
+- **Shots**: capture the material in the game with a repeatable scene (`assets/ShotDirector.luau` playing a `scenes/*.json` checked by `scripts/scene_spec.py`; references section 10): the same camera, actors and events every take, a silent rehearsal behind a black screen so nothing loads late, shots marked for tests, trailers and thumbnails. Keep each thumbnail's in-game shot in `shots/` under the same name.
 
-Then run the checker on the actual files (folder layout: `icon.png`, `thumbnails/*`, `title.txt`, `description.txt`):
+Then run the checker on the actual files (folder layout: `icon.png`, `thumbnails/*`, `shots/*`, `title.txt`, `description.txt`):
 ```
 python3 scripts/check_store_assets.py <store-dir> --preview store-preview.html
 ```
-Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, offer to mock thumbnails from real screenshots, but final images must show real gameplay.
+Fix every ERROR (upload rules) and every WARN unless there's a reason to keep it. Look at the preview (icon at 150/64 px on light and dark, thumbnails as Home tiles with the metadata overlay, each in-game shot next to its thumbnail, every thumbnail at the tile sizes players see, the hook as mobile shows it); take a screenshot (Playwright or a headless browser) and actually look at it. If image-generation tools are connected, offer to mock thumbnails from real screenshots, but final images must show real gameplay.
 
 ## 4. Launch plan
 Write `LAUNCH_KIT.md` in the project (ask before overwriting):

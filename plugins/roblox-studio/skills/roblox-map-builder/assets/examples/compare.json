@@ -1,0 +1,28 @@
+{
+  "name": "SpiceHall",
+  "reference": "ref/spice-hall.png",
+  "scene": "SliceWalk.json",
+  "criteria": ["Matches the reference", "Readable route", "Interior", "Scale at eye height", "Performance"],
+  "variants": [
+    {
+      "name": "Pass1Draft",
+      "reference": "ref/spice-hall.png",
+      "scene": "SliceWalk.json",
+      "shots": "shots/pass1",
+      "slice": "pass",
+      "cost": "draft on a cheaper model / low effort",
+      "scores": { "Matches the reference": 2, "Readable route": 4, "Interior": 3, "Scale at eye height": 4, "Performance": 5 },
+      "notes": "kit snapped into the whole building, flat walls, no wear"
+    },
+    {
+      "name": "Pass2Final",
+      "reference": "ref/spice-hall.png",
+      "scene": "SliceWalk.json",
+      "shots": "shots/pass2",
+      "slice": "pass",
+      "cost": "final pass, max effort: one hero wall first, then the kit rebuilt in its style",
+      "scores": { "Matches the reference": 4, "Readable route": 4, "Interior": 4, "Scale at eye height": 4, "Performance": 4 },
+      "notes": "hero wall approved before the rest of the kit"
+    }
+  ]
+}

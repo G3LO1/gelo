@@ -1,0 +1,2952 @@
+{
+ "name": "ComponentsUI",
+ "reference": [
+  1920,
+  1080
+ ],
+ "tokens": {
+  "Glass": {
+   "color": "#141A2E"
+  },
+  "GlassDim": {
+   "color": "#2A2E3A"
+  },
+  "Accent": {
+   "color": "#2F6FED"
+  },
+  "AccentDim": {
+   "color": "#3A3F55"
+  },
+  "Edge": {
+   "color": "#E9D8A6"
+  },
+  "Glow": {
+   "color": "#FFE7A3"
+  },
+  "Gold": {
+   "color": "#F2C14E"
+  },
+  "Text": {
+   "color": "#FFFFFF"
+  },
+  "Backdrop": {
+   "color": "#0B0E18"
+  }
+ },
+ "motion": {
+  "hoverScale": 1.04,
+  "pressScale": 0.98,
+  "hoverTime": 0.12,
+  "pressTime": 0.08,
+  "openTime": 0.3,
+  "stagger": 0.05,
+  "glowIdle": 1,
+  "glowFocused": 0.35,
+  "glowPressed": 0.15,
+  "disabledTransparency": 0.5,
+  "breathe": 1.6
+ },
+ "fonts": {
+  "Heading": {
+   "family": "FredokaOne",
+   "weight": "Regular"
+  },
+  "Body": {
+   "family": "BuilderSans",
+   "weight": "Bold"
+  }
+ },
+ "images": {
+  "panel": "rbxassetid://0",
+  "edge": "rbxassetid://0",
+  "glow": "rbxassetid://0",
+  "radial": "rbxassetid://0",
+  "gem": "rbxassetid://0"
+ },
+ "styles": [
+  {
+   "selector": ".StateFocused > UIScale",
+   "props": {
+    "Scale": {
+     "token": "MotionHoverScale"
+    }
+   },
+   "transition": {
+    "time": {
+     "token": "MotionHoverTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StatePressed > UIScale",
+   "props": {
+    "Scale": {
+     "token": "MotionPressScale"
+    }
+   },
+   "transition": {
+    "time": {
+     "token": "MotionPressTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StateFocused > ImageLabel#Glow",
+   "props": {
+    "ImageTransparency": {
+     "token": "MotionGlowFocused"
+    }
+   },
+   "transition": {
+    "time": {
+     "token": "MotionHoverTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StatePressed > ImageLabel#Glow",
+   "props": {
+    "ImageTransparency": {
+     "token": "MotionGlowPressed"
+    }
+   },
+   "transition": {
+    "time": {
+     "token": "MotionPressTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StateFocused > ImageLabel#Edge",
+   "props": {
+    "ImageColor3": {
+     "token": "Glow"
+    },
+    "ImageTransparency": 0
+   },
+   "transition": {
+    "time": {
+     "token": "MotionHoverTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StatePressed > ImageLabel#Edge",
+   "props": {
+    "ImageColor3": {
+     "token": "Glow"
+    },
+    "ImageTransparency": 0
+   },
+   "transition": {
+    "time": {
+     "token": "MotionPressTime"
+    },
+    "easing": "Quad",
+    "direction": "Out"
+   }
+  },
+  {
+   "selector": ".StateDisabled > ImageLabel#Base",
+   "props": {
+    "ImageColor3": {
+     "token": "AccentDim"
+    }
+   }
+  },
+  {
+   "selector": ".StateDisabled > ImageLabel#Glass",
+   "props": {
+    "ImageColor3": {
+     "token": "GlassDim"
+    }
+   }
+  },
+  {
+   "selector": ".StateDisabled > ImageLabel#Icon",
+   "props": {
+    "ImageTransparency": {
+     "token": "MotionDisabledTransparency"
+    }
+   }
+  },
+  {
+   "selector": ".StateDisabled > ImageLabel#ItemGlow",
+   "props": {
+    "ImageTransparency": 1
+   }
+  },
+  {
+   "selector": ".StateDisabled > TextLabel",
+   "props": {
+    "TextTransparency": {
+     "token": "MotionDisabledTransparency"
+    }
+   }
+  }
+ ],
+ "screens": [
+  {
+   "class": "ScreenGui",
+   "name": "Components",
+   "props": {
+    "ResetOnSpawn": false,
+    "ZIndexBehavior": {
+     "enum": "ZIndexBehavior.Sibling"
+    },
+    "ScreenInsets": {
+     "enum": "ScreenInsets.CoreUISafeInsets"
+    }
+   },
+   "children": [
+    {
+     "class": "Frame",
+     "name": "Gallery",
+     "props": {
+      "AnchorPoint": {
+       "vector2": [
+        0.5,
+        0.5
+       ]
+      },
+      "Position": {
+       "udim2": [
+        0.5,
+        0,
+        0.5,
+        0
+       ]
+      },
+      "Size": {
+       "udim2": [
+        0.94,
+        0,
+        0.94,
+        0
+       ]
+      },
+      "BackgroundColor3": {
+       "token": "Backdrop"
+      },
+      "BackgroundTransparency": 0.25
+     },
+     "children": [
+      {
+       "class": "UICorner",
+       "props": {
+        "CornerRadius": {
+         "udim": [
+          0,
+          16
+         ]
+        }
+       }
+      },
+      {
+       "class": "UISizeConstraint",
+       "props": {
+        "MaxSize": {
+         "vector2": [
+          1400,
+          780
+         ]
+        }
+       }
+      },
+      {
+       "class": "UIPadding",
+       "props": {
+        "PaddingTop": {
+         "udim": [
+          0.03,
+          0
+         ]
+        },
+        "PaddingBottom": {
+         "udim": [
+          0.03,
+          0
+         ]
+        },
+        "PaddingLeft": {
+         "udim": [
+          0.03,
+          0
+         ]
+        },
+        "PaddingRight": {
+         "udim": [
+          0.03,
+          0
+         ]
+        }
+       }
+      },
+      {
+       "class": "UIListLayout",
+       "props": {
+        "Padding": {
+         "udim": [
+          0.03,
+          0
+         ]
+        },
+        "SortOrder": {
+         "enum": "SortOrder.LayoutOrder"
+        },
+        "HorizontalAlignment": {
+         "enum": "HorizontalAlignment.Center"
+        }
+       }
+      },
+      {
+       "class": "TextLabel",
+       "name": "Heading",
+       "props": {
+        "LayoutOrder": 1,
+        "Size": {
+         "udim2": [
+          1,
+          0,
+          0.09,
+          0
+         ]
+        },
+        "BackgroundTransparency": 1,
+        "Text": "Button and ItemCard: default, focused, pressed, disabled",
+        "FontFace": {
+         "font": "Heading"
+        },
+        "TextScaled": true,
+        "TextColor3": {
+         "token": "Text"
+        }
+       },
+       "children": [
+        {
+         "class": "UITextSizeConstraint",
+         "props": {
+          "MinTextSize": 14,
+          "MaxTextSize": 36
+         }
+        }
+       ]
+      },
+      {
+       "class": "Frame",
+       "name": "Buttons",
+       "props": {
+        "LayoutOrder": 2,
+        "Size": {
+         "udim2": [
+          1,
+          0,
+          0.2,
+          0
+         ]
+        },
+        "BackgroundTransparency": 1
+       },
+       "children": [
+        {
+         "class": "UIListLayout",
+         "props": {
+          "FillDirection": {
+           "enum": "FillDirection.Horizontal"
+          },
+          "HorizontalFlex": {
+           "enum": "UIFlexAlignment.SpaceEvenly"
+          },
+          "VerticalAlignment": {
+           "enum": "VerticalAlignment.Center"
+          },
+          "SortOrder": {
+           "enum": "SortOrder.LayoutOrder"
+          }
+         }
+        },
+        {
+         "class": "ImageButton",
+         "name": "ButtonDefault",
+         "tags": [
+          "Button"
+         ],
+         "props": {
+          "LayoutOrder": 1,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 3.2
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              28,
+              1,
+              28
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.35,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Base",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Accent"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 3,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5,
+            "ImageTransparency": 0.45
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "Label",
+           "props": {
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Default",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 4
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 34
+             }
+            },
+            {
+             "class": "UIPadding",
+             "props": {
+              "PaddingTop": {
+               "udim": [
+                0.22,
+                0
+               ]
+              },
+              "PaddingBottom": {
+               "udim": [
+                0.22,
+                0
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ButtonFocused",
+         "tags": [
+          "Button",
+          "StateFocused"
+         ],
+         "props": {
+          "LayoutOrder": 2,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 3.2
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              28,
+              1,
+              28
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.35,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Base",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Accent"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 3,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5,
+            "ImageTransparency": 0.45
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "Label",
+           "props": {
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Focused",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 4
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 34
+             }
+            },
+            {
+             "class": "UIPadding",
+             "props": {
+              "PaddingTop": {
+               "udim": [
+                0.22,
+                0
+               ]
+              },
+              "PaddingBottom": {
+               "udim": [
+                0.22,
+                0
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ButtonPressed",
+         "tags": [
+          "Button",
+          "StatePressed"
+         ],
+         "props": {
+          "LayoutOrder": 3,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 3.2
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              28,
+              1,
+              28
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.35,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Base",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Accent"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 3,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5,
+            "ImageTransparency": 0.45
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "Label",
+           "props": {
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Pressed",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 4
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 34
+             }
+            },
+            {
+             "class": "UIPadding",
+             "props": {
+              "PaddingTop": {
+               "udim": [
+                0.22,
+                0
+               ]
+              },
+              "PaddingBottom": {
+               "udim": [
+                0.22,
+                0
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ButtonDisabled",
+         "tags": [
+          "Button",
+          "StateDisabled"
+         ],
+         "props": {
+          "LayoutOrder": 4,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": false,
+          "Interactable": false
+         },
+         "attributes": {
+          "Disabled": true
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 3.2
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              28,
+              1,
+              28
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.35,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Base",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Accent"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 3,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.5,
+            "ImageTransparency": 0.45
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "Label",
+           "props": {
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Disabled",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 4
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 34
+             }
+            },
+            {
+             "class": "UIPadding",
+             "props": {
+              "PaddingTop": {
+               "udim": [
+                0.22,
+                0
+               ]
+              },
+              "PaddingBottom": {
+               "udim": [
+                0.22,
+                0
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "class": "Frame",
+       "name": "Cards",
+       "props": {
+        "LayoutOrder": 3,
+        "Size": {
+         "udim2": [
+          1,
+          0,
+          0.62,
+          0
+         ]
+        },
+        "BackgroundTransparency": 1
+       },
+       "children": [
+        {
+         "class": "UIListLayout",
+         "props": {
+          "FillDirection": {
+           "enum": "FillDirection.Horizontal"
+          },
+          "HorizontalFlex": {
+           "enum": "UIFlexAlignment.SpaceEvenly"
+          },
+          "VerticalAlignment": {
+           "enum": "VerticalAlignment.Center"
+          },
+          "SortOrder": {
+           "enum": "SortOrder.LayoutOrder"
+          }
+         }
+        },
+        {
+         "class": "ImageButton",
+         "name": "ItemCardDefault",
+         "tags": [
+          "ItemCard"
+         ],
+         "props": {
+          "LayoutOrder": 1,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 0.78
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              36,
+              1,
+              36
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.45,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glass",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Glass"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.12
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "ItemGlow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.9,
+              0,
+              0.9,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "radial"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 3,
+            "ImageTransparency": 0.55,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Icon",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.58,
+              0,
+              0.58,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "gem"
+            },
+            "ImageColor3": {
+             "color": "#FFFFFF"
+            },
+            "ZIndex": 4,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 5,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.35
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "NameLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.74,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.86,
+              0,
+              0.12,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Default",
+            "FontFace": {
+             "font": "Heading"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 30
+             }
+            }
+           ]
+          },
+          {
+           "class": "TextLabel",
+           "name": "PriceLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.87,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.6,
+              0,
+              0.09,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "120",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 24
+             }
+            }
+           ]
+          },
+          {
+           "class": "Frame",
+           "name": "GoldLine",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              1
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              1,
+              -8
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.46,
+              0,
+              0,
+              2
+             ]
+            },
+            "BorderSizePixel": 0,
+            "BackgroundColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           }
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ItemCardFocused",
+         "tags": [
+          "ItemCard",
+          "StateFocused"
+         ],
+         "props": {
+          "LayoutOrder": 2,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 0.78
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              36,
+              1,
+              36
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.45,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glass",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Glass"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.12
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "ItemGlow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.9,
+              0,
+              0.9,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "radial"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 3,
+            "ImageTransparency": 0.55,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Icon",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.58,
+              0,
+              0.58,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "gem"
+            },
+            "ImageColor3": {
+             "color": "#FFFFFF"
+            },
+            "ZIndex": 4,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 5,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.35
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "NameLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.74,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.86,
+              0,
+              0.12,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Focused",
+            "FontFace": {
+             "font": "Heading"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 30
+             }
+            }
+           ]
+          },
+          {
+           "class": "TextLabel",
+           "name": "PriceLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.87,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.6,
+              0,
+              0.09,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "120",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 24
+             }
+            }
+           ]
+          },
+          {
+           "class": "Frame",
+           "name": "GoldLine",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              1
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              1,
+              -8
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.46,
+              0,
+              0,
+              2
+             ]
+            },
+            "BorderSizePixel": 0,
+            "BackgroundColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           }
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ItemCardPressed",
+         "tags": [
+          "ItemCard",
+          "StatePressed"
+         ],
+         "props": {
+          "LayoutOrder": 3,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": true
+         },
+         "attributes": {
+          "Disabled": false
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 0.78
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              36,
+              1,
+              36
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.45,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glass",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Glass"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.12
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "ItemGlow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.9,
+              0,
+              0.9,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "radial"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 3,
+            "ImageTransparency": 0.55,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Icon",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.58,
+              0,
+              0.58,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "gem"
+            },
+            "ImageColor3": {
+             "color": "#FFFFFF"
+            },
+            "ZIndex": 4,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 5,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.35
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "NameLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.74,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.86,
+              0,
+              0.12,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Pressed",
+            "FontFace": {
+             "font": "Heading"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 30
+             }
+            }
+           ]
+          },
+          {
+           "class": "TextLabel",
+           "name": "PriceLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.87,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.6,
+              0,
+              0.09,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "120",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 24
+             }
+            }
+           ]
+          },
+          {
+           "class": "Frame",
+           "name": "GoldLine",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              1
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              1,
+              -8
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.46,
+              0,
+              0,
+              2
+             ]
+            },
+            "BorderSizePixel": 0,
+            "BackgroundColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           }
+          }
+         ]
+        },
+        {
+         "class": "ImageButton",
+         "name": "ItemCardDisabled",
+         "tags": [
+          "ItemCard",
+          "StateDisabled"
+         ],
+         "props": {
+          "LayoutOrder": 4,
+          "Size": {
+           "udim2": [
+            0.2,
+            0,
+            1,
+            0
+           ]
+          },
+          "BackgroundTransparency": 1,
+          "ImageTransparency": 1,
+          "AutoButtonColor": false,
+          "Selectable": false,
+          "Interactable": false
+         },
+         "attributes": {
+          "Disabled": true
+         },
+         "children": [
+          {
+           "class": "UIAspectRatioConstraint",
+           "props": {
+            "AspectRatio": 0.78
+           }
+          },
+          {
+           "class": "UIScale",
+           "props": {
+            "Scale": 1
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              36,
+              1,
+              36
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "glow"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 1,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              56,
+              56,
+              72,
+              72
+             ]
+            },
+            "SliceScale": 0.45,
+            "ImageTransparency": {
+             "token": "MotionGlowIdle"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Glass",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "panel"
+            },
+            "ImageColor3": {
+             "token": "Glass"
+            },
+            "ZIndex": 2,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.12
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "ItemGlow",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.9,
+              0,
+              0.9,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "radial"
+            },
+            "ImageColor3": {
+             "token": "Glow"
+            },
+            "ZIndex": 3,
+            "ImageTransparency": 0.55,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Icon",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.38,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.58,
+              0,
+              0.58,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "gem"
+            },
+            "ImageColor3": {
+             "color": "#FFFFFF"
+            },
+            "ZIndex": 4,
+            "SizeConstraint": {
+             "enum": "SizeConstraint.RelativeXX"
+            }
+           }
+          },
+          {
+           "class": "ImageLabel",
+           "name": "Edge",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.5,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              1,
+              0,
+              1,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": {
+             "image": "edge"
+            },
+            "ImageColor3": {
+             "token": "Edge"
+            },
+            "ZIndex": 5,
+            "ScaleType": {
+             "enum": "ScaleType.Slice"
+            },
+            "SliceCenter": {
+             "rect": [
+              28,
+              28,
+              68,
+              68
+             ]
+            },
+            "SliceScale": 0.6,
+            "ImageTransparency": 0.35
+           }
+          },
+          {
+           "class": "TextLabel",
+           "name": "NameLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.74,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.86,
+              0,
+              0.12,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "Disabled",
+            "FontFace": {
+             "font": "Heading"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Text"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 30
+             }
+            }
+           ]
+          },
+          {
+           "class": "TextLabel",
+           "name": "PriceLabel",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              0.5
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              0.87,
+              0
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.6,
+              0,
+              0.09,
+              0
+             ]
+            },
+            "BackgroundTransparency": 1,
+            "Text": "120",
+            "FontFace": {
+             "font": "Body"
+            },
+            "TextScaled": true,
+            "TextColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           },
+           "children": [
+            {
+             "class": "UITextSizeConstraint",
+             "props": {
+              "MinTextSize": 14,
+              "MaxTextSize": 24
+             }
+            }
+           ]
+          },
+          {
+           "class": "Frame",
+           "name": "GoldLine",
+           "props": {
+            "AnchorPoint": {
+             "vector2": [
+              0.5,
+              1
+             ]
+            },
+            "Position": {
+             "udim2": [
+              0.5,
+              0,
+              1,
+              -8
+             ]
+            },
+            "Size": {
+             "udim2": [
+              0.46,
+              0,
+              0,
+              2
+             ]
+            },
+            "BorderSizePixel": 0,
+            "BackgroundColor3": {
+             "token": "Gold"
+            },
+            "ZIndex": 6
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

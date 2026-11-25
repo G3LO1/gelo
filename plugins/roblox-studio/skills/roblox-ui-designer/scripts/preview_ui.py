@@ -8,17 +8,24 @@ Headless screenshot (Chrome/Chromium):
 
 What it models: Scale/Offset sizes, AnchorPoint, UIAspectRatioConstraint, UISizeConstraint, UIPadding,
 UIListLayout (direction, padding, alignment, flex SpaceBetween/Around/Evenly, UIFlexItem Fill),
-UIGridLayout, UICorner, UIStroke, UIGradient, transparency, Visible, ZIndex, TextScaled with
-UITextSizeConstraint, simple RichText, style rules (class/.tag/#name selectors, ::UICorner/::UIStroke).
+UIGridLayout, UICorner, UIStroke, UIGradient, UIScale, transparency, Visible, ZIndex, TextScaled with
+UITextSizeConstraint, simple RichText, style rules (class/.tag/#name compounds, > child and >> descendant
+chains, ::UICorner/::UIStroke; :Hover/:Press state rules are skipped), `motion` tokens, and local images
+with ImageColor3 tint, ImageTransparency and 9-slice (ScaleType.Slice + SliceCenter + SliceScale).
 Approximate: fonts (browser fallbacks), AutomaticSize, text fitting, stroke placement, images
 (local PNGs from --images when the id is still rbxassetid://0, otherwise a labeled placeholder).
+Every element carries data-name / data-class / data-tags, so scripts can measure it.
 Overlays show the Roblox top bar and phone thumb zones (approximate) so you can check safe areas.
 Studio remains the final check.
 """
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.dont_write_bytecode = True
+from spec_to_luau import SpecError, expand_motion, read_image_sizes  # noqa: E402
 
 HTML = r"""<!doctype html>
 <html><head><meta charset="utf-8"><title>UI preview: __NAME__</title>
@@ -41,6 +48,7 @@ HTML = r"""<!doctype html>
 <script>
 const SPEC = __SPEC__;
 const LOCAL_IMAGES = __IMAGES__;
+const IMAGE_SIZES = __IMAGE_SIZES__;
 const SIZES = [[1920, 1080], [844, 390], [1180, 820]];
 const FONT_CSS = {
   FredokaOne: "'Fredoka One','Fredoka','Baloo 2','Arial Rounded MT Bold',sans-serif",
@@ -71,7 +79,7 @@ function enumItem(v, fallback) { return v && v.enum ? v.enum.split(".")[1] : fal
 function compoundMatches(compound, node) {
   const m = compound.match(/^([A-Za-z]\w*)?((?:[.#][\w]+)*)((?::\w+)*)$/);
   if (!m) return false;
-  if (m[3]) return false; // :Hover / :Pressed states are not previewed
+  if (m[3]) return false; // :Hover / :Press states are not previewed (state tags set by UiStates are)
   if (m[1] && m[1] !== node.class) return false;
   for (const part of (m[2].match(/[.#][\w]+/g) || [])) {
     if (part[0] === "." && !(node.tags || []).includes(part.slice(1))) return false;
@@ -79,21 +87,35 @@ function compoundMatches(compound, node) {
   }
   return true;
 }
-function applyStyles(node) {
+// "A > B >> C": C is the node, B its parent, A any ancestor of B. ancestors[0] is the parent.
+function chainMatches(parts, node, ancestors) {
+  if (!compoundMatches(parts[parts.length - 1], node)) return false;
+  if (parts.length === 1) return true;
+  const comb = parts[parts.length - 2], rest = parts.slice(0, -2);
+  if (comb === ">") return ancestors.length > 0 && chainMatches(rest, ancestors[0], ancestors.slice(1));
+  for (let i = 0; i < ancestors.length; i++) if (chainMatches(rest, ancestors[i], ancestors.slice(i + 1))) return true;
+  return false;
+}
+function applyStyles(node, ancestors) {
+  ancestors = ancestors || [];
   for (const rule of SPEC.styles || []) {
-    const last = rule.selector.trim().split(/\s*>\s*|\s+/).pop();
-    const [compound, pseudo] = last.split("::");
-    if (!compoundMatches(compound, node)) continue;
-    if (pseudo) {
-      node.children = node.children || [];
-      let child = node.children.find(c => c.class === pseudo);
-      if (!child) { child = { class: pseudo, props: {} }; node.children.push(child); }
-      child.props = Object.assign({}, child.props, rule.props);
-    } else {
-      node.props = Object.assign({}, node.props, rule.props);
+    for (const sel of rule.selector.split(",")) {
+      const parts = sel.trim().split(/\s*(>>|>)\s*/);
+      const lastPart = parts[parts.length - 1];
+      const [compound, pseudo] = lastPart.split("::");
+      parts[parts.length - 1] = compound;
+      if (!chainMatches(parts, node, ancestors)) continue;
+      if (pseudo) {
+        node.children = node.children || [];
+        let child = node.children.find(c => c.class === pseudo);
+        if (!child) { child = { class: pseudo, props: {} }; node.children.push(child); }
+        child.props = Object.assign({}, child.props, rule.props);
+      } else {
+        node.props = Object.assign({}, node.props, rule.props);
+      }
     }
   }
-  for (const c of node.children || []) applyStyles(c);
+  for (const c of node.children || []) applyStyles(c, [node, ...ancestors]);
 }
 
 // ---- layout -----------------------------------------------------------------
@@ -144,8 +166,13 @@ function render(node, parentEl, pw, ph, placed) {
     const ap = (P(node, "AnchorPoint") || {}).vector2 || [0, 0];
     x = pos[0] * pw + pos[1] - ap[0] * w; y = pos[2] * ph + pos[3] - ap[1] * h;
   }
+  // UIScale: grow/shrink around the center. Resized, not CSS-transformed: transforms leave
+  // seams between the 9-slice tiles in browsers (Roblox draws a slice in one piece).
+  const uiScale = mod(node, "UIScale"), sc = uiScale ? P(uiScale, "Scale", 1) : 1;
+  if (sc !== 1) { x -= w * (sc - 1) / 2; y -= h * (sc - 1) / 2; w *= sc; h *= sc; }
   const el = document.createElement("div");
   el.className = "el"; el.title = node.name || node.class;
+  el.dataset.name = node.name || node.class; el.dataset.class = node.class; el.dataset.tags = (node.tags || []).join(" ");
   Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", zIndex: P(node, "ZIndex", 1) });
   const rot = P(node, "Rotation", 0); if (rot) el.style.transform = `rotate(${rot}deg)`;
   const isText = /^Text(Label|Button|Box)$/.test(node.class);
@@ -174,7 +201,20 @@ function render(node, parentEl, pw, ph, placed) {
     const img = P(node, "Image");
     const box = document.createElement("div");
     if (img && img.image && LOCAL_IMAGES[img.image] && (!img.id || /rbxassetid:\/\/0$/.test(img.id))) {
-      box.style.cssText = `width:100%;height:100%;background:url('${LOCAL_IMAGES[img.image]}') center/100% 100% no-repeat;opacity:${1 - P(node, "ImageTransparency", 0)}`;
+      const url = LOCAL_IMAGES[img.image], tint = (P(node, "ImageColor3") || {}).color || "#FFFFFF";
+      box.style.cssText = `width:100%;height:100%;opacity:${1 - P(node, "ImageTransparency", 0)}`;
+      const center = (P(node, "SliceCenter") || {}).rect, size = IMAGE_SIZES[img.image];
+      if (enumItem(P(node, "ScaleType"), "Stretch") === "Slice" && center && size) {
+        // 9-slice: corners keep their size (x SliceScale), the middle stretches; white image tinted by ImageColor3
+        const [l, t, r, b] = center, [iw, ih] = size, s = P(node, "SliceScale", 1);
+        box.style.background = tint;
+        box.style.webkitMaskBoxImage = `url('${url}') ${t} ${iw - r} ${ih - b} ${l} / ${t * s}px ${(iw - r) * s}px ${(ih - b) * s}px ${l * s}px stretch`;
+        box.dataset.slice = "1";
+      } else {
+        // Roblox multiplies the image by ImageColor3; the mask keeps the image's alpha
+        Object.assign(box.style, { backgroundColor: tint, backgroundImage: `url('${url}')`, backgroundSize: "100% 100%",
+          backgroundBlendMode: "multiply", webkitMaskImage: `url('${url}')`, webkitMaskSize: "100% 100%", maskImage: `url('${url}')`, maskSize: "100% 100%" });
+      }
     } else if (img && (img.image || typeof img === "string")) {
       box.className = "img"; box.textContent = img.image || "image";
     }
@@ -310,6 +350,10 @@ def main():
     args = parser.parse_args()
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    try:
+        spec = expand_motion(spec)  # motion numbers become Motion* tokens, like in the build script
+    except SpecError as error:
+        sys.exit(f"spec error: {error}")
     out = Path(args.output).resolve()
     images = {}
     if args.images:
@@ -320,7 +364,8 @@ def main():
                 images[key] = Path(png).as_uri()
     html = (HTML.replace("__NAME__", spec.get("name", "UI"))
                 .replace("__SPEC__", json.dumps(spec))
-                .replace("__IMAGES__", json.dumps(images)))
+                .replace("__IMAGES__", json.dumps(images))
+                .replace("__IMAGE_SIZES__", json.dumps(read_image_sizes(spec, args.images))))
     out.write_text(html, encoding="utf-8")
     print(f"wrote {out}")
     for screen in spec.get("screens", []):

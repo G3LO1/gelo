@@ -3,13 +3,20 @@
 
 Usage:
   check_store_assets.py <store-dir> [--preview preview.html] [--strict]
-  check_store_assets.py --icon icon.png --thumbs a.png b.jpg --title-text "Name" --description desc.txt
+  check_store_assets.py --icon icon.png --thumbs a.png b.jpg --shots a.png --title-text "Name" --description desc.txt
 
 <store-dir> layout (all optional, checked if present):
   icon.(png|jpg)        game icon
   thumbnails/*          thumbnail images, in upload order
+  shots/*               the in-game shots the thumbnails were made from (ShotDirector captures),
+                        paired with thumbnails by file name or leading number (2-clash.png <-> 2-clash.jpg)
   title.txt             game name (one line)
   description.txt       description
+
+Shot pairs are checked too: a thumbnail that no longer looks like its in-game shot (it must show
+the real experience), a thumbnail stretched to another shape than its shot, Studio's blue focus
+outline left on a shot's edge, shots that aren't 16:9. The preview shows each shot next to its
+thumbnail, and every thumbnail at the sizes Home tiles really use.
 
 Errors break upload rules (wrong format, over 3 MB, over 1,000 characters, more than 10
 thumbnails, non-square icon); warnings are documented best practices or heuristics
@@ -79,6 +86,84 @@ def flatten(image):
         background.alpha_composite(rgba)
         return background.convert("RGB")
     return image.convert("RGB")
+
+
+SIMILAR_MIN = 0.35  # below this a thumbnail no longer looks like its in-game shot
+TILE_SIZES = [(384, 216, "Home tile, desktop"), (256, 144, "Home tile, phone"), (160, 90, "smallest lists")]
+
+
+def structure(image):
+    """Composition fingerprint: small blurred grayscale, normalized (brightness/contrast-proof)."""
+    small = image.convert("L").resize((64, 36), Image.BILINEAR).filter(ImageFilter.GaussianBlur(1.5))
+    pixels = list(small.tobytes())
+    mean = sum(pixels) / len(pixels)
+    std = (sum((p - mean) ** 2 for p in pixels) / len(pixels)) ** 0.5 or 1.0
+    return [(p - mean) / std for p in pixels]
+
+
+def similarity(a, b):
+    x, y = structure(a), structure(b)
+    return sum(i * j for i, j in zip(x, y)) / len(x)
+
+
+def blue_edge(image):
+    """Studio's blue focus outline on the left or right edge of a capture."""
+    rgb = image.convert("RGB")
+    w, h = rgb.size
+    hits = []
+    for side, box in (("left", (0, 0, max(2, w // 200), h)), ("right", (w - max(2, w // 200), 0, w, h))):
+        r, g, b = ImageStat.Stat(rgb.crop(box)).mean
+        if b > 150 and b > r + 60 and b > g + 30:
+            hits.append(side)
+    return hits
+
+
+def pair_shots(thumb_paths, shot_paths):
+    """[(thumbnail index, shot path)] matched by file stem, then by leading number."""
+    def stem(p):
+        return os.path.splitext(os.path.basename(p))[0].lower()
+
+    def number(p):
+        m = re.match(r"^(\d+)", stem(p))
+        return int(m.group(1)) if m else None
+
+    pairs, used = [], set()
+    for i, thumb in enumerate(thumb_paths):
+        match = next((s for s in shot_paths if stem(s) == stem(thumb) and s not in used), None)
+        if match is None and number(thumb) is not None:
+            match = next((s for s in shot_paths if number(s) == number(thumb) and s not in used), None)
+        if match:
+            used.add(match)
+            pairs.append((i, match))
+    return pairs, [s for s in shot_paths if s not in used]
+
+
+def check_pair(thumb, shot_path, index, report):
+    where = f"thumbnail {index + 1} vs shot {os.path.basename(shot_path)}"
+    try:
+        image = Image.open(shot_path)
+        image.load()
+    except Exception as exc:  # noqa: BLE001
+        report.error(where, f"can't read the shot: {exc}")
+        return None
+    shot = flatten(image)
+    sw, sh = shot.size
+    if abs(sw / sh - 16 / 9) > 0.02:
+        report.warn(where, f"the shot is {sw}x{sh}, not 16:9; capture the game at 1920x1080 (or crop to 16:9) before making the thumbnail")
+    sides = blue_edge(shot)
+    if sides:
+        report.warn(where, f"blue line down the {' and '.join(sides)} edge of the shot (Studio's focus outline); crop it before using the shot")
+    if thumb is not None:
+        tw, th = thumb.size
+        if abs((tw / th) - (sw / sh)) > 0.02 * (sw / sh):
+            report.warn(where, f"the thumbnail ({tw}x{th}) has another shape than its shot ({sw}x{sh}): the art was stretched or cropped differently")
+        score = similarity(thumb, shot)
+        if score < SIMILAR_MIN:
+            report.warn(where, f"the thumbnail looks unlike its in-game shot (similarity {score:.2f}); thumbnails must show the real experience: keep the scene, change light, effects and framing")
+        else:
+            report.info(where, f"similarity {score:.2f}")
+        return shot, score
+    return shot, None
 
 
 def check_icon(path, report):
@@ -189,7 +274,15 @@ def data_uri(image, size=None, fmt="JPEG"):
     return f"data:image/{fmt.lower()};base64," + base64.b64encode(buffer.getvalue()).decode()
 
 
-def write_preview(path, icon, thumbs, title, description, report):
+def tile(image, size, caption):
+    w, h = size
+    return (
+        f"<figure class='tile' style='width:{w}px'><div class='frame'><img src='{data_uri(image, (w * 2, h * 2))}' width='{w}' height='{h}'>"
+        f"<div class='overlay' style='font-size:{max(8, h // 14)}px'>&#128077; 92% &nbsp; &#128101; 1.2K</div></div><figcaption>{caption}</figcaption></figure>"
+    )
+
+
+def write_preview(path, icon, thumbs, title, description, report, pairs=None):
     rows = []
     for level, where, message in report.items:
         if level != "INFO":
@@ -211,6 +304,21 @@ def write_preview(path, icon, thumbs, title, description, report):
             f"<div class='overlay'>&#128077; 92% &nbsp; &#128101; 1.2K playing</div></div>"
             f"<figcaption>{i + 1}. {html.escape(title or 'Game name')}</figcaption></figure>"
         )
+    compare = ""
+    for index, shot, score in pairs or []:
+        thumb = thumbs[index] if index < len(thumbs) else None
+        if thumb is None or shot is None:
+            continue
+        verdict = "" if score is None else f" &middot; similarity {score:.2f}" + (" &#9888; looks unlike the game" if score < SIMILAR_MIN else "")
+        own = lambda image: (640, max(1, round(640 * image.size[1] / image.size[0])))  # its own shape: a stretch shows
+        compare += (
+            f"<div class='pair'><figure><img src='{data_uri(shot, own(shot))}'><figcaption>In-game shot {shot.size[0]}x{shot.size[1]}</figcaption></figure>"
+            f"<figure><img src='{data_uri(thumb, own(thumb))}'><figcaption>Thumbnail {index + 1} {thumb.size[0]}x{thumb.size[1]}{verdict}</figcaption></figure></div>"
+        )
+    sizes = ""
+    for i, thumb in enumerate(thumbs):
+        if thumb is not None:
+            sizes += f"<div class='row light sizes'><b>{i + 1}</b>" + "".join(tile(thumb, (w, h), f"{w}x{h} {label}") for w, h, label in TILE_SIZES) + "</div>"
     hook = html.escape((description or "").strip()[:HOOK_LENGTH])
     rest = html.escape((description or "").strip()[HOOK_LENGTH:])
     page = f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -227,11 +335,16 @@ figure{{margin:0}} figcaption{{font-size:12px;margin-top:6px}}
 .desc{{background:#fff;border-radius:12px;padding:16px;max-width:640px;white-space:pre-wrap}}
 .hook{{font-weight:600}} .more{{color:#888}}
 li.error{{color:#b3261e}} li.warn{{color:#8a5a00}}
+.pair{{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px;align-items:start}}
+.pair img{{width:100%;height:auto;border-radius:8px;display:block}}
+.sizes{{margin-bottom:8px;align-items:flex-start}} .sizes .frame{{border-radius:6px}}
 </style></head><body>
 <h1>Store preview: {html.escape(title or '(no title)')}</h1>
 <ul>{''.join(rows) or '<li>No errors or warnings.</li>'}</ul>
 {icon_html}
 <h2>Thumbnails as Home tiles (bottom 15% = where metadata can cover them)</h2><div class="tiles">{tiles or '<p>No thumbnails.</p>'}</div>
+<h2>In-game shot vs thumbnail</h2>{compare or '<p>No shots: put the in-game captures in shots/ (same names as the thumbnails).</p>'}
+<h2>At the sizes players see them</h2>{sizes or '<p>No thumbnails.</p>'}
 <h2>Description (bold = the first 160 characters shown in search and collapsed on mobile)</h2>
 <div class="desc"><span class="hook">{hook}</span><span class="more">{rest}</span></div>
 </body></html>"""
@@ -244,6 +357,7 @@ def main():
     ap.add_argument("store_dir", nargs="?")
     ap.add_argument("--icon")
     ap.add_argument("--thumbs", nargs="*", default=None)
+    ap.add_argument("--shots", nargs="*", default=None, help="in-game shots the thumbnails were made from")
     ap.add_argument("--title-text")
     ap.add_argument("--description")
     ap.add_argument("--preview")
@@ -258,6 +372,8 @@ def main():
             icon_path = found[0] if found else None
         if thumb_paths is None:
             thumb_paths = sorted(p for p in glob.glob(os.path.join(d, "thumbnails", "*")) if os.path.isfile(p))
+        if args.shots is None:
+            args.shots = sorted(p for p in glob.glob(os.path.join(d, "shots", "*")) if os.path.isfile(p))
         if title is None and os.path.exists(os.path.join(d, "title.txt")):
             title = open(os.path.join(d, "title.txt"), encoding="utf-8").read().strip()
         if not args.description and os.path.exists(os.path.join(d, "description.txt")):
@@ -294,6 +410,14 @@ def main():
         if len(members) > 1:
             names = ", ".join(map(str, members[:-1])) + f" and {members[-1]}"
             report.warn("thumbnails", f"thumbnails {names} look almost the same; personalization learns nothing from near-duplicates")
+    pairs, unpaired = pair_shots(thumb_paths, args.shots or [])
+    compared = []
+    for index, shot_path in pairs:
+        checked = check_pair(thumbs[index], shot_path, index, report)
+        if checked:
+            compared.append((index, checked[0], checked[1]))
+    for shot_path in unpaired:
+        report.info("shots", f"{os.path.basename(shot_path)} has no thumbnail with the same name or number")
     if title is not None:
         check_title(title, report)
     if description is not None:
@@ -304,7 +428,7 @@ def main():
     errors, warnings = report.count("ERROR"), report.count("WARN")
     print(f"\n{errors} error(s), {warnings} warning(s)")
     if args.preview:
-        write_preview(args.preview, icon, thumbs, title, description, report)
+        write_preview(args.preview, icon, thumbs, title, description, report, compared)
         print(f"preview: {args.preview}")
     if errors or (args.strict and warnings):
         sys.exit(1)

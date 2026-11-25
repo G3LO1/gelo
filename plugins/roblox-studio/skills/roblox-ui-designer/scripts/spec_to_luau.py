@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Turn a ui-spec JSON file into one Luau script that builds the UI in Roblox Studio.
 
-Usage: spec_to_luau.py ui-spec.json [-o BuildUi.luau]
+Usage: spec_to_luau.py ui-spec.json [-o BuildUi.luau] [--images ui/images]
 
 The spec is checked for structure and dangling token/font/image references first; property
 names and value types are checked later by validate_ui.luau (Lune, real Roblox reflection)
-or by Studio itself when the script runs.
+or by Studio itself when the script runs. Style selectors are checked for Roblox's syntax
+(states :Hover/:Press/:NonInteractable/:Idle, descendants with >>). The optional `motion`
+table (shared animation numbers) is range-checked and becomes Motion* tokens. With --images,
+9-slice SliceCenter rects are checked against the real PNG sizes.
 """
 
 import argparse
@@ -30,7 +33,24 @@ ENCODINGS = {
     "numseq": None,
 }
 NODE_KEYS = {"class", "name", "props", "children", "tags", "attributes"}
-SPEC_KEYS = {"name", "parent", "tokens", "fonts", "images", "styles", "screens", "reference"}
+SPEC_KEYS = {"name", "parent", "tokens", "fonts", "images", "styles", "screens", "reference", "motion"}
+# Shared animation numbers (one table for the whole UI): key -> (min, max, default).
+# Scales feed UIScale.Scale, times are seconds, glow* are the glow layer's ImageTransparency.
+MOTION = {
+    "hoverScale": (1.0, 1.15, 1.04),
+    "pressScale": (0.85, 1.0, 0.98),
+    "hoverTime": (0.03, 0.5, 0.12),
+    "pressTime": (0.03, 0.3, 0.08),
+    "openTime": (0.1, 0.8, 0.3),
+    "stagger": (0.0, 0.2, 0.05),
+    "glowIdle": (0.0, 1.0, 1.0),
+    "glowFocused": (0.0, 1.0, 0.35),
+    "glowPressed": (0.0, 1.0, 0.15),
+    "disabledTransparency": (0.0, 0.9, 0.5),
+    "breathe": (0.0, 5.0, 1.6),
+}
+STATES = {"Hover", "Press", "NonInteractable", "Idle"}  # Enum.GuiState
+STATE_FIXES = {"Pressed": "Press", "Pressing": "Press", "Disabled": "NonInteractable", "Selected": "Hover (or a tag set by code)", "Focused": "Hover (or a tag set by code)"}
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
@@ -99,10 +119,38 @@ def check_node(spec, node, path):
 GUI_SIZED = re.compile(r"^(Frame|TextLabel|TextButton|TextBox|ImageLabel|ImageButton|ScrollingFrame|CanvasGroup|ViewportFrame|VideoFrame)$")
 
 
-def lint_node(node, path, warnings, in_layout_axis=None):
+def lint_slice(spec, node, here, props, warnings, image_sizes):
+    """9-slice images: a missing or wrong SliceCenter stretches the corners or shows a band
+    (the "dark strip down every card" bug)."""
+    scale = props.get("ScaleType")
+    if not (isinstance(scale, dict) and scale.get("enum") == "ScaleType.Slice"):
+        if "SliceCenter" in props:
+            warnings.append(f"{here}: SliceCenter without ScaleType.Slice does nothing")
+        return
+    rect = props.get("SliceCenter")
+    if not (isinstance(rect, dict) and "rect" in rect):
+        warnings.append(f"{here}: ScaleType.Slice without SliceCenter: the whole image stretches, corners included. Add SliceCenter {{\"rect\": [left, top, right, bottom]}} in image pixels")
+        return
+    left, top, right, bottom = rect["rect"]
+    if not (0 <= left < right and 0 <= top < bottom):
+        warnings.append(f"{here}: SliceCenter {rect['rect']} must have left < right and top < bottom (in image pixels)")
+        return
+    image = props.get("Image")
+    key = image.get("image") if isinstance(image, dict) else None
+    if key and key in image_sizes:
+        width, height = image_sizes[key]
+        if right > width or bottom > height:
+            warnings.append(f"{here}: SliceCenter {rect['rect']} reaches past the {width}x{height} image '{key}'")
+        elif right - left >= width or bottom - top >= height:
+            warnings.append(f"{here}: SliceCenter {rect['rect']} covers the whole {width}x{height} image '{key}': no corners are kept")
+
+
+def lint_node(node, path, warnings, in_layout_axis=None, spec=None, image_sizes=None):
     """Catch layouts that are valid Roblox but render wrong (they pass validation)."""
     here = f"{path}/{node.get('name', node['class'])}"
     props = node.get("props") or {}
+    if node["class"] in ("ImageLabel", "ImageButton"):
+        lint_slice(spec, node, here, props, warnings, image_sizes or {})
     children = node.get("children") or []
     classes = {child["class"] for child in children if isinstance(child, dict)}
     if GUI_SIZED.match(node["class"]):
@@ -125,7 +173,82 @@ def lint_node(node, path, warnings, in_layout_axis=None):
         axis = "x" if direction.endswith("Horizontal") else "y"
     for child in children:
         if isinstance(child, dict) and isinstance(child.get("class"), str):
-            lint_node(child, here, warnings, axis)
+            lint_node(child, here, warnings, axis, spec, image_sizes)
+
+
+def motion_token(key):
+    return "Motion" + key[0].upper() + key[1:]
+
+
+def expand_motion(spec):
+    """Checks `motion` and returns a copy of the spec whose tokens include Motion* entries
+    (defaults filled in), so props and style rules can use { "token": "MotionHoverScale" }."""
+    motion = spec.get("motion")
+    if motion is None:
+        return spec
+    if not isinstance(motion, dict):
+        raise SpecError("'motion' must be an object like { \"hoverScale\": 1.04 }")
+    unknown = set(motion) - set(MOTION)
+    if unknown:
+        raise SpecError(f"motion: unknown key(s) {sorted(unknown)} (known: {', '.join(MOTION)})")
+    tokens = dict(spec.get("tokens") or {})
+    for key, (low, high, default) in MOTION.items():
+        value = motion.get(key, default)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not low <= value <= high:
+            raise SpecError(f"motion.{key}: {value!r} must be a number from {low} to {high}")
+        name = motion_token(key)
+        if name in tokens:
+            raise SpecError(f"tokens.{name}: reserved for motion.{key}")
+        tokens[name] = value
+    expanded = dict(spec)
+    expanded["tokens"] = tokens
+    return expanded
+
+
+SELECTOR_COMPOUND = re.compile(r"^(?:[A-Za-z]\w*)?(?:[.#]\w+)*(?::\w+)*(?:::\w+)?$")
+
+
+def check_selector(selector, where):
+    for part in selector.split(","):
+        part = part.strip()
+        if not part:
+            raise SpecError(f"{where}: empty selector in a list")
+        tokens = re.split(r"\s*(>>|>)\s*", part)
+        compounds = tokens[::2]
+        for compound in compounds:
+            if compound == "" and compounds.index(compound) == 0:
+                continue  # nested rule like "> TextButton"
+            if re.search(r"\s", compound):
+                raise SpecError(f"{where}: '{part}': Roblox has no space combinator; use '>>' for descendants or '>' for children")
+            if not SELECTOR_COMPOUND.match(compound):
+                raise SpecError(f"{where}: '{compound}' is not a selector (Class, .Tag, #Name, :State, ::UIComponent)")
+            for state in re.findall(r"(?<!:):(\w+)", compound):
+                if state not in STATES:
+                    hint = f" (use :{STATE_FIXES[state]})" if state in STATE_FIXES else ""
+                    raise SpecError(f"{where}: unknown state ':{state}' in '{part}'; states are :Hover, :Press, :NonInteractable, :Idle{hint}")
+
+
+EASING = {"Linear", "Sine", "Back", "Quad", "Quart", "Quint", "Bounce", "Elastic", "Exponential", "Circular", "Cubic"}
+
+
+def check_transition(spec, transition, where):
+    """{ "time": 0.12 | {"token": "MotionHoverTime"}, "easing": "Quad", "direction": "Out" }:
+    the rule's properties tween to their new values (StyleRule:SetDefaultPropertyTransition)."""
+    if not isinstance(transition, dict) or "time" not in transition:
+        raise SpecError(f"{where}: needs at least {{\"time\": seconds}}")
+    unknown = set(transition) - {"time", "easing", "direction"}
+    if unknown:
+        raise SpecError(f"{where}: unknown key(s) {sorted(unknown)}")
+    time = transition["time"]
+    if isinstance(time, dict) and "token" in time:
+        check_value(spec, time, f"{where}.time")
+        time = spec["tokens"][time["token"]]
+    if isinstance(time, bool) or not isinstance(time, (int, float)) or not 0 <= time <= 2:
+        raise SpecError(f"{where}.time: {time!r} must be 0-2 seconds")
+    if transition.get("easing", "Quad") not in EASING:
+        raise SpecError(f"{where}.easing: one of {', '.join(sorted(EASING))}")
+    if transition.get("direction", "Out") not in ("In", "Out", "InOut"):
+        raise SpecError(f"{where}.direction: In, Out or InOut")
 
 
 def check_spec(spec):
@@ -149,6 +272,12 @@ def check_spec(spec):
     for index, rule in enumerate(spec.get("styles") or []):
         if not isinstance(rule.get("selector"), str):
             raise SpecError(f"styles[{index}]: needs a 'selector'")
+        check_selector(rule["selector"], f"styles[{index}]")
+        unknown_rule = set(rule) - {"selector", "props", "priority", "transition"}
+        if unknown_rule:
+            raise SpecError(f"styles[{index}]: unknown key(s) {sorted(unknown_rule)}")
+        if "transition" in rule:
+            check_transition(spec, rule["transition"], f"styles[{index}].transition")
         for prop, value in (rule.get("props") or {}).items():
             check_value(spec, value, f"styles[{index}].{prop}")
     for screen in screens:
@@ -157,6 +286,20 @@ def check_spec(spec):
             raise SpecError(f"screen '{screen.get('name')}' must be a ScreenGui/SurfaceGui/BillboardGui")
         if not screen.get("name"):
             raise SpecError("every screen needs a 'name'")
+
+
+def read_image_sizes(spec, folder):
+    """{image key: (width, height)} for the keys that have a PNG in the folder (PNG header, no Pillow)."""
+    sizes = {}
+    if not folder:
+        return sizes
+    for key in spec.get("images") or {}:
+        png = Path(folder) / f"{key}.png"
+        if png.exists():
+            head = png.read_bytes()[:24]
+            if head[:8] == b"\x89PNG\r\n\x1a\n":
+                sizes[key] = (int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big"))
+    return sizes
 
 
 def luau_string(text):
@@ -194,16 +337,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("spec")
     parser.add_argument("-o", "--output")
+    parser.add_argument("--images", help="folder with <image key>.png: checks SliceCenter against the real image sizes")
     args = parser.parse_args()
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
     try:
+        spec = expand_motion(spec)
         check_spec(spec)
     except SpecError as error:
         sys.exit(f"spec error: {error}")
+    image_sizes = read_image_sizes(spec, args.images)
     warnings = []
     for screen in spec["screens"]:
-        lint_node(screen, spec["name"], warnings)
+        lint_node(screen, spec["name"], warnings, None, spec, image_sizes)
     for warning in warnings:
         print(f"warning: {warning}", file=sys.stderr)
 

@@ -142,6 +142,24 @@ local function buildStyleSheet(spec: any): StyleSheet?
 		else
 			(rule :: any):SetProperties(props)
 		end
+		local transition = ruleSpec.transition
+		if transition then
+			-- properties tween to the rule's values instead of snapping (shared motion numbers)
+			local time = decode(spec, transition.time)
+			local easing = transition.easing or "Quad"
+			local direction = transition.direction or "Out"
+			if hooks.setRuleTransition then
+				hooks.setRuleTransition(rule, time, easing, direction, ruleSpec.selector)
+			else
+				local info = TweenInfo.new(time, (Enum.EasingStyle :: any)[easing], (Enum.EasingDirection :: any)[direction])
+				local ok, err = pcall(function()
+					(rule :: any):SetDefaultPropertyTransition(info)
+				end)
+				if not ok then
+					warn(`[ui_builder] {ruleSpec.selector}: transition not set ({err}); states will snap`)
+				end
+			end
+		end
 		rule.Parent = sheet
 	end
 	local folder = ReplicatedStorage:FindFirstChild("UIStyles")

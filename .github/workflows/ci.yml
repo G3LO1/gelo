@@ -75,6 +75,8 @@ jobs:
         run: bash tests/roblox-security-perf-audit/run.sh
       - name: Launch kit
         run: bash tests/roblox-launch-kit/run.sh
+      - name: Map builder
+        run: bash tests/roblox-map-builder/run.sh
       - name: Animation & VFX
         run: bash tests/roblox-animation-vfx/run.sh
       - name: Installers (install.sh, install.ps1)
@@ -93,7 +95,19 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install bpy
+      - name: Install Lune
+        run: |
+          mkdir -p "$HOME/bin" && cd "$HOME/bin"
+          curl -sSfL -o lune.zip "https://github.com/lune-org/lune/releases/download/v${LUNE_VERSION}/lune-${LUNE_VERSION}-linux-x86_64.zip"
+          unzip -o -q lune.zip && chmod +x lune
+          echo "$HOME/bin" >> "$GITHUB_PATH"
       - name: blender_check.py against real Blender
         run: |
           mkdir -p "$RUNNER_TEMP/blender"
           python tests/roblox-animation-vfx/blender_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/blender_check.py "$RUNNER_TEMP/blender"
+      - name: model_batch.py on the example manifest (dry run, FBX, icons, resume) + ModelSpecs.luau
+        run: |
+          python tests/roblox-animation-vfx/model_batch_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/model_batch.py plugins/roblox-studio/skills/roblox-animation-vfx/assets/examples/models.json "$RUNNER_TEMP/blender"
+          lune run tests/roblox-animation-vfx/model_specs_test "$RUNNER_TEMP/blender/models/build/models/ModelSpecs.luau"
+      - name: anim_accept.py on the R15 + R6 example (feet, root, grip, clipping, loops, markers)
+        run: python tests/roblox-animation-vfx/anim_accept_test.py plugins/roblox-studio/skills/roblox-animation-vfx/scripts/anim_accept.py plugins/roblox-studio/skills/roblox-animation-vfx/assets/examples/animations.json "$RUNNER_TEMP/accept"

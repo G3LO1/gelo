@@ -104,7 +104,7 @@ local SPEC = {
 			},
 		},
 		{
-			selector = "TextButton:Pressed",
+			selector = "TextButton:Press",
 			props = {
 				BackgroundColor3 = {
 					token = "PrimaryPressed",

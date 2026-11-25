@@ -22,15 +22,19 @@ From `PRODUCTION_PLAN.md` (mechanic -> asset matrix, art direction, avatar type)
 - Owner account (user or group): it must upload the animations and textures.
 
 ## 2. Plan
-Read `references/animation.md` and `references/vfx.md` (and `references/blender.md` when Blender is in play).
-1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX, camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small.
+Read `references/animation.md`, `references/vfx.md` and `references/sfx.md` (and `references/blender.md` when Blender is in play).
+1. **Moment table**: for every verb/event in the mechanic matrix, one row: animation (name, priority, loop, length, markers), VFX preset and size, SFX (name, the marker or event it plays on, max length, takes, status of each take and its id), camera/UI feedback, who plays it (local client, all clients via remote). Big moments get all channels; frequent ones stay small. The SFX columns are `sounds.json` (`references/sfx.md`, example `assets/examples/sounds.json`).
 2. **Animation manifest**: write `animations.json` (format in `scripts/anim_manifest.py`; ids 0 until uploaded). Priorities, looping and markers follow the table in the reference. Use an Animation Graph for locomotion blends and jump/fall/land chains when the team has someone to build it; plain tracks otherwise.
 3. **VFX list**: map moments to `Vfx.luau` presets; add or tune presets for the style (colors, sizes, textures, counts) in its `Vfx.Presets` table.
+4. **SFX list**: `sounds.json` with a prompt + the game's style line per sound, `sfx_manifest.py plan` for the takes and the price before anything is generated.
 
 ## 3. Build
 **Animations**
 - Give the animator a brief per animation: purpose, length, key poses (anticipation -> action -> recovery), the marker frames, loop or not, priority, rig, and how it must look on a tall and a short avatar.
 - With Studio MCP tools: set up the rig (Avatar > Character), and for runtime IK create `IKControl`s (Type, EndEffector, Target, ChainRoot, Weight) with `execute_luau`; animation keyframes themselves are made by a person in the Animation Editor (or Capture), then published.
+- Sounds: generate the takes from the plan (API key from the environment, price shown first), `python3 scripts/sfx_manifest.py check sounds.json --animations animations.json --vfx src/shared/Vfx.luau` (empty takes, silence before the sound, hits that land after the marker, too long, clipping, loudness), `trim` to cut the silence and match loudness, a person listens and picks, upload, wait for moderation, `luau -o src/shared/SfxIds.luau`; in game `Sfx.configure(SfxIds, { vfx = Vfx })` + `Sfx.bind(set, part)` plays sound and effect on the same marker (`assets/Sfx.luau`).
+- Motion moved over from another skeleton (video mocap, AI motion, store packs) or made for both R15 and R6: add `accept` blocks (and `"rigs": ["R15", "R6"]`, `idR6`) to `animations.json` and run `scripts/anim_accept.py` in Blender on every clip until it passes: feet on the floor, no sliding against the game's speed, root in place, the prop stays in the hand and out of the body on every frame, loops close, markers present, R6 matches R15 (`references/animation.md` section 9; example `assets/examples/animations.json`). Load with `AnimationSet.new(animator, Animations.specsFor(humanoid))`.
+- Sets of props (weapons, tools, generated models): `scripts/model_batch.py` with a manifest (`assets/examples/models.json`) stands them up, scales them to studs, sets pivots and grip points, keeps them under the triangle budget, closes holes, exports FBX and renders icons from one camera; `--dry-run` first, re-runs redo only what changed (`references/blender.md` section 10). In Studio `ModelSpecs.apply(part)` adds the pivot and grip Attachments.
 - With Blender MCP tools: follow `references/blender.md` (R15 rig, 30 FPS, in place, small steps with viewport and timeline screenshots), block or build the animation, run `scripts/blender_check.py` through the code tool, export FBX with its settings, then the user imports it in the Animation Editor (`...` > Import > From FBX Animation), adds events and publishes. Character acting and combat polish stay with a human animator; say so instead of shipping a stiff result.
 - After uploading: paste the ids into `animations.json` and run
   `python3 scripts/anim_manifest.py animations.json -o src/shared/Animations.luau` (errors on missing ids unless `--allow-todo`; warns about wrong priorities, loops, missing hit markers, rig mismatches, duplicates).
@@ -39,15 +43,19 @@ Read `references/animation.md` and `references/vfx.md` (and `references/blender.
 **VFX**
 - Copy `assets/Vfx.luau` into shared code. Server decides, fires a remote with the effect name and target, clients call `Vfx.play(name, positionOrPart)`; loops through `Vfx.attach` + `:Stop()`. Hook `Vfx.setQuality` and `Vfx.setReducedFlashing` to the settings menu.
 - Textures: `assets/textures/*.png` (or `python3 scripts/make_textures.py <dir> --size 128`), or flipbook sheets rendered in Blender when it's connected; uploaded by the owner, ids pasted into `Vfx.Textures`.
+- Layered flipbooks (slashes, fire bursts, magic): white layers on one 4x4 sheet, colored per variant in game (`Vfx.play("Slash", tip, { variant = "Ember" })`). Pack, check and preview sheets with `python3 scripts/flipbook.py pack|check|preview` (4 px clear margins, power-of-two, frame lit up on the sheet); recipe in `references/vfx.md` section 8.
 - Check every preset against Roblox's API database and get a model to look at:
-  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad; particles play in Edit mode.
+  `lune run scripts/vfx_showcase.luau src/shared/Vfx.luau VfxShowcase.rbxmx` (also `--quality 0.3 --reduced-flashing`). Drag the model into Studio (or insert it with MCP tools) and `screen_capture` each pad (one per preset and per color variant); particles play in Edit mode.
 - With Studio MCP: insert, playtest with `start_stop_play`, trigger the moments, `screen_capture`, read `get_console_output` (AnimationSet warns about missing ids and markers).
 
 ## 4. Check
 - Every animation id in the manifest is owned by (or granted to) the experience; tested in a published place or Team Test, not only in Studio.
 - Priorities: attacks override walking, hit reactions override attacks, death overrides everything; no unintended loops.
 - Damage, projectiles, footsteps and effects fire from markers, and the server still validates hits.
+- Every sound on a marker passes `sfx_manifest.py check` (lands within 50 ms of the marker), only approved (moderated) ids are in `SfxIds.luau`, and someone listened to each take and to the moment in a playtest.
+- Retargeted clips passed `anim_accept.py`; after publishing, `AnimCheck.runAll(Animations)` in Studio finds every marker and the saved looping/priority match the manifest.
 - Effects read at phone size and low quality, never hide hazards or UI, nothing flashes with reduced flashing on.
+- Before/after an effect, animation or sound change: play the same `roblox-launch-kit` scene (`ShotDirector.luau`, shots marked `test`) and compare the captures 1:1.
 - `roblox-security-perf-audit` place audit: no emitter over 100/s, total particle budget fine, effect lights without shadows.
 Don't claim an animation or effect looks right without a screenshot or playtest; list what a human still has to look at.
 
@@ -72,6 +80,7 @@ Checked against create.roblox.com/docs/animation (editor, events, curve editor, 
 6. Playing animations in code
 7. Permissions and publishing
 8. Common failures
+9. Retarget acceptance (mocap, AI clips, store animations)
 
 ## 1. Rig decision
 - **Players' own R15 avatars** (most games): animations must work on any body shape and scale; test on a tall, a short and a blocky avatar.
@@ -135,6 +144,19 @@ Add named markers on the events track at the exact frame something must happen (
 - R6 animation on R15 avatar (or the reverse): nothing plays.
 - Memory grows each respawn: tracks and marker connections never cleaned up.
 
+## 9. Retarget acceptance (mocap, AI clips, store animations)
+Motion from another skeleton (FreeMoCap or other video capture, AI motion models, Unreal/store packs with 70+ bones, Animation Capture) never fits a 15-part R15 body or a 6-part R6 body by itself. What goes wrong, and what to do when moving it over:
+- **Proportions**: R15 arms are short and the torso is a brick. Copying angles makes hands miss the prop and feet float or sink. Scale the motion by leg length, stand the feet on the floor where the source says they touch it, and put the hands on the prop first (IK), then bend the arms to reach.
+- **R6** has no elbows or knees: aim each arm from shoulder to hand and each leg from hip to foot. Roblox's own generated clips are R15 only; ship R6 versions only when the game allows R6 avatars, as separate uploads (`idR6`).
+- **Props** go through a short body (a long blade through the torso), fly out of the hand or sink into the fingers. Check every frame, not a few poses.
+- **Loops** pop when the last pose isn't the first; **root** travel makes avatars drift (Roblox plays avatar animations in place); **markers** don't always survive the FBX import.
+
+The repeatable check, the same for every clip:
+1. In `animations.json` give each clip an `accept` block: `grounded` + `speed` (the WalkSpeed the game moves the character at; 0 for idles) for clips that keep contact with the ground, `prop` + `grips` (hand bone -> grip point, e.g. the `Grip` from `model_batch.py`) for clips with a prop, `rootMotion` for non-avatar rigs, tolerances at the top level. List `"rigs": ["R15", "R6"]` when both ship. Example: `assets/examples/animations.json` (Walk = ground contact, Chop = katana).
+2. In Blender, keep the clips as actions named like the manifest (`Walk`, and `Walk_R6` on the R6 rig; Fake User on, or Blender drops unused actions when saving), the character's parts bone-parented or skinned, the prop with a grip Empty. Run `blender -b scene.blend --python scripts/anim_accept.py -- animations.json` (or through the Blender MCP code tool). It reports, per clip and rig: feet floating or sinking and the frames, planted feet sliding against `speed`, root travel, the prop leaving the hand (frames, distance), the prop going through each body part (frames per part), loop pops (bone, degrees), markers with their times, and R15 vs R6 differences in length and marker frames. Fix and run again until it passes.
+3. Look at the reference, the rig and Studio from the same camera side by side (or the rig over the source video); the numbers don't catch style.
+4. After importing and publishing, run `AnimCheck.runAll(Animations)` in Studio (`assets/AnimCheck.luau`): it loads each published clip and reports missing markers, wrong saved looping or priority, and ids that don't load (ownership).
+
 ## File: references/blender.md
 
 # Blender with a Blender MCP server
@@ -151,6 +173,7 @@ How the skills in this plugin use Blender when the user has a Blender MCP server
 7. Model pipeline
 8. VFX and UI renders
 9. blender_check.py
+10. Batch model preparation (model_batch.py)
 
 ## 1. Detect, ask, offer
 **Detect**: Blender MCP tools are connected when the tool list (including deferred tools: ToolSearch with the query `blender`) has tools from a Blender server, e.g. `execute_blender_code`, `get_scene_info`, `get_object_info`, `get_viewport_screenshot` (names differ between servers; anything under an `mcp__blender...` prefix counts). If connected, say so in one line and use it where section 3 says it helps.
@@ -198,7 +221,7 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 1. **Rig**: for player avatars use a standard R15 rig. Hierarchy: Root > HumanoidRootNode > LowerTorso > (UpperTorso > Head, LeftUpperArm > LeftLowerArm > LeftHand, RightUpperArm > RightLowerArm > RightHand), LeftUpperLeg > LeftLowerLeg > LeftFoot, RightUpperLeg > RightLowerLeg > RightFoot. (The body spec names the root bone HumanoidRootNode; the animation export guides use HumanoidRootPart; blender_check.py accepts both.) Skeleton scale 1, meshes with zero transforms and scale 1 before skinning. Custom characters: import as Custom and use Adaptive Animation (HumanoidRigDescription) to map them to R15 so any R15 animation plays on them.
 2. **Animate** at 30 FPS (at least 30; other rates make Studio warn about key alignment), with the same character the animation is for. Avatar animations play in place: the root doesn't travel (walk cycles animate on the spot; code moves the character).
 3. **Name markers** you'll need (Hit, Release, Footstep) and list them in `animations.json`. Don't count on Blender timeline markers arriving as Roblox animation events: after import, check the Animation Editor's events track and add any that are missing.
-4. **Check and export**: `blender_check.py` (mode animation), then FBX with Bake Animation on, one animation per file.
+4. **Check and export**: `blender_check.py` (mode animation) and, for motion moved over from another skeleton, `anim_accept.py` with the manifest (feet on the floor, sliding, root, grip, prop through the body, loops, markers, R15 vs R6; `animation.md` section 9), then FBX with Bake Animation on, one animation per file.
 5. **Import in Studio**: Avatar tab > Character (R15) or your custom rig, open the Animation Editor (Avatar > Clip Editor), select the rig, `...` > Import > From FBX Animation (From File in newer builds), check the timeline, add events, set priority and looping, Publish to Roblox with the owner account/group. Emotes must be converted to a CurveAnimation (Curve Editor) before publishing.
 6. Paste the id into `animations.json`, run `anim_manifest.py`, play it through AnimationSet.
 
@@ -207,13 +230,74 @@ Not good alone: hand-key quality character acting and combat animation (timing, 
 - Modular kits for maps: pieces on the map's grid (4/8/16 studs), pivots at a consistent corner, shared materials/trim sheets, one mesh reused many times instead of many unique meshes (draw calls, memory).
 - Import kit pieces one by one (the Importer doesn't de-duplicate meshes), then assemble in Studio.
 - Collision: set CollisionFidelity per role in Studio (Box/Hull for props), invisible simple colliders for walkways.
+- Many props of one kind (a weapon set, a furniture line, generated models): don't fix them one by one, run them through `scripts/model_batch.py` (section 10).
 
 ## 8. VFX and UI renders
-- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it; set FlipbookLayout and FlipbookMode on the emitter.
-- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images.
+- Particle flipbooks: render frames of a simulation or stylized shape to a 2x2/4x4/8x8 grid sheet (power-of-two, up to 1024 px for hero effects), white/grayscale with alpha so ParticleEmitter.Color tints it, one render per layer if the effect is layered; pack and check them with `scripts/flipbook.py` (margins, sheet size, preview) and wire them as a layered preset (`vfx.md` section 8).
+- Item and shop icons: consistent camera, light and outline across items, transparent background, 256-512 px; hand them to `roblox-ui-designer` as images. `model_batch.py` renders them from one fixed orthographic camera for a whole set.
 
 ## 9. blender_check.py
 `scripts/blender_check.py` reads the open scene and prints errors/warnings (units, FPS, triangles, watertight, transforms, materials, UVs, R15 bone names and parents, leaf bones, root travel). Through MCP: send the whole file to the code tool (set `MODE` and optionally `EXPORT_PATH` at the top; it exports only when there are no errors). From a terminal: `blender -b file.blend --python blender_check.py -- --mode animation --export out.fbx`. It never modifies or saves the .blend.
+
+## 10. Batch model preparation (model_batch.py)
+For sets of props (weapons, tools, furniture, image-to-3D output): one manifest, one script, every model fixed the same way. Models from image-to-3D services or asset packs are never ready: they come out at one size (a dagger as long as a hammer), lying down or facing the wrong way, with holes you can see through, extra parts nobody asked for, far too many triangles, and no idea where the hand goes.
+
+- **Sources**: one object per picture or file. For image-to-3D, give each part its own reference on a plain background (sword alone, scabbard alone, pedestal alone) with effects removed (smoke, sparkles, auras turn into solid lumps) and labels cut out; ask for a face limit near the budget (about 1,500 for a small blade, 3,500 for a big one, 6,000 for armor pieces); dry-run paid jobs first and never paste API keys into the chat (log the CLI in through the browser).
+- **Manifest** (`assets/examples/models.json`): per model `source`, `up` and `front` (which source axis points up and which to the front: a blade's sharp edge, the side players see), `studs` (longest side, or `{"z": h}`; a katana is ~4, a spear ~6.5), `pivot` (`bottom` for things that stand, a point name such as `Grip` for held items), `points` (named points as bounding-box fractions: `Grip`, `BladeStart`, `Top`), `keep` (object-name patterns; extras are dropped), `fillHoles`, `maxTriangles` (decimated down to it).
+- **Run**: `blender -b --python scripts/model_batch.py -- models.json --dry-run` prints the plan (source size -> studs, scale factor, triangles before -> after, dropped parts, closed holes, blender_check warnings) and writes nothing; without `--dry-run` it writes `<out>/<name>.fbx` (blender_check settings), `<out>/icons/<name>.png` (fixed camera, transparent), `models.json` and `ModelSpecs.luau`. `--only A,B` and `--force` narrow or redo. Through a Blender MCP code tool: set `MANIFEST` (and `DRY_RUN`) at the top and send the file.
+- **Resume**: `model_batch_state.json` keys every model by its source bytes and its settings. A second run skips what didn't change, redoes what did and retries what failed; the state is written after every model, so a crash or a stopped run continues where it stopped. Change a setting, run it again: only that model is redone.
+- **In Studio**: import the FBX files (3D Importer, or Open Cloud for hundreds), then `ModelSpecs.apply(meshPart)` sets `PivotOffset` and adds the `Grip` / `BladeStart` Attachments (the importer doesn't carry points on static meshes) and warns when a part came in at another scale. Hold items with a `RigidConstraint` from the hand's `RightGripAttachment` to the item's `Grip` Attachment; hit only with the part above `BladeStart`.
+- Axes: Blender +Z up and -Y front become Roblox +Y up and the part's front (-Z, LookVector) with the FBX settings above; check this once on one item in Studio (the `Grip` Attachment should sit on the handle) before importing a whole set.
+- Still by hand: fitting armor or anything worn on the body (fit one side, mirror the other), deciding the style and checking each icon and in-game look.
+
+## File: references/sfx.md
+
+# Sound effects reference
+
+The SFX column of the moment table as data (`sounds.json`), checked locally before anything is uploaded. The `Sound` properties used by `Sfx.luau` are checked against Roblox's API database in the tests; upload formats, size limits and moderation rules change, so confirm them in the Creator Hub (create.roblox.com/docs/audio) before a big upload.
+
+## Contents
+1. Moment table -> sounds.json
+2. Making the takes
+3. Checking and cleaning
+4. Upload, moderation, ids
+5. In the game: Sfx.luau and the marker sync
+6. What stays human
+
+## 1. Moment table -> sounds.json
+Every moment row that has a sound gets one entry (`scripts/sfx_manifest.py` documents the format; example `assets/examples/sounds.json`):
+- `name` (Luau identifier, what code calls), `prompt` (what it is), `maxLength` (a swing is under a second, a footstep under half), `takes` (how many to generate, 2-3; more variants for frequent sounds).
+- **When it plays**: `marker` = `"Animation:Marker"` from `animations.json` (hits, footsteps, releases: the sound lands with the pose) or `event` for code-triggered moments (pickup, purchase, UI focus).
+- `vfx`: the Vfx preset that plays on the same marker; `volume`, `pitch` range for variation, `minInterval` + `repeatVolume` for sounds that can repeat fast, `spatial: false` for UI and 2D sounds.
+- `variants`: one per take with `file`, `status` and, once uploaded, `id`. Status: `generated` -> `picked` (a person listened and chose it) -> `uploaded` (has an id, in moderation, plays nothing yet) -> `approved` (goes into the game); `rejected` stays for the record.
+
+## 2. Making the takes
+- Every prompt is two parts: what it is ("two steel swords clashing hard, a bright ringing clang") plus one **style line** shared by the whole game (`style`: "anime, loud, punchy, no music, no voice"), and short. `sfx_manifest.py plan sounds.json` prints the full prompts, the number of takes, the seconds of audio and, with `pricePerSecond`, the price, and generates nothing: show it, get a yes, then run the generator.
+- Generator APIs (sound-effect models on hosted model platforms) need a key: the user stores it as an environment variable once; code reads it from the environment and never prints it. Never paste keys into the chat. Show the price before every batch; 2 takes each is the usual start.
+- Try a model by hand on a few prompts first; switching models is one line of code, picking the style is not.
+
+## 3. Checking and cleaning
+`python3 scripts/sfx_manifest.py check sounds.json --animations animations.json --vfx Vfx.luau` measures every take (WAV, PCM) and the manifest:
+- **empty**: silent all through (hover and pickup takes come back empty more often than you'd think);
+- **silence before the sound**: more than `maxLead` (30 ms) is lag in game;
+- **late hit**: for marker sounds, silence + build-up to the loudest point must fit in `syncTolerance` (50 ms, about 1.5 frames), or the hit lands after the pose; event sounds warn above `maxAttack`;
+- **too long** (the sound itself, not its trailing silence), **clipping**, **loudness** more than 3 dB off `targetLoudness`, sample rate;
+- the marker exists on that animation, the vfx preset exists, uploaded/approved takes have ids, sounds with no approved take play nothing.
+
+`sfx_manifest.py trim sounds.json --out cleaned/` (or `--in-place`) cuts each take where it gets loud (5 ms pre-roll), drops trailing silence, matches loudness to the target with the peak kept under -1 dBFS, and fades the edges. It fixes lag and loudness; a slow build-up or a sound that is too long needs another take.
+
+## 4. Upload, moderation, ids
+- Upload the picked takes with the account or group that owns the experience (Creator Hub, Asset Manager bulk import, or the Open Cloud assets API with a key from the environment). Put each id in its variant and set `uploaded`.
+- New audio goes through moderation; until it passes it plays nothing in game. Check each one, then set `approved`. `check` lists sounds with takes still waiting.
+- `sfx_manifest.py luau sounds.json -o src/shared/SfxIds.luau` writes only approved ids, with volume, pitch, repeat settings, marker, event, vfx and spatial.
+
+## 5. In the game: Sfx.luau and the marker sync
+- `Sfx.configure(require(SfxIds), { vfx = Vfx })`, then `Sfx.bind(animationSet, weaponOrRoot)`: every sound with a `marker` plays on that AnimationSet marker together with its Vfx preset, at the same part, on the same frame. Code-triggered sounds: `Sfx.play(name, part)`.
+- Each play picks a random approved take and a pitch in the range; a repeat inside `minInterval` plays at `repeatVolume`, so a hundred hits or a horde don't sound like a machine gun.
+- Sounds play on the client, like effects: the server fires one remote per moment, clients play animation, effect and sound.
+
+## 6. What stays human
+The checker measures; it can't hear. An explosion that sounds like a balloon losing air passes every number. A person listens to every take (`picked`), and to the moment in a playtest with the animation and the effect.
 
 ## File: references/vfx.md
 
@@ -229,6 +313,7 @@ Checked against create.roblox.com/docs/effects (particle emitters, beams, trails
 5. Budgets and accessibility
 6. Networking
 7. Textures
+8. Layered flipbooks
 
 ## 1. Feedback map
 Every verb in the mechanic matrix gets feedback on three channels, sized by importance: **visual** (VFX, UI pop, camera), **audio** (SFX), **motion** (animation, hit-stop, shake). Big moments (level up, rare drop, purchase, boss kill) get all three and stand out; frequent moments (footsteps, coin pickup, every hit) stay small and cheap so they don't become noise.
@@ -245,6 +330,7 @@ Every verb in the mechanic matrix gets feedback on three channels, sized by impo
 | Rarity / item highlight | RarityGlow (loop) | low rate |
 | Ambience | Fireflies (loop) | very low rate |
 | Speed / dash | SpeedTrail (loop) | trail |
+| Sword / melee swing | Slash (layered 4x4 flipbook, variants Frost / Ember) | medium, < 0.5 s |
 
 ## 2. ParticleEmitter essentials
 - **Rate** is particles per second for continuous emitters; for one-shots keep `Enabled = false` and call `emitter:Emit(count)`. One emitter can create up to 400 particles/s (100/s on mobile).
@@ -288,18 +374,39 @@ Match the world (see the map builder's style presets) and the UI style:
 - 64-256 px is enough for most particles; reuse a few textures across many effects; flipbooks up to 1024 px sheets only for hero effects.
 - White textures + `Color` let one texture serve every color; keep alpha soft at the edges to avoid hard squares.
 
+## 8. Layered flipbooks
+One drawing, every element: draw the effect in **white**, split into layers (glow, body, hot core; a rim if the style needs one), animate it as frames on one sheet, and let the game color each layer. `Vfx.Presets.Slash` is the worked example on its own sheet (`assets/textures/slash_4x4.png`, 16 frames: grows in, holds, tears apart along the flow).
+- **Frames**: 16 on a 4x4 grid (`Grid4x4`) for most effects; 4 (2x2) for tiny ones, 64 (8x8) only for hero effects on a 1024 px sheet. The shape tapers to a point at both ends in every frame, or the ends look cut off when a frame stops. Torn edges follow the motion, never square steps.
+- **Margins**: nothing within 4 px of a cell edge. Paint that touches the edge shows as a box around the effect in game. No grey smoke or haze filling the cell either ("fog machine"): it reads as squares.
+- **Pack and check**: `python3 scripts/flipbook.py pack <frames-dir | anim.gif> -o sheet.png --fit --white` (same scale for every frame, white mask from colored frames), `flipbook.py check sheet.png --strict` (square, power of two, <= 1024 px, margins, empty frames, haze, white), `flipbook.py preview sheet.png -o preview.html --tint "#96d7ff" --tint "#ffb43c"` (the frame playing per color variant next to the sheet with that frame lit up; `?frame=7` opens on one frame).
+- **Preset**: one emitter per layer, all on the same sheet: `layer = "Body"`, `flipbook = { layout = "Grid4x4", mode = "OneShot" }` (OneShot plays the 16 frames once over the particle lifetime; Loop/PingPong/Random use `framerate`), the same fixed `rotation` and zero speed so the layers stay stacked, `zOffset` glow < body < core, and `minQuality` on big soft layers (the glow is dropped at low quality to save fill-rate).
+- **Variants**: `variants = { Frost = { Glow = {...}, Body = {...}, Core = {...} }, Ember = {...} }`, played with `Vfx.play("Slash", target, { variant = "Ember" })`; `layerColors` overrides single layers; `color` still tints everything. `Vfx.variants(name)` lists them; the showcase builds one pad per variant (`Slash_Ember`, `Slash_Frost`).
+- **Accessibility**: reduced flashing turns `Random` frame jumps into `Loop`; keep bright single-frame flashes as separate `flash = true` layers so the setting can drop them.
+- **Red**: keep red to glow, flame and smoke. Red drops on a slash read as blood, which the maturity questionnaire and moderation care about.
+- **Upload**: the sheet goes up like any texture (owner account or group), id in `Vfx.Textures.SlashSheet`; until then the sparkle fallback shows the frames of the wrong texture, so judge the look only after upload.
+
 ## Files not included here
 
 Scripts and assets of this skill. Download them from https://github.com/G3LO1/gelo/tree/main/plugins/roblox-studio/skills/roblox-animation-vfx (paths relative to that folder):
 
+- `assets/AnimCheck.luau`
 - `assets/AnimationSet.luau`
+- `assets/Sfx.luau`
 - `assets/Vfx.luau`
+- `assets/examples/animations.json`
+- `assets/examples/models.json`
+- `assets/examples/sounds.json`
 - `assets/textures/glow.png`
 - `assets/textures/ring.png`
+- `assets/textures/slash_4x4.png`
 - `assets/textures/smoke.png`
 - `assets/textures/spark.png`
 - `assets/textures/star.png`
+- `scripts/anim_accept.py`
 - `scripts/anim_manifest.py`
 - `scripts/blender_check.py`
+- `scripts/flipbook.py`
 - `scripts/make_textures.py`
+- `scripts/model_batch.py`
+- `scripts/sfx_manifest.py`
 - `scripts/vfx_showcase.luau`

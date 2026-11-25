@@ -11,6 +11,7 @@ Checked against create.roblox.com/docs/animation (editor, events, curve editor, 
 6. Playing animations in code
 7. Permissions and publishing
 8. Common failures
+9. Retarget acceptance (mocap, AI clips, store animations)
 
 ## 1. Rig decision
 - **Players' own R15 avatars** (most games): animations must work on any body shape and scale; test on a tall, a short and a blocky avatar.
@@ -73,3 +74,17 @@ Add named markers on the events track at the exact frame something must happen (
 - Feet slide: run animation speed doesn't match WalkSpeed; adjust playback speed from velocity.
 - R6 animation on R15 avatar (or the reverse): nothing plays.
 - Memory grows each respawn: tracks and marker connections never cleaned up.
+
+## 9. Retarget acceptance (mocap, AI clips, store animations)
+Motion from another skeleton (FreeMoCap or other video capture, AI motion models, Unreal/store packs with 70+ bones, Animation Capture) never fits a 15-part R15 body or a 6-part R6 body by itself. What goes wrong, and what to do when moving it over:
+- **Proportions**: R15 arms are short and the torso is a brick. Copying angles makes hands miss the prop and feet float or sink. Scale the motion by leg length, stand the feet on the floor where the source says they touch it, and put the hands on the prop first (IK), then bend the arms to reach.
+- **R6** has no elbows or knees: aim each arm from shoulder to hand and each leg from hip to foot. Roblox's own generated clips are R15 only; ship R6 versions only when the game allows R6 avatars, as separate uploads (`idR6`).
+- **Props** go through a short body (a long blade through the torso), fly out of the hand or sink into the fingers. Check every frame, not a few poses.
+- **Loops** pop when the last pose isn't the first; **root** travel makes avatars drift (Roblox plays avatar animations in place); **markers** don't always survive the FBX import.
+
+The repeatable check, the same for every clip:
+1. In `animations.json` give each clip an `accept` block: `grounded` + `speed` (the WalkSpeed the game moves the character at; 0 for idles) for clips that keep contact with the ground, `prop` + `grips` (hand bone -> grip point, e.g. the `Grip` from `model_batch.py`) for clips with a prop, `rootMotion` for non-avatar rigs, tolerances at the top level. List `"rigs": ["R15", "R6"]` when both ship. Example: `assets/examples/animations.json` (Walk = ground contact, Chop = katana).
+2. In Blender, keep the clips as actions named like the manifest (`Walk`, and `Walk_R6` on the R6 rig; Fake User on, or Blender drops unused actions when saving), the character's parts bone-parented or skinned, the prop with a grip Empty. Run `blender -b scene.blend --python scripts/anim_accept.py -- animations.json` (or through the Blender MCP code tool). It reports, per clip and rig: feet floating or sinking and the frames, planted feet sliding against `speed`, root travel, the prop leaving the hand (frames, distance), the prop going through each body part (frames per part), loop pops (bone, degrees), markers with their times, and R15 vs R6 differences in length and marker frames. Fix and run again until it passes.
+3. Look at the reference, the rig and Studio from the same camera side by side (or the rig over the source video); the numbers don't catch style.
+4. After importing and publishing, run `AnimCheck.runAll(Animations)` in Studio (`assets/AnimCheck.luau`): it loads each published clip and reports missing markers, wrong saved looping or priority, and ids that don't load (ownership).
+

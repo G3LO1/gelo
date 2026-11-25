@@ -10,6 +10,7 @@ Checked against create.roblox.com/docs/effects (particle emitters, beams, trails
 5. Budgets and accessibility
 6. Networking
 7. Textures
+8. Layered flipbooks
 
 ## 1. Feedback map
 Every verb in the mechanic matrix gets feedback on three channels, sized by importance: **visual** (VFX, UI pop, camera), **audio** (SFX), **motion** (animation, hit-stop, shake). Big moments (level up, rare drop, purchase, boss kill) get all three and stand out; frequent moments (footsteps, coin pickup, every hit) stay small and cheap so they don't become noise.
@@ -26,6 +27,7 @@ Every verb in the mechanic matrix gets feedback on three channels, sized by impo
 | Rarity / item highlight | RarityGlow (loop) | low rate |
 | Ambience | Fireflies (loop) | very low rate |
 | Speed / dash | SpeedTrail (loop) | trail |
+| Sword / melee swing | Slash (layered 4x4 flipbook, variants Frost / Ember) | medium, < 0.5 s |
 
 ## 2. ParticleEmitter essentials
 - **Rate** is particles per second for continuous emitters; for one-shots keep `Enabled = false` and call `emitter:Emit(count)`. One emitter can create up to 400 particles/s (100/s on mobile).
@@ -68,3 +70,14 @@ Match the world (see the map builder's style presets) and the UI style:
 - `scripts/make_textures.py` generates original white-on-transparent textures (glow, star, spark, smoke, ring); `assets/textures/` holds a 128 px set. Upload them (Asset Manager bulk import) with the account or group that owns the experience and paste the ids into `Vfx.Textures`.
 - 64-256 px is enough for most particles; reuse a few textures across many effects; flipbooks up to 1024 px sheets only for hero effects.
 - White textures + `Color` let one texture serve every color; keep alpha soft at the edges to avoid hard squares.
+
+## 8. Layered flipbooks
+One drawing, every element: draw the effect in **white**, split into layers (glow, body, hot core; a rim if the style needs one), animate it as frames on one sheet, and let the game color each layer. `Vfx.Presets.Slash` is the worked example on its own sheet (`assets/textures/slash_4x4.png`, 16 frames: grows in, holds, tears apart along the flow).
+- **Frames**: 16 on a 4x4 grid (`Grid4x4`) for most effects; 4 (2x2) for tiny ones, 64 (8x8) only for hero effects on a 1024 px sheet. The shape tapers to a point at both ends in every frame, or the ends look cut off when a frame stops. Torn edges follow the motion, never square steps.
+- **Margins**: nothing within 4 px of a cell edge. Paint that touches the edge shows as a box around the effect in game. No grey smoke or haze filling the cell either ("fog machine"): it reads as squares.
+- **Pack and check**: `python3 scripts/flipbook.py pack <frames-dir | anim.gif> -o sheet.png --fit --white` (same scale for every frame, white mask from colored frames), `flipbook.py check sheet.png --strict` (square, power of two, <= 1024 px, margins, empty frames, haze, white), `flipbook.py preview sheet.png -o preview.html --tint "#96d7ff" --tint "#ffb43c"` (the frame playing per color variant next to the sheet with that frame lit up; `?frame=7` opens on one frame).
+- **Preset**: one emitter per layer, all on the same sheet: `layer = "Body"`, `flipbook = { layout = "Grid4x4", mode = "OneShot" }` (OneShot plays the 16 frames once over the particle lifetime; Loop/PingPong/Random use `framerate`), the same fixed `rotation` and zero speed so the layers stay stacked, `zOffset` glow < body < core, and `minQuality` on big soft layers (the glow is dropped at low quality to save fill-rate).
+- **Variants**: `variants = { Frost = { Glow = {...}, Body = {...}, Core = {...} }, Ember = {...} }`, played with `Vfx.play("Slash", target, { variant = "Ember" })`; `layerColors` overrides single layers; `color` still tints everything. `Vfx.variants(name)` lists them; the showcase builds one pad per variant (`Slash_Ember`, `Slash_Frost`).
+- **Accessibility**: reduced flashing turns `Random` frame jumps into `Loop`; keep bright single-frame flashes as separate `flash = true` layers so the setting can drop them.
+- **Red**: keep red to glow, flame and smoke. Red drops on a slash read as blood, which the maturity questionnaire and moderation care about.
+- **Upload**: the sheet goes up like any texture (owner account or group), id in `Vfx.Textures.SlashSheet`; until then the sparkle fallback shows the frames of the wrong texture, so judge the look only after upload.
